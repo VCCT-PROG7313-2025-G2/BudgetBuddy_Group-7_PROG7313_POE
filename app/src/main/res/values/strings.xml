@@ -1,3 +1,55 @@
 <resources>
     <string name="app_name">BudgetBuddy</string>
+
+    <!-- Startup Screen -->
+    <string name="app_logo">Budget Buddy Logo</string>
+    <string name="startup_slogan">Your personal finance companion for smart money management</string>
+    <string name="startup_welcome">Welcome to Budget Buddy</string>
+    <string name="feature_track_expenses">Track your expenses easily</string>
+    <string name="feature_set_goals">Set and achieve savings goals</string>
+    <string name="feature_get_notifications">Get smart notifications</string>
+    <string name="get_started">Get Started</string>
+    <string name="startup_terms">By continuing, you agree to our Terms of Service</string>
+
+    <!-- Login/Sign Up Screen -->
+    <string name="hint_email">Email</string>
+    <string name="hint_password">Password</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="login">Login</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="biometric_login">Biometric Login</string>
+
+    <!-- Account Creation Screen -->
+    <string name="create_account_title">Create Account</string>
+    <string name="hint_full_name">Full Name</string>
+    <string name="hint_confirm_password">Confirm Password</string>
+    <string name="terms_agreement">I agree to the Terms &amp; Privacy Policy</string>
+    <string name="back_to_login">Back to Login</string>
+
+    <!-- Bottom Navigation -->
+    <string name="bottom_nav_home">Home</string>
+    <string name="bottom_nav_reports">Reports</string>
+    <string name="bottom_nav_profile">Profile</string>
+
+    <!-- Home Screen -->
+    <string name="profile_image_desc">User profile image</string>
+    <string name="notifications_button_desc">Notifications</string>
+    <string name="monthly_budget_overview">Monthly Budget Overview</string>
+    <string name="add_new_expense">+ Add New Expense</string>
+    <string name="daily_spending_trend">Daily Spending Trend</string>
+    <string name="budget_categories">Budget Categories</string>
+    <string name="your_rewards">Your Rewards</string>
+
+    <!-- New Expense Screen -->
+    <string name="new_expense_title">New Expense</string>
+    <string name="hint_amount">Amount</string>
+    <string name="hint_date">Date</string>
+    <string name="hint_category">Select Category</string>
+    <string name="hint_notes">Add notes about this expense</string>
+    <string name="attach_receipt">Attach Receipt</string>
+    <string name="receipt_preview_desc">Attached receipt preview</string>
+    <string name="save_expense">Save Expense</string>
+
+    <!-- Add other strings as needed -->
+
 </resources>

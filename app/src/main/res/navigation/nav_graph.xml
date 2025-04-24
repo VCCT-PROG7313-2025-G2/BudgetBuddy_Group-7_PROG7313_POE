@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/startupFragment">
+
+    <fragment
+        android:id="@+id/startupFragment"
+        android:name="com.example.budgetbuddy.ui.fragment.StartupFragment"
+        android:label="fragment_startup"
+        tools:layout="@layout/fragment_startup" >
+        <action
+            android:id="@+id/action_startupFragment_to_loginSignupFragment"
+            app:destination="@id/loginSignupFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/loginSignupFragment"
+        android:name="com.example.budgetbuddy.ui.fragment.LoginSignupFragment"
+        android:label="fragment_login_signup"
+        tools:layout="@layout/fragment_login_signup" >
+        <!-- Action to navigate to Account Creation -->
+        <action
+            android:id="@+id/action_loginSignupFragment_to_accountCreationFragment"
+            app:destination="@id/accountCreationFragment" />
+        <!-- Action to navigate to Home after successful login -->
+        <action
+            android:id="@+id/action_loginSignupFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
+        <!-- TODO: Add action for Forgot Password if needed -->
+    </fragment>
+
+    <!-- Placeholder for Account Creation Fragment -->
+    <fragment
+        android:id="@+id/accountCreationFragment"
+        android:name="com.example.budgetbuddy.ui.fragment.AccountCreationFragment" 
+        android:label="fragment_account_creation"
+        tools:layout="@layout/fragment_account_creation">
+        <!-- Action back to Login/Sign Up -->
+        <action
+            android:id="@+id/action_accountCreationFragment_to_loginSignupFragment"
+            app:destination="@id/loginSignupFragment"
+            app:popUpTo="@id/loginSignupFragment" 
+            app:popUpToInclusive="true" /> 
+        <!-- Action to navigate to Home after successful sign up -->
+        <action
+            android:id="@+id/action_accountCreationFragment_to_homeFragment"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/nav_graph" /> <!-- Clear back stack up to the start -->
+    </fragment>
+
+    <!-- Placeholder for Home Fragment -->
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.budgetbuddy.ui.fragment.HomeFragment"
+        android:label="fragment_home" 
+        tools:layout="@layout/fragment_home">
+        <!-- Action to New Expense Screen -->
+        <action
+            android:id="@+id/action_homeFragment_to_newExpenseFragment"
+            app:destination="@id/newExpenseFragment" />
+    </fragment>
+
+    <!-- Placeholder for Reports Fragment -->
+    <fragment
+        android:id="@+id/reportsFragment"
+        android:name="com.example.budgetbuddy.ui.fragment.ReportsFragment" 
+        android:label="fragment_reports" 
+        tools:layout="@layout/fragment_reports"> 
+        <!-- Add layout and class later -->
+    </fragment>
+
+    <!-- Placeholder for Profile Fragment -->
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.budgetbuddy.ui.fragment.ProfileFragment" 
+        android:label="fragment_profile" 
+        tools:layout="@layout/fragment_profile"> 
+        <!-- Add layout and class later -->
+    </fragment>
+
+    <!-- New Expense Fragment -->
+    <fragment
+        android:id="@+id/newExpenseFragment"
+        android:name="com.example.budgetbuddy.ui.fragment.NewExpenseFragment"
+        android:label="@string/new_expense_title" 
+        tools:layout="@layout/fragment_new_expense">
+        <!-- Navigation actions FROM NewExpenseFragment if needed -->
+    </fragment>
+
+    <!-- Fragments and actions will be defined here later -->
+
+</navigation> 

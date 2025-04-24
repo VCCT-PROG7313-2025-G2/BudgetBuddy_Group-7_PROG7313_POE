@@ -6,4 +6,16 @@
     </style>
 
     <style name="Theme.BudgetBuddy" parent="Base.Theme.BudgetBuddy" />
+
+    <!-- Style for Feature TextViews on Startup Screen -->
+    <style name="FeatureTextViewStyle" parent="Widget.AppCompat.TextView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:drawablePadding">16dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:textAppearance">@style/TextAppearance.MaterialComponents.Body1</item>
+        <!-- Add placeholder drawable tint if needed -->
+        <!-- <item name="android:drawableTint">?attr/colorControlNormal</item> --> 
+    </style>
+
 </resources>
