@@ -62,9 +62,9 @@ class ProfileFragment : Fragment() {
         }
 
         binding.settingsLinkTextView.setOnClickListener {
-            // Navigate to Settings screen (needs to be created)
-            // findNavController().navigate(R.id.action_profileFragment_to_settingsFragment)
-             Toast.makeText(context, "Settings Clicked (Not implemented)", Toast.LENGTH_SHORT).show()
+            // Navigate to Settings screen using defined action
+             findNavController().navigate(R.id.action_profileFragment_to_settingsFragment)
+             // Toast.makeText(context, "Settings Clicked (Not implemented)", Toast.LENGTH_SHORT).show()
         }
 
         binding.budgetSetupLinkTextView.setOnClickListener {

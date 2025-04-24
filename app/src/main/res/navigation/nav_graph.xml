@@ -93,7 +93,10 @@
         <action
             android:id="@+id/action_profileFragment_to_budgetSetupFragment"
             app:destination="@id/budgetSetupFragment" />
-        <!-- TODO: Add action to SettingsFragment -->
+        <!-- Action to SettingsFragment -->
+        <action
+            android:id="@+id/action_profileFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
     </fragment>
 
     <!-- New Expense Fragment -->
@@ -130,6 +133,15 @@
         android:label="@string/rewards_title"
         tools:layout="@layout/fragment_rewards">
         <!-- Navigation actions FROM RewardsFragment if needed -->
+    </fragment>
+
+    <!-- Settings Fragment -->
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.budgetbuddy.ui.fragment.SettingsFragment"
+        android:label="@string/settings_title"
+        tools:layout="@layout/fragment_settings">
+        <!-- Navigation actions FROM SettingsFragment if needed -->
     </fragment>
 
     <!-- Fragments and actions will be defined here later -->
