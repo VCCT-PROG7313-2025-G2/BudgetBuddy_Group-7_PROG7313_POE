@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
+
+    <!-- Category Icon -->
+    <ImageView
+        android:id="@+id/categoryIconImageView"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:src="@drawable/ic_category_food" 
+        android:contentDescription="@string/category_icon_desc" />
+
+    <!-- Expense Details -->
+    <TextView
+        android:id="@+id/categoryNameTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+        app:layout_constraintStart_toEndOf="@id/categoryIconImageView"
+        app:layout_constraintTop_toTopOf="@id/categoryIconImageView"
+        app:layout_constraintEnd_toStartOf="@+id/amountTextView"
+        tools:text="Restaurant" />
+
+    <TextView
+        android:id="@+id/notesTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
+        android:maxLines="1"
+        android:ellipsize="end"
+        app:layout_constraintStart_toStartOf="@id/categoryNameTextView"
+        app:layout_constraintTop_toBottomOf="@id/categoryNameTextView"
+        app:layout_constraintEnd_toStartOf="@+id/amountTextView"
+        app:layout_constraintBottom_toBottomOf="@id/categoryIconImageView"
+        tools:text="Lunch with Sam" />
+
+    <!-- Amount -->
+    <TextView
+        android:id="@+id/amountTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/categoryIconImageView"
+        app:layout_constraintBottom_toBottomOf="@id/categoryIconImageView"
+        tools:text="-$24.50" /> 
+
+    <!-- Receipt Indicator (Optional) -->
+    <ImageView
+        android:id="@+id/receiptIndicatorImageView"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:src="@drawable/ic_receipt"
+        android:visibility="gone" 
+        tools:visibility="visible"
+        android:contentDescription="@string/receipt_attached_desc"
+        app:layout_constraintEnd_toEndOf="@id/categoryNameTextView"
+        app:layout_constraintTop_toBottomOf="@id/notesTextView" 
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout> 

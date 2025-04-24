@@ -50,6 +50,12 @@
     <string name="receipt_preview_desc">Attached receipt preview</string>
     <string name="save_expense">Save Expense</string>
 
+    <!-- Expenses Screen -->
+    <string name="expenses_title">Expenses</string> 
+    <string name="date_range_last_30_days">Last 30 days</string> 
+    <string name="category_icon_desc">Category icon</string>
+    <string name="receipt_attached_desc">Receipt attached indicator</string>
+
     <!-- Add other strings as needed -->
 
 </resources>
