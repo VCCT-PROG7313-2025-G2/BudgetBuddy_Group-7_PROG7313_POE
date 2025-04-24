@@ -63,6 +63,21 @@
     <string name="hint_limit">Limit</string>
     <string name="save_budget">Save Budget</string>
 
+    <!-- Reports Screen -->
+    <string name="reports_title">Reports &amp; Insights</string>
+    <string name="spending_breakdown_label">Spending Breakdown</string>
+    <string name="monthly_spending_trend_label">Monthly Spending Trend</string>
+    <string name="key_stats_label">Key Stats</string>
+    <string name="average_spending_placeholder">Average Daily Spending: $--.--</string>
+    <string name="biggest_expense_placeholder">Biggest Expense: ------ ($--.--)</string>
+
+    <!-- Rewards Screen -->
+    <string name="rewards_title">Rewards &amp; Achievements</string>
+    <string name="your_points_label">Points:</string>
+    <string name="achievements_label">Achievements</string>
+    <string name="achievement_icon_desc">Achievement icon</string>
+    <string name="points_to_next_level_format">%d points to next level</string> 
+
     <!-- Add other strings as needed -->
 
 </resources>

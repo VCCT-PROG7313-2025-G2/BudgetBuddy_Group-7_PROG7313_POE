@@ -65,6 +65,9 @@ class HomeFragment : Fragment() {
         }
 
         // TODO: Set up Rewards section logic
+        binding.rewardsLabelTextView.setOnClickListener { // Temp navigation trigger
+            findNavController().navigate(R.id.action_homeFragment_to_rewardsFragment)
+        }
     }
 
     override fun onDestroyView() {

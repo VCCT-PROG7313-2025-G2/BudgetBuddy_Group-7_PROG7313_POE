@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    tools:context=".ui.fragment.ReportsFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Title (Could also be set via NavController label) -->
+        <TextView
+            android:id="@+id/titleTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/reports_title"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- Date Range Selector -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/dateRangeButton"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/date_range_last_30_days"
+            app:icon="@drawable/ic_arrow_down"
+            app:iconGravity="end"
+            app:layout_constraintTop_toBottomOf="@id/titleTextView"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- Spending Breakdown Pie Chart -->
+        <TextView
+            android:id="@+id/spendingBreakdownLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/spending_breakdown_label"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+            app:layout_constraintTop_toBottomOf="@id/dateRangeButton"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <FrameLayout
+            android:id="@+id/spendingBreakdownChartContainer"
+            android:layout_width="0dp"
+            android:layout_height="200dp" 
+            android:layout_marginTop="8dp"
+            android:background="@color/placeholder_background"
+            app:layout_constraintTop_toBottomOf="@id/spendingBreakdownLabel"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+            <!-- Chart will be added here programmatically -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="(Spending Breakdown Pie Chart)"/>
+        </FrameLayout>
+
+        <!-- Monthly Spending Trend Line Chart -->
+        <TextView
+            android:id="@+id/monthlySpendingLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="@string/monthly_spending_trend_label"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+            app:layout_constraintTop_toBottomOf="@id/spendingBreakdownChartContainer"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <FrameLayout
+            android:id="@+id/monthlySpendingChartContainer"
+            android:layout_width="0dp"
+            android:layout_height="200dp" 
+            android:layout_marginTop="8dp"
+            android:background="@color/placeholder_background"
+            app:layout_constraintTop_toBottomOf="@id/monthlySpendingLabel"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+            <!-- Chart will be added here programmatically -->
+             <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="(Monthly Spending Line Chart)"/>
+        </FrameLayout>
+
+         <!-- Key Stats (Optional) -->
+         <TextView
+            android:id="@+id/keyStatsLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="@string/key_stats_label"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+            app:layout_constraintTop_toBottomOf="@id/monthlySpendingChartContainer"
+            app:layout_constraintStart_toStartOf="parent" />
+        
+        <TextView
+            android:id="@+id/averageSpendingTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/average_spending_placeholder"
+             android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+            app:layout_constraintTop_toBottomOf="@id/keyStatsLabel"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+        
+         <TextView
+            android:id="@+id/biggestExpenseTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+             android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+            android:text="@string/biggest_expense_placeholder"
+            app:layout_constraintTop_toBottomOf="@id/averageSpendingTextView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.core.widget.NestedScrollView> 

@@ -68,15 +68,19 @@
         <action
             android:id="@+id/action_homeFragment_to_budgetSetupFragment"
             app:destination="@id/budgetSetupFragment" />
+        <!-- Temp Action to Rewards Screen -->
+        <action
+            android:id="@+id/action_homeFragment_to_rewardsFragment"
+            app:destination="@id/rewardsFragment" />
     </fragment>
 
     <!-- Placeholder for Reports Fragment -->
     <fragment
         android:id="@+id/reportsFragment"
         android:name="com.example.budgetbuddy.ui.fragment.ReportsFragment" 
-        android:label="fragment_reports" 
+        android:label="@string/reports_title" 
         tools:layout="@layout/fragment_reports"> 
-        <!-- Add layout and class later -->
+        <!-- Add actions FROM reports fragment if needed -->
     </fragment>
 
     <!-- Placeholder for Profile Fragment -->
@@ -113,6 +117,15 @@
         android:label="@string/budget_setup_title" 
         tools:layout="@layout/fragment_budget_setup">
         <!-- Navigation actions FROM BudgetSetupFragment if needed -->
+    </fragment>
+
+    <!-- Rewards Fragment -->
+    <fragment
+        android:id="@+id/rewardsFragment"
+        android:name="com.example.budgetbuddy.ui.fragment.RewardsFragment"
+        android:label="@string/rewards_title"
+        tools:layout="@layout/fragment_rewards">
+        <!-- Navigation actions FROM RewardsFragment if needed -->
     </fragment>
 
     <!-- Fragments and actions will be defined here later -->
