@@ -55,6 +55,10 @@ class HomeFragment : Fragment() {
         }
 
         // TODO: Set up RecyclerView for Budget Categories
+        binding.budgetCategoriesLabelTextView.setOnClickListener { // Temp navigation trigger
+             findNavController().navigate(R.id.action_homeFragment_to_budgetSetupFragment)
+        }
+
         // TODO: Set up Chart for Spending Trend
         binding.spendingTrendChartView.setOnClickListener { // Temp navigation trigger
             findNavController().navigate(R.id.action_homeFragment_to_expensesFragment)

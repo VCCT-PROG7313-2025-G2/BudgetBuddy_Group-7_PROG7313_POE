@@ -64,6 +64,10 @@
         <action
             android:id="@+id/action_homeFragment_to_expensesFragment"
             app:destination="@id/expensesFragment" />
+        <!-- Temp Action to Budget Setup Screen -->
+        <action
+            android:id="@+id/action_homeFragment_to_budgetSetupFragment"
+            app:destination="@id/budgetSetupFragment" />
     </fragment>
 
     <!-- Placeholder for Reports Fragment -->
@@ -100,6 +104,15 @@
         android:label="@string/expenses_title" 
         tools:layout="@layout/fragment_expenses">
         <!-- Navigation actions FROM ExpensesFragment if needed -->
+    </fragment>
+
+    <!-- Budget Setup Fragment -->
+    <fragment
+        android:id="@+id/budgetSetupFragment"
+        android:name="com.example.budgetbuddy.ui.fragment.BudgetSetupFragment"
+        android:label="@string/budget_setup_title" 
+        tools:layout="@layout/fragment_budget_setup">
+        <!-- Navigation actions FROM BudgetSetupFragment if needed -->
     </fragment>
 
     <!-- Fragments and actions will be defined here later -->

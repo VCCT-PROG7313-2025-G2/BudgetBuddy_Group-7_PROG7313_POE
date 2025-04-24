@@ -56,6 +56,13 @@
     <string name="category_icon_desc">Category icon</string>
     <string name="receipt_attached_desc">Receipt attached indicator</string>
 
+    <!-- Budget Setup Screen -->
+    <string name="budget_setup_title">Set Up Your Budget</string>
+    <string name="hint_monthly_budget">Overall Monthly Budget</string>
+    <string name="category_budgets_label">Set Limits for Categories (Optional)</string>
+    <string name="hint_limit">Limit</string>
+    <string name="save_budget">Save Budget</string>
+
     <!-- Add other strings as needed -->
 
 </resources>
