@@ -87,9 +87,13 @@
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.example.budgetbuddy.ui.fragment.ProfileFragment" 
-        android:label="fragment_profile" 
+        android:label="@string/profile_title" 
         tools:layout="@layout/fragment_profile"> 
-        <!-- Add layout and class later -->
+        <!-- Action to Budget Setup -->
+        <action
+            android:id="@+id/action_profileFragment_to_budgetSetupFragment"
+            app:destination="@id/budgetSetupFragment" />
+        <!-- TODO: Add action to SettingsFragment -->
     </fragment>
 
     <!-- New Expense Fragment -->

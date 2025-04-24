@@ -78,6 +78,13 @@
     <string name="achievement_icon_desc">Achievement icon</string>
     <string name="points_to_next_level_format">%d points to next level</string> 
 
+    <!-- Profile Screen -->
+    <string name="profile_title">Profile</string>
+    <string name="change_profile_picture">Change Picture</string>
+    <string name="settings_link">Settings</string>
+    <string name="budget_setup_link">Manage Budget</string>
+    <string name="save_profile">Save Profile</string>
+
     <!-- Add other strings as needed -->
 
 </resources>
