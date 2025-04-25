@@ -1,102 +1,119 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
+    android:fillViewport="true"
     tools:context=".ui.fragment.SettingsFragment">
 
-    <!-- Title -->
-    <TextView
-        android:id="@+id/titleTextView"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/settings_title"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <!-- Notification Settings -->
-    <TextView
-        android:id="@+id/notificationsLabel"
-        style="@style/SettingsSectionHeader"
-        android:text="@string/notifications_label"
-        app:layout_constraintTop_toBottomOf="@id/titleTextView"
-        app:layout_constraintStart_toStartOf="parent" />
+        <!-- Title -->
+        <TextView
+            android:id="@+id/titleTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_title"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
-    <com.google.android.material.materialswitch.MaterialSwitch
-        android:id="@+id/budgetAlertsSwitch"
-        style="@style/SettingsSwitch"
-        android:text="@string/budget_alerts_setting"
-        app:layout_constraintTop_toBottomOf="@id/notificationsLabel"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        <!-- Personal Information Section -->
+        <TextView
+            style="@style/SettingsSectionHeaderStyle"
+            android:text="@string/personal_information_label" />
 
-    <com.google.android.material.materialswitch.MaterialSwitch
-        android:id="@+id/goalRemindersSwitch"
-        style="@style/SettingsSwitch"
-        android:text="@string/goal_reminders_setting"
-        app:layout_constraintTop_toBottomOf="@id/budgetAlertsSwitch"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        <LinearLayout
+            android:id="@+id/editProfileRow"
+            style="@style/SettingsRowStyle">
+            <TextView
+                style="@style/SettingsRowTextStyle"
+                android:text="@string/edit_profile_label" />
+            <ImageView
+                style="@style/SettingsChevronStyle" />
+        </LinearLayout>
 
-    <!-- General Settings -->
-    <TextView
-        android:id="@+id/generalLabel"
-        style="@style/SettingsSectionHeader"
-        android:text="@string/general_settings_label"
-        app:layout_constraintTop_toBottomOf="@id/goalRemindersSwitch"
-        app:layout_constraintStart_toStartOf="parent" />
+        <com.google.android.material.divider.MaterialDivider style="@style/SettingsDividerStyle"/>
 
-    <TextView
-        android:id="@+id/currencyTextView"
-        style="@style/SettingsItem"
-        android:text="@string/currency_setting"
-        app:drawableEndCompat="@drawable/ic_chevron_right"
-        app:layout_constraintTop_toBottomOf="@id/generalLabel"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        <LinearLayout
+            android:id="@+id/changePasswordRow"
+            style="@style/SettingsRowStyle">
+            <TextView
+                style="@style/SettingsRowTextStyle"
+                android:text="@string/change_password_label" />
+            <ImageView
+                style="@style/SettingsChevronStyle" />
+        </LinearLayout>
 
-    <!-- Data Management -->
-     <TextView
-        android:id="@+id/dataLabel"
-        style="@style/SettingsSectionHeader"
-        android:text="@string/data_management_label"
-        app:layout_constraintTop_toBottomOf="@id/currencyTextView"
-        app:layout_constraintStart_toStartOf="parent" />
+        <!-- Notifications Section -->
+        <TextView
+            style="@style/SettingsSectionHeaderStyle"
+            android:layout_marginTop="24dp"
+            android:text="@string/notifications_label" />
 
-    <TextView
-        android:id="@+id/exportDataTextView"
-        style="@style/SettingsItem"
-        android:text="@string/export_data_setting"
-        app:drawableEndCompat="@drawable/ic_chevron_right"
-        app:layout_constraintTop_toBottomOf="@id/dataLabel"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/budgetAlertsSwitch"
+            style="@style/SettingsSwitchStyle"
+            android:text="@string/budget_alerts_setting" />
 
-    <TextView
-        android:id="@+id/importDataTextView"
-        style="@style/SettingsItem"
-        android:text="@string/import_data_setting"
-        app:drawableEndCompat="@drawable/ic_chevron_right"
-        app:layout_constraintTop_toBottomOf="@id/exportDataTextView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        <com.google.android.material.divider.MaterialDivider style="@style/SettingsDividerStyle"/>
 
-    <!-- Logout Button -->
-    <Button
-        android:id="@+id/logoutButton"
-        style="@style/Widget.MaterialComponents.Button.TextButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:text="@string/logout_button"
-        android:textColor="?attr/colorError" 
-        app:layout_constraintTop_toBottomOf="@id/importDataTextView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintVertical_bias="1.0"/>
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/dailyRemindersSwitch"
+            style="@style/SettingsSwitchStyle"
+            android:text="@string/daily_reminders_setting" />
 
-</androidx.constraintlayout.widget.ConstraintLayout> 
+        <!-- Cloud Sync Section -->
+        <TextView
+            style="@style/SettingsSectionHeaderStyle"
+            android:layout_marginTop="24dp"
+            android:text="@string/cloud_sync_label" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/autoSyncSwitch"
+            style="@style/SettingsSwitchStyle"
+            android:text="@string/auto_sync_setting" />
+
+        <com.google.android.material.divider.MaterialDivider style="@style/SettingsDividerStyle"/>
+
+        <LinearLayout
+            android:id="@+id/syncFrequencyRow"
+            style="@style/SettingsRowStyle">
+            <TextView
+                style="@style/SettingsRowTextStyle"
+                android:text="@string/sync_frequency_label" />
+            <TextView
+                 android:id="@+id/syncFrequencyValueTextView"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:layout_marginEnd="8dp"
+                 android:textAppearance="?attr/textAppearanceBody2"
+                 android:textColor="?android:attr/textColorSecondary"
+                 tools:text="Every 2 hours"/>
+            <ImageView
+                style="@style/SettingsChevronStyle" />
+        </LinearLayout>
+
+        <!-- Account Section -->
+        <TextView
+            style="@style/SettingsSectionHeaderStyle"
+            android:layout_marginTop="24dp"
+            android:text="@string/account_label" />
+
+        <LinearLayout
+            android:id="@+id/signOutRow"
+            style="@style/SettingsRowStyle">
+            <TextView
+                style="@style/SettingsRowTextStyle"
+                android:text="@string/sign_out_label" />
+             <!-- No chevron for sign out -->
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView> 

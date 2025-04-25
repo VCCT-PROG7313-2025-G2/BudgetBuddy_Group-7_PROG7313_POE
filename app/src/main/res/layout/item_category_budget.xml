@@ -5,7 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingTop="8dp"
-    android:paddingBottom="8dp">
+    android:paddingBottom="8dp"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp">
 
     <ImageView
         android:id="@+id/categoryIconImageView"
@@ -14,7 +16,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        tools:src="@drawable/ic_category_food"
+        tools:srcCompat="@drawable/ic_category_food"
         android:contentDescription="@string/category_icon_desc" />
 
     <TextView
@@ -22,32 +24,32 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+        android:textAppearance="?attr/textAppearanceBody1"
         app:layout_constraintStart_toEndOf="@id/categoryIconImageView"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/budgetAmountInputLayout"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/budgetAmountInputLayout"
         tools:text="Food &amp; Dining" />
 
-    <!-- Using TextInputLayout for consistency and hint -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/budgetAmountInputLayout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense" 
-        android:layout_width="100dp"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
+        android:layout_width="120dp" 
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
+        android:hint="@string/hint_limit" 
         app:prefixText="$"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:hint="@string/hint_limit"> 
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/budgetAmountEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="numberDecimal"
-            android:imeOptions="actionDone" 
+            android:imeOptions="actionDone"
+            android:gravity="end"
             tools:text="500"/>
 
     </com.google.android.material.textfield.TextInputLayout>

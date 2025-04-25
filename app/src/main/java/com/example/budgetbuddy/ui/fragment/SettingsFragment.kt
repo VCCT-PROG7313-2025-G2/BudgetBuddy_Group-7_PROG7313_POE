@@ -34,42 +34,45 @@ class SettingsFragment : Fragment() {
     private fun loadSettings() {
         // TODO: Load actual settings from SharedPreferences or ViewModel/Repository
         binding.budgetAlertsSwitch.isChecked = true // Placeholder
-        binding.goalRemindersSwitch.isChecked = true // Placeholder
+        binding.dailyRemindersSwitch.isChecked = true // Placeholder - Renamed from goalRemindersSwitch
         // Update currency text if dynamic
+        binding.syncFrequencyValueTextView.text = "Every 2 hours" // Placeholder
     }
 
     private fun setupListeners() {
+        binding.editProfileRow.setOnClickListener { /* TODO */ Toast.makeText(context, "Edit Profile", Toast.LENGTH_SHORT).show() }
+        binding.changePasswordRow.setOnClickListener { /* TODO */ Toast.makeText(context, "Change Password", Toast.LENGTH_SHORT).show() }
+
         binding.budgetAlertsSwitch.setOnCheckedChangeListener { _, isChecked ->
             // TODO: Save budget alerts setting
             println("Budget Alerts: $isChecked")
         }
 
-        binding.goalRemindersSwitch.setOnCheckedChangeListener { _, isChecked ->
-            // TODO: Save goal reminders setting
-            println("Goal Reminders: $isChecked")
+        binding.dailyRemindersSwitch.setOnCheckedChangeListener { _, isChecked -> // Renamed from goalRemindersSwitch
+            // TODO: Save daily reminders setting
+            println("Daily Reminders: $isChecked")
         }
 
-        binding.currencyTextView.setOnClickListener {
-            // TODO: Implement currency selection (e.g., show a dialog)
-            Toast.makeText(context, "Currency selection not implemented", Toast.LENGTH_SHORT).show()
+        binding.autoSyncSwitch.setOnCheckedChangeListener { _, isChecked ->
+            // TODO: Save auto-sync setting
+            println("Auto Sync: $isChecked")
         }
 
-        binding.exportDataTextView.setOnClickListener {
-            // TODO: Implement export data functionality
-            Toast.makeText(context, "Export data not implemented", Toast.LENGTH_SHORT).show()
+        binding.syncFrequencyRow.setOnClickListener {
+            // TODO: Implement sync frequency selection
+            Toast.makeText(context, "Sync Frequency", Toast.LENGTH_SHORT).show()
         }
 
-        binding.importDataTextView.setOnClickListener {
-            // TODO: Implement import data functionality
-            Toast.makeText(context, "Import data not implemented", Toast.LENGTH_SHORT).show()
-        }
-
-        binding.logoutButton.setOnClickListener {
+        binding.signOutRow.setOnClickListener {
             // TODO: Implement logout logic (clear session, navigate to login)
-            Toast.makeText(context, "Logout Clicked (Not implemented)", Toast.LENGTH_SHORT).show()
-            // Example navigation back to the start (assuming nav_graph is the root)
-            // findNavController().navigate(R.id.action_global_startupFragment) // Needs global action
+            Toast.makeText(context, "Sign Out", Toast.LENGTH_SHORT).show()
         }
+
+        // Remove listeners for views that were removed from the layout
+        // binding.currencyTextView.setOnClickListener { ... }
+        // binding.exportDataTextView.setOnClickListener { ... }
+        // binding.importDataTextView.setOnClickListener { ... }
+        // binding.logoutButton.setOnClickListener { ... }
     }
 
     override fun onDestroyView() {

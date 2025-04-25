@@ -97,6 +97,36 @@
     <string name="import_data_setting">Import Data</string>
     <string name="logout_button">Logout</string>
 
+    <!-- Strings added during layout polishing -->
+    <string name="password_requirements">Min. 8 chars, 1 uppercase, 1 number</string>
+    <string name="hint_set_monthly_budget">Set Monthly Budget</string>
+    <string name="auto_recommendations_label">Auto-recommendations based on spending</string>
+    <string name="add_category">+ Add Category</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="spending_trend_chart_placeholder">Spending trend chart placeholder</string>
+    <string name="rewards_banner_text">You\'re close to your next reward!</string>
+    <string name="select_date">Select Date</string>
+    <string name="edit_profile_button_desc">Edit Profile</string>
+    <string name="expense_history_link">Expense History</string>
+    <string name="date_range_placeholder">Select Date Range</string>
+    <string name="total_spending_label">Total Spending</string>
+    <string name="spending_by_category_label">Spending by Category</string>
+    <string name="pie_chart_placeholder">Spending breakdown pie chart placeholder</string>
+    <string name="bar_chart_placeholder">Daily spending bar chart placeholder</string>
+    <string name="download_report">Download Report</string>
+    <string name="your_badges_label">Your Badges</string>
+    <string name="leaderboard_label">Leaderboard</string>
+    <string name="badge_icon_desc">Badge Icon</string>
+    <string name="personal_information_label">Personal Information</string>
+    <string name="edit_profile_label">Edit Profile</string>
+    <string name="change_password_label">Change Password</string>
+    <string name="daily_reminders_setting">Daily Reminders</string>
+    <string name="cloud_sync_label">Cloud Sync</string>
+    <string name="auto_sync_setting">Auto Sync</string>
+    <string name="sync_frequency_label">Sync Frequency</string>
+    <string name="account_label">Account</string>
+    <string name="sign_out_label">Sign Out</string>
+
     <!-- Add other strings as needed -->
 
 </resources>

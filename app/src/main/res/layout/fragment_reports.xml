@@ -28,12 +28,44 @@
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/date_range_last_30_days"
+            android:text="@string/date_range_placeholder" 
+            tools:text="January 2025"
             app:icon="@drawable/ic_arrow_down"
             app:iconGravity="end"
-            app:layout_constraintTop_toBottomOf="@id/titleTextView"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- Total Spending Section -->
+        <TextView
+            android:id="@+id/totalSpendingLabelTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/total_spending_label"
+            android:textAppearance="?attr/textAppearanceCaption"
+            app:layout_constraintTop_toBottomOf="@id/dateRangeButton"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/totalSpendingAmountTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="?attr/textAppearanceHeadline5"
+            android:textColor="?attr/colorPrimary"
+            app:layout_constraintTop_toBottomOf="@id/totalSpendingLabelTextView"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="$2,458.35" />
+
+        <TextView
+            android:id="@+id/spendingChangeTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textAppearance="?attr/textAppearanceCaption"
+            app:layout_constraintTop_toBottomOf="@id/totalSpendingAmountTextView"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="+ 12.0% from last month" />
 
         <!-- Spending Breakdown Pie Chart -->
         <TextView
@@ -41,89 +73,66 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="@string/spending_breakdown_label"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
-            app:layout_constraintTop_toBottomOf="@id/dateRangeButton"
+            android:text="@string/spending_by_category_label"
+            android:textAppearance="?attr/textAppearanceSubtitle1"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@id/spendingChangeTextView"
             app:layout_constraintStart_toStartOf="parent" />
 
-        <FrameLayout
-            android:id="@+id/spendingBreakdownChartContainer"
+        <ImageView
+            android:id="@+id/spendingBreakdownChartImageView"
             android:layout_width="0dp"
-            android:layout_height="200dp" 
+            android:layout_height="200dp"
             android:layout_marginTop="8dp"
-            android:background="@color/placeholder_background"
+            android:background="#EEEEEE"
+            android:contentDescription="@string/pie_chart_placeholder"
+            android:scaleType="centerInside"
+            app:srcCompat="@drawable/ic_reports" 
+            app:tint="#BDBDBD"
             app:layout_constraintTop_toBottomOf="@id/spendingBreakdownLabel"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-            <!-- Chart will be added here programmatically -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="(Spending Breakdown Pie Chart)"/>
-        </FrameLayout>
-
-        <!-- Monthly Spending Trend Line Chart -->
-        <TextView
-            android:id="@+id/monthlySpendingLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:text="@string/monthly_spending_trend_label"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
-            app:layout_constraintTop_toBottomOf="@id/spendingBreakdownChartContainer"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <FrameLayout
-            android:id="@+id/monthlySpendingChartContainer"
-            android:layout_width="0dp"
-            android:layout_height="200dp" 
-            android:layout_marginTop="8dp"
-            android:background="@color/placeholder_background"
-            app:layout_constraintTop_toBottomOf="@id/monthlySpendingLabel"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-            <!-- Chart will be added here programmatically -->
-             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="(Monthly Spending Line Chart)"/>
-        </FrameLayout>
-
-         <!-- Key Stats (Optional) -->
-         <TextView
-            android:id="@+id/keyStatsLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:text="@string/key_stats_label"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
-            app:layout_constraintTop_toBottomOf="@id/monthlySpendingChartContainer"
-            app:layout_constraintStart_toStartOf="parent" />
-        
-        <TextView
-            android:id="@+id/averageSpendingTextView"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/average_spending_placeholder"
-             android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
-            app:layout_constraintTop_toBottomOf="@id/keyStatsLabel"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-        
-         <TextView
-            android:id="@+id/biggestExpenseTextView"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-             android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
-            android:text="@string/biggest_expense_placeholder"
-            app:layout_constraintTop_toBottomOf="@id/averageSpendingTextView"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
+        <!-- Daily Spending Trend Bar Chart -->
+        <TextView
+            android:id="@+id/dailySpendingLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/daily_spending_trend"
+            android:textAppearance="?attr/textAppearanceSubtitle1"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@id/spendingBreakdownChartImageView"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <ImageView
+            android:id="@+id/dailySpendingChartImageView"
+            android:layout_width="0dp"
+            android:layout_height="150dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp"
+            android:background="#EEEEEE"
+            android:contentDescription="@string/bar_chart_placeholder"
+            android:scaleType="centerInside"
+            app:srcCompat="@drawable/ic_reports" 
+            app:tint="#BDBDBD"
+            app:layout_constraintTop_toBottomOf="@id/dailySpendingLabel"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/downloadReportButton" />
+
+        <!-- Download Report Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/downloadReportButton"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="@string/download_report"
+            app:icon="@drawable/ic_download"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

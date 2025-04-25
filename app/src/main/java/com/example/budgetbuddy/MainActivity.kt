@@ -37,6 +37,10 @@ class MainActivity : AppCompatActivity() {
                 R.id.profileFragment
             )
         )
+        // Set the Toolbar
+        setSupportActionBar(binding.toolbar)
+
+        // Now setup the ActionBar with NavController
         setupActionBarWithNavController(navController, appBarConfiguration)
 
         navController.addOnDestinationChangedListener { _, destination, _ ->

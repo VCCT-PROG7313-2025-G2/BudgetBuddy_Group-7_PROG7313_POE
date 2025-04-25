@@ -36,8 +36,8 @@
         
         <ImageButton
             android:id="@+id/notificationsButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="24dp" 
+            android:layout_height="24dp" 
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_notifications" 
             android:contentDescription="@string/notifications_button_desc"
@@ -50,9 +50,9 @@
             android:id="@+id/balanceLabelTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
             android:text="@string/monthly_budget_overview"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
+            android:textAppearance="?attr/textAppearanceCaption"
+            android:layout_marginTop="24dp" 
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/profileImageView" />
 
@@ -61,100 +61,129 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline4"
+            android:textAppearance="?attr/textAppearanceHeadline4"
+            android:textColor="?attr/colorPrimary"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/balanceLabelTextView"
-            tools:text="$3,452" /> 
+            tools:text="$3,452" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/addExpenseButton"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/add_new_expense"
-            app:icon="@drawable/ic_add" 
+            app:icon="@drawable/ic_add"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/balanceLabelTextView"
-            app:layout_constraintBottom_toBottomOf="@id/balanceAmountTextView"/>
+            app:layout_constraintBottom_toBottomOf="@id/balanceAmountTextView" />
 
         <!-- Spending Trend Placeholder -->
         <TextView
             android:id="@+id/spendingTrendLabelTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="24dp"
             android:text="@string/daily_spending_trend"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+            android:textAppearance="?attr/textAppearanceSubtitle1"
+            android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/balanceAmountTextView" />
 
-        <View
+        <!-- Placeholder for Bar Chart -->
+        <ImageView
             android:id="@+id/spendingTrendChartView"
             android:layout_width="0dp"
             android:layout_height="150dp"
             android:layout_marginTop="8dp"
-            android:background="@color/placeholder_background" 
+            android:background="#EEEEEE" 
+            android:contentDescription="@string/spending_trend_chart_placeholder"
+            android:scaleType="centerInside"
+            app:srcCompat="@drawable/ic_reports" 
+            app:tint="#BDBDBD"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/spendingTrendLabelTextView" />
-        
-        <!-- Budget Categories Placeholder -->
+
+        <!-- Budget Categories -->
         <TextView
             android:id="@+id/budgetCategoriesLabelTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="24dp"
             android:text="@string/budget_categories"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+            android:textAppearance="?attr/textAppearanceSubtitle1"
+            android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/spendingTrendChartView" />
-            
-        <!-- RecyclerView or LinearLayout placeholder for categories -->
-        <FrameLayout
-            android:id="@+id/budgetCategoriesContainer"
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/budgetCategoriesRecyclerView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:minHeight="100dp"
-            android:background="@color/placeholder_background"
-            app:layout_constraintTop_toBottomOf="@+id/budgetCategoriesLabelTextView"
+            android:nestedScrollingEnabled="false" 
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            app:layout_constraintTop_toBottomOf="@id/budgetCategoriesLabelTextView"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-            <!-- Item views will be added here programmatically or via RecyclerView -->
-             <TextView
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:layout_gravity="center"
-                 android:text="(Budget Categories List)"/>
-        </FrameLayout>
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:listitem="@layout/item_home_category"
+            tools:itemCount="3"/>
 
         <!-- Your Rewards Placeholder -->
         <TextView
             android:id="@+id/rewardsLabelTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="24dp"
             android:text="@string/your_rewards"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+            android:textAppearance="?attr/textAppearanceSubtitle1"
+            android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/budgetCategoriesContainer" />
+            app:layout_constraintTop_toBottomOf="@id/budgetCategoriesRecyclerView" />
 
-         <FrameLayout
+         <com.google.android.material.card.MaterialCardView
             android:id="@+id/rewardsContainer"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:minHeight="50dp"
-            android:background="@color/placeholder_background"
+            app:cardBackgroundColor="?attr/colorSecondaryVariant"
             app:layout_constraintTop_toBottomOf="@+id/rewardsLabelTextView"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-             <TextView
-                 android:layout_width="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginBottom="16dp">
+
+             <LinearLayout
+                 android:layout_width="match_parent"
                  android:layout_height="wrap_content"
-                 android:layout_gravity="center"
-                 android:text="(Rewards Section)"/>
-        </FrameLayout>
+                 android:orientation="horizontal"
+                 android:padding="16dp"
+                 android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/ic_rewards"
+                    app:tint="?attr/colorOnSecondary"/>
+
+                 <TextView
+                     android:layout_width="0dp"
+                     android:layout_height="wrap_content"
+                     android:layout_weight="1"
+                     android:layout_marginStart="16dp"
+                     android:layout_marginEnd="16dp"
+                     android:text="@string/rewards_banner_text"
+                     android:textAppearance="?attr/textAppearanceBody2"
+                     android:textColor="?attr/colorOnSecondary"/>
+
+                 <ImageView
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:src="@drawable/ic_chevron_right"
+                     app:tint="?attr/colorOnSecondary" />
+             </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

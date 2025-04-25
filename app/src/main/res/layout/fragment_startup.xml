@@ -4,86 +4,146 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="16dp"
     tools:context=".ui.fragment.StartupFragment">
 
     <!-- Logo -->
     <ImageView
         android:id="@+id/logoImageView"
-        android:layout_width="100dp" 
-        android:layout_height="100dp"
-        android:layout_marginTop="100dp"
-        android:src="@mipmap/ic_launcher" 
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="64dp"
+        android:src="@drawable/ic_logo"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:contentDescription="@string/app_logo" />
-
-    <!-- Slogan -->
-    <TextView
-        android:id="@+id/sloganTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/startup_slogan"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
-        app:layout_constraintTop_toBottomOf="@+id/logoImageView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Welcome Text -->
     <TextView
         android:id="@+id/welcomeTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="24dp"
         android:text="@string/startup_welcome"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
-        app:layout_constraintTop_toBottomOf="@+id/sloganTextView"
+        android:textAppearance="?attr/textAppearanceHeadline5"
+        android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/logoImageView"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Features Section -->
+    <!-- Slogan -->
+    <TextView
+        android:id="@+id/sloganTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/startup_slogan"
+        android:textAppearance="?attr/textAppearanceSubtitle1"
+        app:layout_constraintTop_toBottomOf="@id/welcomeTextView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Features Section (Using LinearLayout for simplicity) -->
     <LinearLayout
         android:id="@+id/featuresLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginTop="24dp"
-        app:layout_constraintTop_toBottomOf="@+id/welcomeTextView"
+        android:layout_marginTop="48dp"
+        app:layout_constraintTop_toBottomOf="@id/sloganTextView"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/getStartedButton"
+        app:layout_constraintVertical_bias="0.1"
+        app:layout_constrainedHeight="true">
 
-        <TextView
-            style="@style/FeatureTextViewStyle"
-            android:drawableStart="@drawable/ic_track_expenses" 
-            android:text="@string/feature_track_expenses" />
+        <!-- Feature 1: Track Expenses -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
 
-        <TextView
-            style="@style/FeatureTextViewStyle"
-            android:layout_marginTop="16dp"
-            android:drawableStart="@drawable/ic_set_goals" 
-            android:text="@string/feature_set_goals" />
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_feature_track"
+                app:tint="?attr/colorPrimary" />
 
-        <TextView
-            style="@style/FeatureTextViewStyle"
-            android:layout_marginTop="16dp"
-            android:drawableStart="@drawable/ic_get_notifications" 
-            android:text="@string/feature_get_notifications" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="@string/feature_track_expenses"
+                android:textAppearance="?attr/textAppearanceBody1"/>
+        </LinearLayout>
+
+        <!-- Feature 2: Set and achieve savings goals -->
+         <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="24dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_feature_goals"
+                app:tint="?attr/colorPrimary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="@string/feature_set_goals"
+                android:textAppearance="?attr/textAppearanceBody1"/>
+        </LinearLayout>
+
+
+        <!-- Feature 3: Get smart notifications -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="24dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_feature_notifications"
+                app:tint="?attr/colorPrimary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="@string/feature_get_notifications"
+                android:textAppearance="?attr/textAppearanceBody1"/>
+        </LinearLayout>
 
     </LinearLayout>
 
     <!-- Get Started Button -->
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/getStartedButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginBottom="32dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
         android:text="@string/get_started"
-        app:layout_constraintBottom_toTopOf="@+id/termsTextView"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        app:layout_constraintBottom_toTopOf="@id/termsTextView"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -94,9 +154,10 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="32dp"
         android:text="@string/startup_terms"
-        android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
+        android:textAppearance="?attr/textAppearanceCaption"
+        android:gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintStart_toStartOf="@id/getStartedButton"
+        app:layout_constraintEnd_toEndOf="@id/getStartedButton" />
 
 </androidx.constraintlayout.widget.ConstraintLayout> 

@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="24dp"
     tools:context=".ui.fragment.LoginSignupFragment">
 
     <!-- Logo -->
@@ -11,8 +12,8 @@
         android:id="@+id/logoImageView"
         android:layout_width="80dp"
         android:layout_height="80dp"
-        android:layout_marginTop="80dp"
-        android:src="@mipmap/ic_launcher" 
+        android:layout_marginTop="48dp"
+        android:src="@drawable/ic_logo"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -24,8 +25,6 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
         android:layout_marginTop="48dp"
         android:hint="@string/hint_email"
         app:layout_constraintTop_toBottomOf="@+id/logoImageView"
@@ -46,11 +45,9 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
         android:layout_marginTop="16dp"
         android:hint="@string/hint_password"
-        app:endIconMode="password_toggle" 
+        app:endIconMode="password_toggle"
         app:layout_constraintTop_toBottomOf="@+id/emailInputLayout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -64,45 +61,56 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Forgot Password Button -->
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/forgotPasswordButton"
         style="@style/Widget.MaterialComponents.Button.TextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="32dp"
         android:text="@string/forgot_password"
+        android:textAppearance="?attr/textAppearanceCaption"
         app:layout_constraintTop_toBottomOf="@+id/passwordInputLayout"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="@id/passwordInputLayout" />
 
     <!-- Login Button -->
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/loginButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="32dp"
         android:text="@string/login"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
         app:layout_constraintTop_toBottomOf="@+id/forgotPasswordButton"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintStart_toStartOf="@+id/passwordInputLayout"
+        app:layout_constraintEnd_toEndOf="@+id/passwordInputLayout" />
+
+    <!-- Biometric Login Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/biometricLoginButton"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/biometric_login"
+        android:textAppearance="?attr/textAppearanceCaption"
+        app:icon="@drawable/ic_fingerprint"
+        app:iconGravity="textStart"
+        app:iconPadding="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/loginButton"
+        app:layout_constraintStart_toStartOf="@+id/loginButton"
+        app:layout_constraintEnd_toEndOf="@+id/loginButton" />
 
     <!-- Sign Up Button -->
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/signUpButton"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-        android:layout_width="0dp"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
         android:text="@string/sign_up"
-        app:layout_constraintTop_toBottomOf="@+id/loginButton"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- Biometric Prompt - Placeholder for now -->
-    <!-- Add relevant view (e.g., ImageButton) and logic later -->
 
 </androidx.constraintlayout.widget.ConstraintLayout> 
