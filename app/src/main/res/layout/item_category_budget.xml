@@ -27,7 +27,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/budgetAmountInputLayout"
         app:layout_constraintBottom_toBottomOf="parent"
-        tools:text="Food & Dining" />
+        tools:text="Food &amp; Dining" />
 
     <!-- Using TextInputLayout for consistency and hint -->
     <com.google.android.material.textfield.TextInputLayout
