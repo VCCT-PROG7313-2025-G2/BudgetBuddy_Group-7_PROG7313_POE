@@ -30,6 +30,7 @@
     <string name="bottom_nav_home">Home</string>
     <string name="bottom_nav_reports">Reports</string>
     <string name="bottom_nav_profile">Profile</string>
+    <string name="bottom_nav_rewards">Rewards</string>
 
     <!-- Home Screen -->
     <string name="profile_image_desc">User profile image</string>
@@ -39,6 +40,10 @@
     <string name="daily_spending_trend">Daily Spending Trend</string>
     <string name="budget_categories">Budget Categories</string>
     <string name="your_rewards">Your Rewards</string>
+    <string name="help_button_desc">Help / FAQ</string>
+    <string name="total_monthly_budget">Total Monthly Budget</string>
+    <string name="view_budget_details">View budget details</string>
+    <string name="rewards_leaderboard_text">You\'re #5 on the leaderboard!</string>
 
     <!-- New Expense Screen -->
     <string name="new_expense_title">New Expense</string>

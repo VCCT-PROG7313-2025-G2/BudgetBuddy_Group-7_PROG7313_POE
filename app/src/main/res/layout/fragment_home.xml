@@ -12,71 +12,104 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- Profile Section -->
-        <ImageView
-            android:id="@+id/profileImageView"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@drawable/ic_profile_placeholder" 
-            android:contentDescription="@string/profile_image_desc"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
+        <!-- Top Bar Section (Replaces ActionBar) -->
         <TextView
-            android:id="@+id/profileNameTextView"
+            android:id="@+id/greetingTextView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
-            app:layout_constraintStart_toEndOf="@id/profileImageView"
-            app:layout_constraintTop_toTopOf="@id/profileImageView"
-            app:layout_constraintBottom_toBottomOf="@id/profileImageView"
-            app:layout_constraintEnd_toStartOf="@+id/notificationsButton" 
-            tools:text="Alex Johnson" /> 
-        
+            android:textAppearance="?attr/textAppearanceHeadline6"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/notificationsButton"
+            android:layout_marginEnd="16dp"
+            tools:text="Hi, Alex" />
+
+        <ImageButton
+            android:id="@+id/helpButton"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_help"
+            android:contentDescription="@string/help_button_desc"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/greetingTextView"/>
+
         <ImageButton
             android:id="@+id/notificationsButton"
-            android:layout_width="24dp" 
-            android:layout_height="24dp" 
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="16dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_notifications" 
+            android:src="@drawable/ic_notifications"
             android:contentDescription="@string/notifications_button_desc"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/profileImageView"
-            app:layout_constraintBottom_toBottomOf="@id/profileImageView"/>
+            app:layout_constraintEnd_toStartOf="@id/helpButton"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/greetingTextView"/>
+
 
         <!-- Balance Section -->
-        <TextView
-            android:id="@+id/balanceLabelTextView"
-            android:layout_width="wrap_content"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/balanceCardView"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/monthly_budget_overview"
-            android:textAppearance="?attr/textAppearanceCaption"
-            android:layout_marginTop="24dp" 
+            android:layout_marginTop="32dp"
+            app:layout_constraintTop_toBottomOf="@id/greetingTextView"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/profileImageView" />
+            app:layout_constraintEnd_toEndOf="parent">
 
-        <TextView
-            android:id="@+id/balanceAmountTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textAppearance="?attr/textAppearanceHeadline4"
-            android:textColor="?attr/colorPrimary"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/balanceLabelTextView"
-            tools:text="$3,452" />
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/balanceLabelTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/total_monthly_budget"
+                    android:textAppearance="?attr/textAppearanceSubtitle2"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/balanceAmountTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textAppearance="?attr/textAppearanceHeadline5"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/balanceLabelTextView"
+                    tools:text="$3,450 / $5,000" />
+
+                <ProgressBar
+                    android:id="@+id/budgetProgressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:max="5000" 
+                    android:progress="3450"
+                    app:layout_constraintTop_toBottomOf="@id/balanceAmountTextView"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    tools:progress="3450" /> 
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/addExpenseButton"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:text="@string/add_new_expense"
-            app:icon="@drawable/ic_add"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/balanceLabelTextView"
-            app:layout_constraintBottom_toBottomOf="@id/balanceAmountTextView" />
+            app:layout_constraintTop_toBottomOf="@id/balanceCardView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
         <!-- Spending Trend Placeholder -->
         <TextView
@@ -88,49 +121,60 @@
             android:textAppearance="?attr/textAppearanceSubtitle1"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/balanceAmountTextView" />
+            app:layout_constraintTop_toBottomOf="@id/addExpenseButton" />
 
-        <!-- Placeholder for Bar Chart -->
-        <ImageView
+        <!-- Bar Chart for Daily Spending -->
+        <com.github.mikephil.charting.charts.BarChart
             android:id="@+id/spendingTrendChartView"
             android:layout_width="0dp"
             android:layout_height="150dp"
             android:layout_marginTop="8dp"
-            android:background="#EEEEEE" 
-            android:contentDescription="@string/spending_trend_chart_placeholder"
-            android:scaleType="centerInside"
-            app:srcCompat="@drawable/ic_reports" 
-            app:tint="#BDBDBD"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/spendingTrendLabelTextView" />
 
-        <!-- Budget Categories -->
-        <TextView
-            android:id="@+id/budgetCategoriesLabelTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="@string/budget_categories"
-            android:textAppearance="?attr/textAppearanceSubtitle1"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/spendingTrendChartView" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/budgetCategoriesRecyclerView"
+        <!-- Budget Categories Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/budgetCategoriesCardView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:nestedScrollingEnabled="false" 
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:layout_constraintTop_toBottomOf="@id/budgetCategoriesLabelTextView"
+            android:layout_marginTop="24dp"
+            app:layout_constraintTop_toBottomOf="@id/spendingTrendChartView"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            tools:listitem="@layout/item_home_category"
-            tools:itemCount="3"/>
+            app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Your Rewards Placeholder -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/budgetCategoriesLabelTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/budget_categories"
+                    android:textAppearance="?attr/textAppearanceSubtitle1"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/budgetCategoriesRecyclerView"
+                    android:layout_width="0dp"
+                    android:layout_height="200dp"
+                    android:layout_marginTop="8dp"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    app:layout_constraintTop_toBottomOf="@id/budgetCategoriesLabelTextView"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    tools:listitem="@layout/item_home_category"
+                    tools:itemCount="3"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Your Rewards -->
         <TextView
             android:id="@+id/rewardsLabelTextView"
             android:layout_width="wrap_content"
@@ -140,7 +184,7 @@
             android:textAppearance="?attr/textAppearanceSubtitle1"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/budgetCategoriesRecyclerView" />
+            app:layout_constraintTop_toBottomOf="@id/budgetCategoriesCardView" />
 
          <com.google.android.material.card.MaterialCardView
             android:id="@+id/rewardsContainer"
@@ -164,24 +208,21 @@
                 <ImageView
                     android:layout_width="30dp"
                     android:layout_height="30dp"
-                    android:src="@drawable/ic_rewards"
+                    android:src="@drawable/ic_trophy"
                     app:tint="?attr/colorOnSecondary"/>
 
                  <TextView
+                     android:id="@+id/rewardsTextView"
                      android:layout_width="0dp"
                      android:layout_height="wrap_content"
                      android:layout_weight="1"
                      android:layout_marginStart="16dp"
-                     android:layout_marginEnd="16dp"
-                     android:text="@string/rewards_banner_text"
+                     android:text="@string/rewards_leaderboard_text"
                      android:textAppearance="?attr/textAppearanceBody2"
-                     android:textColor="?attr/colorOnSecondary"/>
+                     android:textColor="?attr/colorOnSecondary"
+                     tools:text="You're #5 on the leaderboard!"/>
 
-                 <ImageView
-                     android:layout_width="wrap_content"
-                     android:layout_height="wrap_content"
-                     android:src="@drawable/ic_chevron_right"
-                     app:tint="?attr/colorOnSecondary" />
+                 <!-- Removed chevron -->
              </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

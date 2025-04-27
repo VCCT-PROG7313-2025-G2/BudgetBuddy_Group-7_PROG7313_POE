@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast // Placeholder for actions
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.budgetbuddy.R
@@ -49,6 +50,16 @@ class LoginSignupFragment : Fragment() {
         }
 
         // TODO: Add logic for Biometric Login if needed
+    }
+
+    override fun onResume() {
+        super.onResume()
+        (activity as? AppCompatActivity)?.supportActionBar?.hide()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        (activity as? AppCompatActivity)?.supportActionBar?.show()
     }
 
     override fun onDestroyView() {

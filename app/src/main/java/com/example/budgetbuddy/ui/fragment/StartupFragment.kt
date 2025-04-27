@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.budgetbuddy.R
@@ -33,6 +34,16 @@ class StartupFragment : Fragment() {
             // Navigate to Login/SignUp screen using the defined action
             findNavController().navigate(R.id.action_startupFragment_to_loginSignupFragment)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        (activity as? AppCompatActivity)?.supportActionBar?.hide()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        (activity as? AppCompatActivity)?.supportActionBar?.show()
     }
 
     override fun onDestroyView() {

@@ -8,7 +8,6 @@
     <fragment
         android:id="@+id/startupFragment"
         android:name="com.example.budgetbuddy.ui.fragment.StartupFragment"
-        android:label="fragment_startup"
         tools:layout="@layout/fragment_startup" >
         <action
             android:id="@+id/action_startupFragment_to_loginSignupFragment"
@@ -54,7 +53,6 @@
     <fragment
         android:id="@+id/homeFragment"
         android:name="com.example.budgetbuddy.ui.fragment.HomeFragment"
-        android:label="fragment_home" 
         tools:layout="@layout/fragment_home">
         <!-- Action to New Expense Screen -->
         <action
