@@ -23,6 +23,12 @@ class CategoryBudgetAdapter(private val onBudgetChanged: (CategoryBudget, Double
         holder.bind(item, onBudgetChanged)
     }
 
+    // Function to get the current state of budgets from the adapter's list
+    fun getCurrentBudgets(): List<CategoryBudget> {
+        // The list managed by ListAdapter reflects the current items
+        return currentList
+    }
+
     class CategoryBudgetViewHolder private constructor(private val binding: ItemCategoryBudgetBinding) :
         RecyclerView.ViewHolder(binding.root) {
 

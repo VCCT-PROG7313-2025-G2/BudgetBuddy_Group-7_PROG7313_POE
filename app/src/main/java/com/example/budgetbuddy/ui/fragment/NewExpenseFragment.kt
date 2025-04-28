@@ -1,24 +1,29 @@
 package com.example.budgetbuddy.ui.fragment
 
-import android.app.Activity.RESULT_OK
 import android.app.DatePickerDialog
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.budgetbuddy.R
 import com.example.budgetbuddy.databinding.FragmentNewExpenseBinding
+import com.example.budgetbuddy.ui.viewmodel.NewExpenseUiState
+import com.example.budgetbuddy.ui.viewmodel.NewExpenseViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import java.math.BigDecimal
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 @AndroidEntryPoint
 class NewExpenseFragment : Fragment() {
@@ -26,18 +31,10 @@ class NewExpenseFragment : Fragment() {
     private var _binding: FragmentNewExpenseBinding? = null
     private val binding get() = _binding!!
 
-    private var selectedDate: Calendar = Calendar.getInstance()
-    private var receiptUri: Uri? = null
-
-    // Activity Result Launcher for picking image
-    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == RESULT_OK && result.data != null) {
-            receiptUri = result.data?.data
-            binding.receiptPreviewImageView.setImageURI(receiptUri)
-            binding.receiptPreviewImageView.visibility = View.VISIBLE
-            // TODO: Handle potential errors loading image
-        }
-    }
+    private val viewModel: NewExpenseViewModel by viewModels()
+    private var selectedDate: Date = Date() // Store selected date
+    // TODO: Add logic for handling receipt attachment URI/path
+    private var receiptPath: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -48,89 +45,92 @@ class NewExpenseFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupCategorySpinner()
         setupDatePicker()
-        setupReceiptPicker()
-
-        binding.saveExpenseButton.setOnClickListener {
-            saveExpense()
-        }
+        setupClickListeners()
+        observeViewModel()
+        updateDateDisplay() // Show initial date
     }
 
     private fun setupCategorySpinner() {
-        // TODO: Replace with actual categories from ViewModel/Repository
-        val categories = arrayOf("Food & Dining", "Housing", "Transport", "Shopping", "Utilities", "Other")
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, categories)
+        // Use the same restricted list of categories as the home screen
+        val categories = listOf("Food & Dining", "Transport", "Shopping", "Utilities", "Other")
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, categories)
         binding.categoryAutoCompleteTextView.setAdapter(adapter)
     }
 
     private fun setupDatePicker() {
-        updateDateInView()
-
-        val dateSetListener = DatePickerDialog.OnDateSetListener { _, year, monthOfYear, dayOfMonth ->
-            selectedDate.set(Calendar.YEAR, year)
-            selectedDate.set(Calendar.MONTH, monthOfYear)
-            selectedDate.set(Calendar.DAY_OF_MONTH, dayOfMonth)
-            updateDateInView()
-        }
-
         binding.dateEditText.setOnClickListener {
-            DatePickerDialog(
+            val calendar = Calendar.getInstance()
+            calendar.time = selectedDate // Start picker at currently selected date
+
+            val datePickerDialog = DatePickerDialog(
                 requireContext(),
-                dateSetListener,
-                selectedDate.get(Calendar.YEAR),
-                selectedDate.get(Calendar.MONTH),
-                selectedDate.get(Calendar.DAY_OF_MONTH)
-            ).show()
-        }
-         // Also trigger for the layout click
-        binding.dateInputLayout.setEndIconOnClickListener {
-             binding.dateEditText.performClick()
+                { _, year, month, dayOfMonth ->
+                    calendar.set(year, month, dayOfMonth)
+                    selectedDate = calendar.time
+                    updateDateDisplay()
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+            )
+            datePickerDialog.show()
         }
     }
 
-    private fun updateDateInView() {
-        val myFormat = "yyyy-MM-dd" // Define date format
-        val sdf = SimpleDateFormat(myFormat, Locale.US)
-        binding.dateEditText.setText(sdf.format(selectedDate.time))
+    private fun updateDateDisplay() {
+        val dateFormat = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
+        binding.dateEditText.setText(dateFormat.format(selectedDate))
     }
 
-    private fun setupReceiptPicker() {
+    private fun setupClickListeners() {
+        binding.saveExpenseButton.setOnClickListener {
+            saveExpense()
+        }
         binding.attachReceiptButton.setOnClickListener {
-            val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-            pickImageLauncher.launch(intent)
+            // TODO: Implement image picking logic (Activity Result API)
+            Toast.makeText(context, "Attach receipt not implemented", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun saveExpense() {
-        val amountStr = binding.amountEditText.text.toString()
+        val amountText = binding.amountEditText.text.toString()
+        val amount = try {
+            BigDecimal(amountText)
+        } catch (e: NumberFormatException) {
+            Toast.makeText(context, "Invalid amount", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val category = binding.categoryAutoCompleteTextView.text.toString()
         val notes = binding.notesEditText.text.toString()
-        val date = binding.dateEditText.text.toString() // Already formatted string
 
-        if (amountStr.isBlank() || category.isBlank()) {
-            Toast.makeText(context, "Amount and Category are required.", Toast.LENGTH_SHORT).show()
-            return
+        viewModel.saveExpense(amount, category, selectedDate, notes, receiptPath)
+    }
+
+    private fun observeViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    binding.saveExpenseButton.isEnabled = state !is NewExpenseUiState.Loading
+                    // TODO: Show loading indicator
+
+                    when (state) {
+                        is NewExpenseUiState.Success -> {
+                            Toast.makeText(context, "Expense saved successfully!", Toast.LENGTH_SHORT).show()
+                            findNavController().navigateUp() // Go back
+                            viewModel.resetState()
+                        }
+                        is NewExpenseUiState.Error -> {
+                            Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_LONG).show()
+                            viewModel.resetState()
+                        }
+                        else -> Unit // Idle or Loading
+                    }
+                }
+            }
         }
-        
-        val amount = amountStr.toDoubleOrNull()
-        if (amount == null || amount <= 0) {
-             Toast.makeText(context, "Please enter a valid positive amount.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        // TODO: Implement actual saving logic using ViewModel/Repository
-        // Include amount, date, category, notes, receiptUri (if available)
-        println("Saving Expense:")
-        println(" Amount: $amount")
-        println(" Date: $date")
-        println(" Category: $category")
-        println(" Notes: $notes")
-        println(" Receipt URI: $receiptUri")
-
-        Toast.makeText(context, "Expense Saved (Not implemented)", Toast.LENGTH_SHORT).show()
-        findNavController().navigateUp() // Go back to the previous screen (Home)
     }
 
     override fun onDestroyView() {

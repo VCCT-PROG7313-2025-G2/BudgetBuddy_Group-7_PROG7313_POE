@@ -6,17 +6,27 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast // Placeholder
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels // Import for Hilt ViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.budgetbuddy.R
 import com.example.budgetbuddy.databinding.FragmentAccountCreationBinding
+import com.example.budgetbuddy.ui.viewmodel.AuthUiState
+import com.example.budgetbuddy.ui.viewmodel.AuthViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class AccountCreationFragment : Fragment() {
 
     private var _binding: FragmentAccountCreationBinding? = null
     private val binding get() = _binding!!
+
+    private val viewModel: AuthViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -29,33 +39,64 @@ class AccountCreationFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupClickListeners()
+        observeViewModel()
+    }
 
-        binding.signUpButton.setOnClickListener {
-            // TODO: Implement account creation logic (validation, saving data, authentication)
-            val fullName = binding.fullNameEditText.text.toString()
-            val email = binding.emailEditText.text.toString()
+    private fun setupClickListeners() {
+         binding.signUpButton.setOnClickListener {
+            val fullName = binding.fullNameEditText.text.toString().trim()
+            val email = binding.emailEditText.text.toString().trim()
             val password = binding.passwordEditText.text.toString()
             val confirmPassword = binding.confirmPasswordEditText.text.toString()
             val termsAccepted = binding.termsCheckBox.isChecked
 
-            if (!termsAccepted) {
-                Toast.makeText(context, "Please accept the terms and policy.", Toast.LENGTH_SHORT).show()
+            // Basic Validation
+            if (fullName.isEmpty() || email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             if (password != confirmPassword) {
                  Toast.makeText(context, "Passwords do not match.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+             if (!termsAccepted) {
+                Toast.makeText(context, "Please accept the terms and policy.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            // TODO: Add more robust email/password validation
 
-            // Placeholder action: Navigate to home (needs nav graph update)
-            // Usually, after signup, you might log the user in automatically and navigate home
-             findNavController().navigate(R.id.action_accountCreationFragment_to_homeFragment) // Needs action defined
-            Toast.makeText(context, "Sign Up successful (Not implemented)", Toast.LENGTH_SHORT).show()
+            viewModel.signup(fullName, email, password)
         }
 
         binding.backToLoginButton.setOnClickListener {
-            // Navigate back to Login/Sign Up screen using the popUpTo action defined in nav_graph
-            findNavController().navigate(R.id.action_accountCreationFragment_to_loginSignupFragment)
+            findNavController().navigateUp() // Go back to previous screen (Login)
+        }
+    }
+
+     private fun observeViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    // Handle UI state changes
+                    binding.signUpButton.isEnabled = state !is AuthUiState.Loading
+                    // TODO: Add progress indicator visibility
+                    // binding.loadingIndicator.isVisible = state is AuthUiState.Loading
+
+                    when (state) {
+                        is AuthUiState.Success -> {
+                            Toast.makeText(context, "Signup Successful!", Toast.LENGTH_SHORT).show()
+                            // Navigate to Home screen after successful signup
+                            findNavController().navigate(R.id.action_accountCreationFragment_to_homeFragment)
+                            viewModel.resetState() // Reset state after navigation
+                        }
+                        is AuthUiState.Error -> {
+                            Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+                        }
+                        else -> Unit // Idle or Loading
+                    }
+                }
+            }
         }
     }
 
@@ -67,6 +108,8 @@ class AccountCreationFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         (activity as? AppCompatActivity)?.supportActionBar?.show()
+        // Optionally reset state if user navigates back
+        // viewModel.resetState()
     }
 
     override fun onDestroyView() {

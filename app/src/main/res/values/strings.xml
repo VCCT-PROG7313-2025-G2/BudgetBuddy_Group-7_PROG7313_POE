@@ -44,6 +44,8 @@
     <string name="total_monthly_budget">Total Monthly Budget</string>
     <string name="view_budget_details">View budget details</string>
     <string name="rewards_leaderboard_text">You\'re #5 on the leaderboard!</string>
+    <string name="edit_budget_button_desc">Edit monthly budget</string>
+    <string name="edit_category_budgets_button_desc">Edit category budgets</string>
 
     <!-- New Expense Screen -->
     <string name="new_expense_title">New Expense</string>
@@ -69,15 +71,20 @@
     <string name="save_budget">Save Budget</string>
 
     <!-- Reports Screen -->
-    <string name="reports_title">Reports &amp; Insights</string>
-    <string name="spending_breakdown_label">Spending Breakdown</string>
-    <string name="monthly_spending_trend_label">Monthly Spending Trend</string>
-    <string name="key_stats_label">Key Stats</string>
-    <string name="average_spending_placeholder">Average Daily Spending: $--.--</string>
-    <string name="biggest_expense_placeholder">Biggest Expense: ------ ($--.--)</string>
+    <string name="reports_and_insights_title">Reports &amp; Insights</string>
+    <string name="more_options">More Options</string>
+    <string name="previous_month">Previous Month</string>
+    <string name="next_month">Next Month</string>
+    <string name="total_spending">Total Spending</string>
+    <string name="spending_by_category">Spending by Category</string>
+    <string name="daily_spending_trends">Daily Spending Trends</string>
+    <string name="download_report">Download Report</string>
 
     <!-- Rewards Screen -->
-    <string name="rewards_title">Rewards &amp; Achievements</string>
+    <string name="rewards_and_achievements_title">Rewards &amp; Achievements</string>
+    <string name="share_rewards">Share Rewards</string>
+    <string name="user_profile_image_desc">User profile image</string>
+    <string name="next_reward_label">Next Reward</string>
     <string name="your_points_label">Points:</string>
     <string name="achievements_label">Achievements</string>
     <string name="achievement_icon_desc">Achievement icon</string>
@@ -118,7 +125,6 @@
     <string name="spending_by_category_label">Spending by Category</string>
     <string name="pie_chart_placeholder">Spending breakdown pie chart placeholder</string>
     <string name="bar_chart_placeholder">Daily spending bar chart placeholder</string>
-    <string name="download_report">Download Report</string>
     <string name="your_badges_label">Your Badges</string>
     <string name="leaderboard_label">Leaderboard</string>
     <string name="badge_icon_desc">Badge Icon</string>
