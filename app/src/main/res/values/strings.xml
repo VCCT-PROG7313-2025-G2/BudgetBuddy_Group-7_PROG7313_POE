@@ -91,6 +91,8 @@
     <string name="save_profile">Save Profile</string>
 
     <!-- Settings Screen -->
+    <string name="profile_picture">Profile Picture</string>
+    <string name="back_button">Back</string>
     <string name="settings_title">Settings</string>
     <string name="notifications_label">Notifications</string>
     <string name="budget_alerts_setting">Budget Alerts</string>

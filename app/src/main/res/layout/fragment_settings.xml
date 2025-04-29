@@ -13,15 +13,89 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Title -->
-        <TextView
-            android:id="@+id/titleTextView"
-            android:layout_width="wrap_content"
+        <!-- Header Row: Back Button (left), Centered Title -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/settings_title"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:layout_marginBottom="16dp">
+
+            <!-- Back Button with minimum 48dp touch target -->
+            <FrameLayout
+                android:id="@+id/backButtonContainer"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+                <ImageView
+                    android:id="@+id/backButton"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_arrow_back"
+                    android:contentDescription="@string/back_button" />
+            </FrameLayout>
+
+            <!-- Centered Title -->
+            <TextView
+                android:id="@+id/titleTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_title"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Profile Header (Image, Name, Email) -->
+        <LinearLayout
+            android:id="@+id/profileHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingBottom="24dp">
+
+            <ImageView
+                android:id="@+id/profileImageView"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@drawable/ic_profile_placeholder"
+                android:contentDescription="@string/profile_picture"
+                android:layout_marginEnd="16dp"
+                android:scaleType="centerCrop"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="4dp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/profileNameTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Alex Johnson"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/profileEmailTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="alex.johnson@example.com"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                    android:textColor="?android:attr/textColorSecondary" />
+            </LinearLayout>
+        </LinearLayout>
 
         <!-- Personal Information Section -->
         <TextView
@@ -35,7 +109,8 @@
                 style="@style/SettingsRowTextStyle"
                 android:text="@string/edit_profile_label" />
             <ImageView
-                style="@style/SettingsChevronStyle" />
+                style="@style/SettingsChevronStyle"
+                android:contentDescription="@string/edit_profile_label" />
         </LinearLayout>
 
         <com.google.android.material.divider.MaterialDivider style="@style/SettingsDividerStyle"/>
@@ -47,7 +122,8 @@
                 style="@style/SettingsRowTextStyle"
                 android:text="@string/change_password_label" />
             <ImageView
-                style="@style/SettingsChevronStyle" />
+                style="@style/SettingsChevronStyle"
+                android:contentDescription="@string/change_password_label" />
         </LinearLayout>
 
         <!-- Notifications Section -->
@@ -88,15 +164,16 @@
                 style="@style/SettingsRowTextStyle"
                 android:text="@string/sync_frequency_label" />
             <TextView
-                 android:id="@+id/syncFrequencyValueTextView"
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:layout_marginEnd="8dp"
-                 android:textAppearance="?attr/textAppearanceBody2"
-                 android:textColor="?android:attr/textColorSecondary"
-                 tools:text="Every 2 hours"/>
+                android:id="@+id/syncFrequencyValueTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:textAppearance="?attr/textAppearanceBody2"
+                android:textColor="?android:attr/textColorSecondary"
+                tools:text="Every 2 hours"/>
             <ImageView
-                style="@style/SettingsChevronStyle" />
+                style="@style/SettingsChevronStyle"
+                android:contentDescription="@string/sync_frequency_label" />
         </LinearLayout>
 
         <!-- Account Section -->
@@ -107,13 +184,26 @@
 
         <LinearLayout
             android:id="@+id/signOutRow"
-            style="@style/SettingsRowStyle">
+            style="@style/SettingsRowStyle"
+            android:minHeight="48dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingEnd="8dp">
+
             <TextView
                 style="@style/SettingsRowTextStyle"
-                android:text="@string/sign_out_label" />
-             <!-- No chevron for sign out -->
+                android:text="@string/sign_out_label"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" />
+
+            <ImageView
+                android:id="@+id/signOutIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_logout"
+                android:contentDescription="@string/sign_out_label" />
         </LinearLayout>
 
     </LinearLayout>
-
-</androidx.core.widget.NestedScrollView> 
+</androidx.core.widget.NestedScrollView>
