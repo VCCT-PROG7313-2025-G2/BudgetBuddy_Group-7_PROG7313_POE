@@ -75,8 +75,7 @@
     <!-- Placeholder for Reports Fragment -->
     <fragment
         android:id="@+id/reportsFragment"
-        android:name="com.example.budgetbuddy.ui.fragment.ReportsFragment" 
-        android:label="@string/reports_title" 
+        android:name="com.example.budgetbuddy.ui.fragment.ReportsFragment"
         tools:layout="@layout/fragment_reports"> 
         <!-- Add actions FROM reports fragment if needed -->
     </fragment>
@@ -128,7 +127,7 @@
     <fragment
         android:id="@+id/rewardsFragment"
         android:name="com.example.budgetbuddy.ui.fragment.RewardsFragment"
-        android:label="@string/rewards_title"
+        android:label="@string/rewards_and_achievements_title"
         tools:layout="@layout/fragment_rewards">
         <!-- Navigation actions FROM RewardsFragment if needed -->
     </fragment>

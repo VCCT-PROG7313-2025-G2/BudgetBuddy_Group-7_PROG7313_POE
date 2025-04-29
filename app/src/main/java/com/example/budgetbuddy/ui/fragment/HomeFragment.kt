@@ -6,24 +6,32 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast // Placeholder
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.budgetbuddy.R
 import com.example.budgetbuddy.databinding.FragmentHomeBinding
-import dagger.hilt.android.AndroidEntryPoint
-
+import com.example.budgetbuddy.databinding.ItemHomeCategoryBinding // Import item binding
+import com.example.budgetbuddy.ui.viewmodel.HomeCategoryItemUiState
+import com.example.budgetbuddy.ui.viewmodel.HomeUiState
+import com.example.budgetbuddy.ui.viewmodel.HomeViewModel
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.utils.ColorTemplate
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
-
-// Imports for RecyclerView
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.example.budgetbuddy.databinding.ItemHomeCategoryBinding // Import item binding
+import java.text.NumberFormat // For currency formatting
+import java.util.Locale
 
 @AndroidEntryPoint
 class HomeFragment : Fragment() {
@@ -31,18 +39,11 @@ class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
 
-    // --- Adapter and Data Class (Inner classes for simplicity) ---
+    private val viewModel: HomeViewModel by viewModels()
+    private lateinit var categoryAdapter: HomeCategoryAdapter
 
-    // 1. Data class for category item
-    data class HomeCategoryItem(
-        val iconResId: Int, // Placeholder resource ID
-        val name: String,
-        val progress: Int, // 0-100
-        val percentageText: String
-    )
-
-    // 2. RecyclerView Adapter
-    class HomeCategoryAdapter(private val categories: List<HomeCategoryItem>) :
+    // --- RecyclerView Adapter (Moved outside data class for clarity) ---
+    class HomeCategoryAdapter(private var categories: List<HomeCategoryItemUiState>) :
         RecyclerView.Adapter<HomeCategoryAdapter.ViewHolder>() {
 
         class ViewHolder(val binding: ItemHomeCategoryBinding) : RecyclerView.ViewHolder(binding.root)
@@ -58,13 +59,17 @@ class HomeFragment : Fragment() {
             holder.binding.categoryNameTextView.text = category.name
             holder.binding.categoryProgressBar.progress = category.progress
             holder.binding.categoryPercentageTextView.text = category.percentageText
-            // TODO: Set progress bar max based on actual budget limit if needed
         }
 
         override fun getItemCount() = categories.size
-    }
 
-    // --- End Adapter and Data Class ---
+        // Function to update the adapter's data
+        fun updateData(newCategories: List<HomeCategoryItemUiState>) {
+            categories = newCategories
+            notifyDataSetChanged() // TODO: Use DiffUtil for better performance
+        }
+    }
+    // --- End RecyclerView Adapter ---
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -78,127 +83,124 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // TODO: Populate UI with actual data (greeting, balance, charts, lists)
-        binding.greetingTextView.text = "Hi, Alex" // Placeholder
-        binding.balanceAmountTextView.text = "$3,450 / $5,000" // Placeholder
+        setupRecyclerView()
+        setupClickListeners()
+        observeViewModel()
+    }
 
-        binding.addExpenseButton.setOnClickListener {
-            // Navigate to New Expense screen (Screen 5) using the defined action
-            findNavController().navigate(R.id.action_homeFragment_to_newExpenseFragment)
-            // Toast.makeText(context, "Add Expense Clicked (Not implemented)", Toast.LENGTH_SHORT).show()
+    private fun setupRecyclerView() {
+        categoryAdapter = HomeCategoryAdapter(emptyList()) // Initialize with empty list
+        binding.budgetCategoriesRecyclerView.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = categoryAdapter
+            // Set fixed size false if height is wrap_content, true if fixed height (like 200dp)
+            setHasFixedSize(true) // Optimization since item size doesn't change
         }
+    }
 
+    private fun setupClickListeners() {
+        binding.addExpenseButton.setOnClickListener {
+            findNavController().navigate(R.id.action_homeFragment_to_newExpenseFragment)
+        }
         binding.notificationsButton.setOnClickListener {
-             // TODO: Handle notifications click
             Toast.makeText(context, "Notifications Clicked (Not implemented)", Toast.LENGTH_SHORT).show()
         }
-        
-        // TODO: Handle help button click
         binding.helpButton.setOnClickListener {
             Toast.makeText(context, "Help Clicked (Not implemented)", Toast.LENGTH_SHORT).show()
         }
 
-        // TODO: Set up RecyclerView for Budget Categories
-        binding.budgetCategoriesLabelTextView.setOnClickListener { // Temp navigation trigger
-             findNavController().navigate(R.id.action_homeFragment_to_budgetSetupFragment)
+        // Navigate to Budget Setup when edit icons are clicked
+        val budgetSetupAction = R.id.action_homeFragment_to_budgetSetupFragment
+        binding.editBudgetButton.setOnClickListener {
+            findNavController().navigate(budgetSetupAction)
+        }
+        binding.editCategoriesButton.setOnClickListener {
+            findNavController().navigate(budgetSetupAction)
         }
 
-        // TODO: Set up Chart for Spending Trend
-        binding.spendingTrendChartView.setOnClickListener { // Temp navigation trigger
-            findNavController().navigate(R.id.action_homeFragment_to_expensesFragment)
-        }
-
-        // TODO: Set up Rewards section logic
-        binding.rewardsLabelTextView.setOnClickListener { // Temp navigation trigger
-            findNavController().navigate(R.id.action_homeFragment_to_rewardsFragment)
-        }
-
-        setupSpendingTrendChart()
-        setupBudgetCategoriesRecyclerView()
+        // Remove temp navigation triggers
+        // binding.budgetCategoriesLabelTextView.setOnClickListener { ... }
+        // binding.spendingTrendChartView.setOnClickListener { ... }
+        // binding.rewardsLabelTextView.setOnClickListener { ... }
     }
 
-    private fun setupBudgetCategoriesRecyclerView() {
-        // 3. Create placeholder data
-        // TODO: Replace with actual budget category data from ViewModel/Repository
-        val placeholderCategories = listOf(
-            HomeCategoryItem(R.drawable.ic_category_utilities, "Housing", 75, "75%"), // Use utility icon for housing
-            HomeCategoryItem(R.drawable.ic_category_food, "Food", 60, "60%"),
-            HomeCategoryItem(R.drawable.ic_category_transport, "Transport", 45, "45%"),
-            HomeCategoryItem(R.drawable.ic_category_shopping, "Entertainment", 85, "85%") // Use shopping icon for entertainment
-        )
+    private fun observeViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    // Update UI based on the state
+                    binding.greetingTextView.text = state.greeting
+                    // TODO: Format currency correctly based on locale/settings
+                    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.US) // Example
+                    binding.balanceAmountTextView.text = "${currencyFormat.format(state.budgetSpent)} / ${currencyFormat.format(state.budgetTotal)}"
+                    binding.budgetProgressBar.max = state.budgetTotal.toInt() // Assuming total budget fits in Int for progress bar max
+                    binding.budgetProgressBar.progress = state.budgetSpent.toInt()
+                    binding.rewardsContainer.isVisible = state.rewardsText.isNotEmpty() // Show rewards card only if there's text
+                    binding.rewardsTextView.text = state.rewardsText
 
-        // 4. Create adapter instance
-        val categoryAdapter = HomeCategoryAdapter(placeholderCategories)
+                    // Update Category RecyclerView
+                    categoryAdapter.updateData(state.budgetCategories)
 
-        // 5. Setup RecyclerView
-        binding.budgetCategoriesRecyclerView.apply {
-            // LayoutManager is already set in XML, but setting here is also fine
-            layoutManager = LinearLayoutManager(context)
-            adapter = categoryAdapter
+                    // Update Bar Chart
+                    state.dailySpendingData?.let {
+                        updateSpendingTrendChart(it.first, it.second)
+                    } ?: run {
+                        // Handle case where chart data is not available (e.g., show empty state)
+                        binding.spendingTrendChartView.clear()
+                    }
+
+                    // Show loading indicator (optional)
+                    // binding.loadingIndicator.isVisible = state.isLoading
+
+                    // Show error message (optional)
+                    state.error?.let {
+                        Toast.makeText(context, "Error: $it", Toast.LENGTH_LONG).show()
+                        // TODO: Clear error from state after showing?
+                    }
+                }
+            }
         }
     }
 
-    private fun setupSpendingTrendChart() {
+    private fun updateSpendingTrendChart(entries: List<BarEntry>, labels: List<String>) {
         val chart: BarChart = binding.spendingTrendChartView
-
-        // --- Placeholder Data --- 
-        // TODO: Replace this with actual data fetching and processing logic
-        // You'll need to query your expense data, group by day, and sum amounts.
-        val entries = ArrayList<BarEntry>()
-        val labels = ArrayList<String>()
-        // Example: Last 7 days (adjust as needed)
-        val daysToShow = 7
-        val todayMillis = System.currentTimeMillis()
-        val dayLabels = arrayOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
-
-        for (i in (daysToShow - 1) downTo 0) {
-            val dayMillis = todayMillis - TimeUnit.DAYS.toMillis(i.toLong())
-            val calendar = java.util.Calendar.getInstance().apply { timeInMillis = dayMillis }
-            val dayOfWeek = calendar.get(java.util.Calendar.DAY_OF_WEEK) // 1=Sun, 2=Mon, ... 7=Sat
-
-            // Placeholder spending amount (e.g., random) - Replace with actual calculation
-            val spending = (20..100).random().toFloat()
-
-            entries.add(BarEntry((daysToShow - 1 - i).toFloat(), spending))
-            labels.add(dayLabels[dayOfWeek - 1]) 
+        if (entries.isEmpty()) {
+            chart.clear()
+            chart.invalidate()
+            return
         }
-        // --- End Placeholder Data ---
 
         val dataSet = BarDataSet(entries, "Daily Spending")
-        dataSet.color = android.graphics.Color.BLACK // Set bars to black
-        dataSet.setDrawValues(false) // Hide values on top of bars
+        dataSet.color = android.graphics.Color.BLACK
+        dataSet.setDrawValues(false)
 
         val barData = BarData(dataSet)
-
-        // --- Chart Configuration --- 
         chart.data = barData
-        chart.description.isEnabled = false // No description text
-        chart.legend.isEnabled = false // No legend
-        chart.setTouchEnabled(false) // Disable touch interactions (optional)
+
+        // Configure Axis (Consider moving static config to onViewCreated if preferred)
+        chart.description.isEnabled = false
+        chart.legend.isEnabled = false
+        chart.setTouchEnabled(false)
         chart.setDrawGridBackground(false)
         chart.setDrawBarShadow(false)
-        
-        // X-Axis Configuration
+
         val xAxis = chart.xAxis
-        xAxis.valueFormatter = IndexAxisValueFormatter(labels) // Set day labels
+        xAxis.valueFormatter = IndexAxisValueFormatter(labels)
         xAxis.position = com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM
         xAxis.setDrawGridLines(false)
-        xAxis.granularity = 1f // Ensure all labels are shown
+        xAxis.granularity = 1f
         xAxis.labelCount = labels.size
 
-        // Y-Axis Configuration (Left)
         val leftAxis = chart.axisLeft
         leftAxis.setDrawGridLines(false)
         leftAxis.setDrawAxisLine(false)
-        leftAxis.setDrawLabels(true)
-        leftAxis.axisMinimum = 0f // Start at 0
-        leftAxis.axisMaximum = 5000f // Set maximum to 5000
+        leftAxis.setDrawLabels(false)
+        leftAxis.axisMinimum = 0f
 
-        // Y-Axis Configuration (Right)
-        chart.axisRight.isEnabled = false // Disable right axis
-
-        chart.invalidate() // Refresh the chart
+        chart.axisRight.isEnabled = false
+        chart.invalidate() // Refresh chart
     }
+
 
     override fun onResume() {
         super.onResume()

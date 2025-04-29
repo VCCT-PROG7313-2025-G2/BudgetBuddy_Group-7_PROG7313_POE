@@ -1,165 +1,242 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
     tools:context=".ui.fragment.RewardsFragment">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
+    <!-- Main Content Group (Toolbar + ScrollView) -->
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/mainContentGroup"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        app:constraint_referenced_ids="toolbarLayout,scrollView" />
 
-        <!-- Title -->
+    <!-- Loading Indicator -->
+    <ProgressBar
+        android:id="@+id/loadingProgressBar"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="visible" />
+
+    <!-- Toolbar Area -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/toolbarLayout"
+        android:layout_width="0dp"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorSurface"
+        android:elevation="4dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
         <TextView
-            android:id="@+id/titleTextView"
+            android:id="@+id/toolbarTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/rewards_title"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+            android:text="@string/rewards_and_achievements_title"
+            android:textAppearance="?attr/textAppearanceHeadline6"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <!-- Points/Level Section -->
-        <TextView
-            android:id="@+id/pointsLabelTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="@string/your_points_label"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
-            app:layout_constraintTop_toBottomOf="@id/titleTextView"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <TextView
-            android:id="@+id/pointsValueTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
-            android:textStyle="bold"
-            app:layout_constraintStart_toEndOf="@id/pointsLabelTextView"
-            app:layout_constraintBottom_toBottomOf="@id/pointsLabelTextView"
-            app:layout_constraintTop_toTopOf="@id/pointsLabelTextView"
-            tools:text="1,250" />
-
-        <ProgressBar
-            android:id="@+id/levelProgressBar"
-            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:max="1000" 
-            app:layout_constraintTop_toBottomOf="@id/pointsValueTextView"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            tools:progress="600" />
-
-        <TextView
-            android:id="@+id/levelTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
-            app:layout_constraintTop_toBottomOf="@id/levelProgressBar"
-            app:layout_constraintStart_toStartOf="parent"
-            tools:text="Level 5: Budget Master" />
-
-        <TextView
-            android:id="@+id/pointsToNextLevelTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
-            app:layout_constraintTop_toTopOf="@id/levelTextView"
-            app:layout_constraintEnd_toEndOf="parent"
-            tools:text="400 points to next level" />
-
-        <!-- Achievements Section -->
-        <TextView
-            android:id="@+id/achievementsLabelTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:text="@string/achievements_label"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
-            app:layout_constraintTop_toBottomOf="@id/levelTextView"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/achievementsRecyclerView"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginTop="8dp"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:layout_constraintTop_toBottomOf="@id/achievementsLabelTextView"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            tools:listitem="@layout/item_achievement" />
+            app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Your Badges Section -->
-        <TextView
-            android:id="@+id/badgesLabelTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/your_badges_label"
-            android:textAppearance="?attr/textAppearanceSubtitle1"
-            android:textStyle="bold"
+        <ImageButton
+            android:id="@+id/shareButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_help" 
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/share_rewards"
+            android:padding="8dp"
+            android:scaleType="centerInside"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <!-- Horizontal scroll or RecyclerView for badges -->
-        <HorizontalScrollView
-            android:id="@+id/badgesScrollView"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:scrollbars="none"
-            app:layout_constraintTop_toBottomOf="@id/badgesLabelTextView"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-
-            <LinearLayout
-                android:id="@+id/badgesContainerLayout"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <!-- Badge items will be added here (e.g., using item_badge.xml) -->
-                <include layout="@layout/item_badge" tools:layout_width="80dp"/>
-                <include layout="@layout/item_badge" tools:layout_width="80dp" android:layout_marginStart="8dp"/>
-                <include layout="@layout/item_badge" tools:layout_width="80dp" android:layout_marginStart="8dp"/>
-                <include layout="@layout/item_badge" tools:layout_width="80dp" android:layout_marginStart="8dp"/>
-            </LinearLayout>
-        </HorizontalScrollView>
-
-        <!-- Leaderboard Section -->
-        <TextView
-            android:id="@+id/leaderboardLabelTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="@string/leaderboard_label"
-            android:textAppearance="?attr/textAppearanceSubtitle1"
-            android:textStyle="bold"
-            app:layout_constraintTop_toBottomOf="@id/badgesScrollView"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/leaderboardRecyclerView"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginTop="8dp"
-            android:nestedScrollingEnabled="false"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:layout_constraintTop_toBottomOf="@id/leaderboardLabelTextView"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            tools:listitem="@layout/item_leaderboard_rank"
-            tools:itemCount="3" />
+            android:layout_marginEnd="8dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-</androidx.core.widget.NestedScrollView> 
+    <!-- Scrollable Content -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/toolbarLayout"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- User Info Section -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/userInfoLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/userProfileImageView"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:src="@drawable/ic_profile_placeholder"
+                    android:contentDescription="@string/user_profile_image_desc"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+                <TextView
+                    android:id="@+id/userNameTextView"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:textAppearance="?attr/textAppearanceHeadline6"
+                    app:layout_constraintTop_toTopOf="@id/userProfileImageView"
+                    app:layout_constraintStart_toEndOf="@id/userProfileImageView"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    tools:text="Alex Johnson" />
+
+                <TextView
+                    android:id="@+id/userLevelTextView"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:textAppearance="?attr/textAppearanceBody2"
+                    android:textColor="?android:attr/textColorSecondary"
+                    app:layout_constraintTop_toBottomOf="@id/userNameTextView"
+                    app:layout_constraintStart_toEndOf="@id/userProfileImageView"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toBottomOf="@id/userProfileImageView"
+                    tools:text="Level 12 Budgeter" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?android:attr/listDivider"
+                android:layout_marginTop="16dp"/>
+
+            <!-- Next Reward Section -->
+            <LinearLayout
+                android:id="@+id/nextRewardLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/next_reward_label"
+                    android:textAppearance="?attr/textAppearanceCaption"
+                    android:textStyle="bold"
+                    android:textAllCaps="true"
+                    android:textColor="?android:attr/textColorSecondary"/>
+
+                 <TextView
+                    android:id="@+id/nextRewardNameTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textAppearance="?attr/textAppearanceBody1"
+                    tools:text="Progress to Gold Badge"/>
+
+                 <LinearLayout
+                     android:layout_width="match_parent"
+                     android:layout_height="wrap_content"
+                     android:orientation="horizontal"
+                     android:gravity="center_vertical"
+                     android:layout_marginTop="8dp">
+
+                     <ProgressBar
+                         android:id="@+id/nextRewardProgressBar"
+                         style="?android:attr/progressBarStyleHorizontal"
+                         android:layout_width="0dp"
+                         android:layout_height="8dp"
+                         android:layout_weight="1"
+                         android:max="100"
+                         android:progressDrawable="@drawable/layer_progress_bar" 
+                         tools:progress="75" />
+
+                      <TextView
+                         android:id="@+id/nextRewardPercentageTextView"
+                         android:layout_width="wrap_content"
+                         android:layout_height="wrap_content"
+                         android:layout_marginStart="16dp"
+                         android:textAppearance="?attr/textAppearanceBody2"
+                         android:textStyle="bold"
+                         tools:text="75%"/>
+
+                 </LinearLayout>
+            </LinearLayout>
+
+            <!-- Your Badges Section -->
+            <LinearLayout
+                android:id="@+id/yourBadgesLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="24dp">
+
+                 <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/your_badges_label"
+                    android:textAppearance="?attr/textAppearanceSubtitle1"
+                    android:textStyle="bold"/>
+
+                 <androidx.recyclerview.widget.RecyclerView
+                     android:id="@+id/badgesRecyclerView"
+                     android:layout_width="match_parent"
+                     android:layout_height="wrap_content"
+                     android:layout_marginTop="8dp"
+                     android:orientation="horizontal"
+                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                     tools:itemCount="3"
+                     tools:listitem="@layout/item_badge"/>
+
+            </LinearLayout>
+
+             <!-- Leaderboard Section -->
+             <LinearLayout
+                 android:id="@+id/leaderboardLayout"
+                 android:layout_width="match_parent"
+                 android:layout_height="wrap_content"
+                 android:orientation="vertical"
+                 android:layout_marginTop="24dp">
+
+                 <TextView
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:text="@string/leaderboard_label"
+                     android:textAppearance="?attr/textAppearanceSubtitle1"
+                     android:textStyle="bold"/>
+
+                  <androidx.recyclerview.widget.RecyclerView
+                      android:id="@+id/leaderboardRecyclerView"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="8dp"
+                      android:nestedScrollingEnabled="false"
+                      app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                      tools:itemCount="3"
+                      tools:listitem="@layout/item_leaderboard_rank"/>
+
+             </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout> 
