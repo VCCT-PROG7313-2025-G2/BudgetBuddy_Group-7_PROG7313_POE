@@ -7,7 +7,17 @@
     android:padding="16dp"
     tools:context=".ui.fragment.NewExpenseFragment">
 
-    <!-- Title removed, will be set in AppBar -->
+    <!-- Back Arrow -->
+    <ImageButton
+        android:id="@+id/backButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_arrow_left"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/back_button_desc" 
+        app:tint="?attr/colorControlNormal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Amount Input -->
     <com.google.android.material.textfield.TextInputLayout
@@ -18,7 +28,7 @@
         android:layout_marginTop="16dp" 
         android:hint="@string/hint_amount"
         app:prefixText="$"
-        app:layout_constraintTop_toTopOf="parent" 
+        app:layout_constraintTop_toBottomOf="@id/backButton" 
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -36,11 +46,13 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:hint="@string/hint_date"
-        app:endIconDrawable="@drawable/ic_calendar"
-        app:endIconMode="custom" 
+        app:endIconDrawable="@drawable/ic_calendar_month"
+        app:endIconMode="custom"
         app:endIconContentDescription="@string/select_date"
+        app:endIconMinSize="20dp"
+        app:endIconScaleType="fitCenter"
         app:layout_constraintTop_toBottomOf="@id/amountInputLayout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -51,17 +63,19 @@
             android:layout_height="wrap_content"
             android:focusable="false"
             android:clickable="true"
-            android:inputType="none" /> 
+            android:cursorVisible="false"
+            android:singleLine="true"
+            android:inputType="none" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Category Spinner/Dropdown -->
+    <!-- Category Spinner/Dropdown (Reduced top margin) -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/categoryInputLayout"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp" 
         android:hint="@string/hint_category"
         app:layout_constraintTop_toBottomOf="@id/dateInputLayout"
         app:layout_constraintStart_toStartOf="parent"
@@ -76,27 +90,25 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Notes Input -->
+    <!-- Description Input (Relabeled Notes) -->
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/notesInputLayout"
+        android:id="@+id/descriptionInputLayout" 
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="0dp"
-        android:layout_height="0dp" 
-        android:layout_marginTop="16dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp" 
         android:layout_marginBottom="16dp"
-        android:hint="@string/hint_notes"
+        android:hint="Description" 
         app:layout_constraintTop_toBottomOf="@id/categoryInputLayout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/attachReceiptButton"> 
-
+        app:layout_constraintBottom_toTopOf="@id/attachReceiptButton">
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/notesEditText"
+            android:id="@+id/descriptionEditText" 
             android:layout_width="match_parent"
-            android:layout_height="match_parent" 
+            android:layout_height="match_parent"
             android:gravity="top"
             android:inputType="textMultiLine|textCapSentences" />
-
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Attach Receipt Button -->
@@ -134,6 +146,7 @@
         android:text="@string/save_expense"
         android:paddingTop="12dp"
         android:paddingBottom="12dp"
+        app:backgroundTint="@android:color/black" 
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

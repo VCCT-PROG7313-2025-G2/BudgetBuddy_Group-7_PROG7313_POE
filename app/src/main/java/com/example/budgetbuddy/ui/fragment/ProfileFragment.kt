@@ -10,11 +10,20 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
 import com.example.budgetbuddy.R
 import com.example.budgetbuddy.databinding.FragmentProfileBinding
+import com.example.budgetbuddy.ui.viewmodel.ProfileViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ProfileFragment : Fragment() {
@@ -26,6 +35,9 @@ class ProfileFragment : Fragment() {
     // private var profileImageUri: Uri? = null
     // private val pickImageLauncher = ...
 
+    // Get reference to the ViewModel
+    private val viewModel: ProfileViewModel by viewModels()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -36,21 +48,40 @@ class ProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        loadProfileData()
+        // Remove direct data loading, rely on observation
+        // loadProfileData()
         setupClickListeners()
+        observeViewModel() // Start observing the ViewModel
     }
 
-    private fun loadProfileData() {
-        // TODO: Load actual user data from ViewModel/Repository
-        binding.profileNameTextView.text = "Alex Johnson"
-        binding.profileEmailTextView.text = "alex.j@example.com"
-        // TODO: Load profile picture (e.g., using Glide or Coil)
-        binding.profileImageView.setImageResource(R.drawable.ic_profile_placeholder)
+    private fun observeViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    binding.profileNameTextView.text = state.userName
+                    binding.profileEmailTextView.text = state.userEmail
+                    binding.budgetAmountTextView.text = state.budgetLimitText
+                    binding.budgetRemainingTextView.text = state.budgetRemainingText
+                    binding.budgetProgressBar.progress = state.budgetProgress
 
-        // TODO: Load actual budget overview data
-        binding.budgetAmountTextView.text = "$3,500 Limit" 
-        binding.budgetProgressBar.progress = 65
-        binding.budgetRemainingTextView.text = "$1,225 remaining"
+                    // Load profile image (using Glide as an example)
+                    Glide.with(this@ProfileFragment)
+                        .load(state.profileImageUrl ?: R.drawable.ic_profile_placeholder) // Use URL or placeholder
+                        .circleCrop()
+                        .placeholder(R.drawable.ic_profile_placeholder)
+                        .into(binding.profileImageView)
+
+                    // Handle loading state (optional: show a spinner)
+                    // binding.loadingSpinner.isVisible = state.isLoading
+
+                    // Handle error state
+                    state.error?.let {
+                        Toast.makeText(context, "Error: $it", Toast.LENGTH_LONG).show()
+                        // Reset error in ViewModel or handle appropriately
+                    }
+                }
+            }
+        }
     }
 
     private fun setupClickListeners() {
@@ -86,5 +117,18 @@ class ProfileFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    // Hide default ActionBar when this fragment is shown
+    override fun onResume() {
+        super.onResume()
+        (activity as? AppCompatActivity)?.supportActionBar?.hide()
+    }
+
+    // Show default ActionBar again when leaving (optional)
+    override fun onPause() {
+        super.onPause()
+        // Keep hidden if navigating within profile/settings sections
+        // (activity as? AppCompatActivity)?.supportActionBar?.show()
     }
 } 

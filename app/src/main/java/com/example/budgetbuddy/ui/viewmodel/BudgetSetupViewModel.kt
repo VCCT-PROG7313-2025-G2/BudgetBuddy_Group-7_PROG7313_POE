@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.budgetbuddy.data.db.entity.BudgetEntity
 import com.example.budgetbuddy.data.db.entity.CategoryBudgetEntity
 import com.example.budgetbuddy.data.repository.BudgetRepository
+import com.example.budgetbuddy.data.repository.RewardsRepository
+import com.example.budgetbuddy.util.Constants
+import com.example.budgetbuddy.util.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,18 +35,24 @@ data class CategoryBudgetInput(
 
 @HiltViewModel
 class BudgetSetupViewModel @Inject constructor(
-    private val budgetRepository: BudgetRepository
-    // TODO: Inject UserRepository if needed to get current user ID
+    private val budgetRepository: BudgetRepository,
+    private val rewardsRepository: RewardsRepository,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<BudgetSetupUiState>(BudgetSetupUiState.Idle)
     val uiState: StateFlow<BudgetSetupUiState> = _uiState.asStateFlow()
 
-    // TODO: Fetch existing budget/categories to pre-populate if editing
-    // TODO: Get currentUserId properly
-    private val currentUserId: Long = 1L // Placeholder
+    // Get the current user ID from SessionManager
+    private fun getCurrentUserId(): Long = sessionManager.getUserId()
 
     fun saveBudget(totalBudget: BigDecimal, categoryBudgets: List<CategoryBudgetInput>) {
+        val currentUserId = getCurrentUserId()
+        if (currentUserId == SessionManager.NO_USER_LOGGED_IN) {
+             _uiState.value = BudgetSetupUiState.Error("No user logged in.")
+             return
+        }
+
         viewModelScope.launch {
             _uiState.value = BudgetSetupUiState.Loading
             try {
@@ -73,6 +82,10 @@ class BudgetSetupViewModel @Inject constructor(
                     }
 
                 budgetRepository.saveBudget(budgetEntity, categoryEntities)
+
+                // Check for first budget set achievement
+                rewardsRepository.checkAndUnlockAchievement(currentUserId, Constants.Achievements.FIRST_BUDGET_SET_ID)
+
                 _uiState.value = BudgetSetupUiState.Success
 
             } catch (e: Exception) {

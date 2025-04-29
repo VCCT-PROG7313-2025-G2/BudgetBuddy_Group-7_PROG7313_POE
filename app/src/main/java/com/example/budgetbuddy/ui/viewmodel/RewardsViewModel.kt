@@ -3,147 +3,183 @@ package com.example.budgetbuddy.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.budgetbuddy.R
-import com.example.budgetbuddy.model.Badge // Assuming model exists
-import com.example.budgetbuddy.model.LeaderboardRank // Assuming model exists
+import com.example.budgetbuddy.model.Badge
+import com.example.budgetbuddy.model.LeaderboardRank
+import com.example.budgetbuddy.model.UserWithPoints
+import com.example.budgetbuddy.data.db.entity.AchievementEntity
+import com.example.budgetbuddy.data.repository.RewardsRepository
+import com.example.budgetbuddy.data.repository.UserRepository
+import com.example.budgetbuddy.util.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import com.example.budgetbuddy.data.repository.UserRepository
-import com.example.budgetbuddy.data.repository.RewardsRepository
-import com.example.budgetbuddy.data.db.entity.UserEntity
-import com.example.budgetbuddy.data.db.entity.AchievementEntity
-import com.example.budgetbuddy.data.db.entity.RewardPointsEntity
-import kotlinx.coroutines.flow.combine // Needed to combine flows
-import kotlin.math.min
+import android.util.Log
+
+// Data class for holding level calculation results
+data class LevelProgressInfo(
+    val level: Int,
+    val levelName: String,
+    val pointsInLevel: Int,
+    val pointsNeededForLevel: Int,
+    val nextLevelThreshold: Int // Points needed to reach next level
+)
 
 data class RewardsUiState(
-    val userName: String = "",
-    val userLevel: String = "",
-    val userProfileImageUrl: String? = null, // Or use a placeholder drawable ID
-    val nextRewardName: String = "",
-    val nextRewardProgress: Int = 0, // 0-100
-    val badges: List<Badge> = emptyList(),
-    val leaderboard: List<LeaderboardRank> = emptyList(),
     val isLoading: Boolean = true,
+    val userName: String = "",
+    val currentPoints: Int = 0,
+    val userLevel: Int = 0,
+    val userLevelName: String = "",
+    val pointsInLevel: Int = 0,
+    val pointsNeededForLevel: Int = 1,
+    val nextLevelPoints: Int = 0,
+    val achievements: List<Badge> = emptyList(), // Use Badge model
+    val leaderboardEntries: List<LeaderboardRank> = emptyList(),
     val error: String? = null
+    // Removed redundant fields like userProfileImageUrl, nextRewardName if handled differently
 )
 
 @HiltViewModel
 class RewardsViewModel @Inject constructor(
+    private val rewardsRepository: RewardsRepository,
     private val userRepository: UserRepository,
-    private val rewardsRepository: RewardsRepository
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(RewardsUiState())
+    private val _uiState = MutableStateFlow(RewardsUiState()) // Use initial state from data class
     val uiState: StateFlow<RewardsUiState> = _uiState.asStateFlow()
 
-    // TODO: Replace with actual user ID retrieval
-    private val currentUserId: Long = 1L
+    private fun getCurrentUserId(): Long = sessionManager.getUserId()
 
     init {
         loadRewardsData()
     }
 
     private fun loadRewardsData() {
+        val userId = getCurrentUserId()
+        if (userId == SessionManager.NO_USER_LOGGED_IN) {
+            Log.e("RewardsViewModel", "Cannot load data, no user logged in")
+            _uiState.update { it.copy(isLoading = false, error = "Please log in to see rewards.") }
+            return
+        }
+
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
             try {
-                // Combine flows for user data, points, and achievements
+                // Use correct method name from UserRepository
+                // Combine user, points, achievements, and leaderboard flows
                 combine(
-                    userRepository.getUser(currentUserId),
-                    rewardsRepository.getPoints(currentUserId),
-                    rewardsRepository.getAchievements(currentUserId)
-                ) { user, pointsData, achievements ->
+                    userRepository.getUser(userId),           // Correct method
+                    rewardsRepository.getPoints(userId),
+                    rewardsRepository.getAchievements(userId),
+                    rewardsRepository.getLeaderboard()
+                ) { user, pointsEntity, achievements, leaderboard ->
+                    // Process the combined data
+                    val currentPoints = pointsEntity?.currentPoints ?: 0
+                    val levelInfo = calculateLevelAndProgress(currentPoints) // Calculate level info
+                    val userBadges = mapAchievementsToBadges(achievements) // Map achievements to badges
+                    val leaderboardItems = mapLeaderboardEntries(leaderboard) // Map leaderboard data
 
-                    // Process User Info
-                    val userName = user?.name ?: "User"
-                    // Process Level & Progress (Example Logic)
-                    val currentPoints = pointsData?.currentPoints ?: 0
-                    val (levelData, nextRewardName) = calculateLevelAndProgress(currentPoints)
-                    val (level, levelName, progress) = levelData
-                    val userLevelText = "Level $level $levelName"
-
-                    // Process Badges (Map Achievements to Badges)
-                    val badges = mapAchievementsToBadges(achievements)
-
-                    // Leaderboard (Still Placeholder)
-                    val placeholderLeaderboard = getPlaceholderLeaderboard(user?.name ?: "You")
-
-                    // Update State
+                    // Update the UI State
                     RewardsUiState(
                         isLoading = false,
-                        userName = userName,
-                        userLevel = userLevelText,
-                        userProfileImageUrl = null, // TODO: Add profile image URL to UserEntity if needed
-                        nextRewardName = nextRewardName,
-                        nextRewardProgress = progress,
-                        badges = badges,
-                        leaderboard = placeholderLeaderboard,
+                        userName = user?.name ?: "User",
+                        currentPoints = currentPoints,
+                        userLevel = levelInfo.level,
+                        userLevelName = levelInfo.levelName,
+                        pointsInLevel = levelInfo.pointsInLevel,
+                        pointsNeededForLevel = levelInfo.pointsNeededForLevel,
+                        nextLevelPoints = levelInfo.nextLevelThreshold,
+                        achievements = userBadges, // Use the mapped badges
+                        leaderboardEntries = leaderboardItems, // Use the mapped leaderboard items
                         error = null
                     )
+                }.catch { e ->
+                    Log.e("RewardsViewModel", "Error loading rewards data for user $userId", e)
+                    _uiState.update { it.copy(isLoading = false, error = "Failed to load rewards data.") }
                 }.collect { newState ->
-                     _uiState.value = newState
+                    _uiState.value = newState
                 }
             } catch (e: Exception) {
-                 _uiState.update { it.copy(isLoading = false, error = "Failed to load rewards data") }
+                Log.e("RewardsViewModel", "Error in loadRewardsData launch block", e)
+                _uiState.update { it.copy(isLoading = false, error = "An unexpected error occurred.") }
             }
         }
     }
 
-    // Example level calculation logic (customize as needed)
-    // Returns a Pair: Triple(Level, LevelName, ProgressPercent) and NextRewardName String
-    private fun calculateLevelAndProgress(points: Int): Pair<Triple<Int, String, Int>, String> {
-        val pointsPerLevel = 500 // Example
-        val level = (points / pointsPerLevel) + 1
-        val pointsInLevel = points % pointsPerLevel
-        val progressPercent = ((pointsInLevel.toDouble() / pointsPerLevel) * 100).toInt().coerceIn(0, 100)
-        
-        // Determine level name and next reward based on level
-        val levelName = when (level) {
-            1 -> "Beginner"
-            in 2..4 -> "Budgeter"
-            in 5..9 -> "Saver"
-            in 10..19 -> "Master"
-            else -> "Guru"
+    // Moved level calculation logic directly into ViewModel for simplicity
+    private fun calculateLevelAndProgress(points: Int): LevelProgressInfo {
+        // Define new thresholds based on user request
+        val thresholds = listOf(0, 150, 450, 1050, 2250)
+        val names = listOf("Bronze", "Silver", "Gold", "Platinum", "Diamond") // Keep names or adjust if needed
+
+        var level = 1
+        var levelName = names[0]
+        var pointsForCurrentLevelStart = thresholds[0]
+        var pointsForNextLevelStart = thresholds.getOrElse(1) { thresholds.last() + 1000 } // Default next if only one level
+
+        for (i in thresholds.indices) {
+            if (points >= thresholds[i]) {
+                level = i + 1
+                levelName = names.getOrElse(i) { names.last() }
+                pointsForCurrentLevelStart = thresholds[i]
+                pointsForNextLevelStart = thresholds.getOrElse(i + 1) { points + 1 } // If max level, next threshold is just above current points
+            } else {
+                pointsForNextLevelStart = thresholds[i] // The threshold we didn't reach
+                break
+            }
         }
-        val nextReward = "Reach Level ${level + 1}"
-        
-        return Pair(Triple(level, levelName, progressPercent), nextReward)
+
+        val pointsNeededForLevel = (pointsForNextLevelStart - pointsForCurrentLevelStart).coerceAtLeast(1)
+        val pointsInLevel = (points - pointsForCurrentLevelStart).coerceIn(0, pointsNeededForLevel)
+
+        return LevelProgressInfo(
+            level = level,
+            levelName = levelName,
+            pointsInLevel = pointsInLevel,
+            pointsNeededForLevel = pointsNeededForLevel,
+            nextLevelThreshold = pointsForNextLevelStart // Total points needed for next level
+        )
     }
 
-    // Map AchievementEntity to Badge model
+    // Map AchievementEntity list to Badge list
     private fun mapAchievementsToBadges(achievements: List<AchievementEntity>): List<Badge> {
-        return achievements.filter { it.achievedDate != null } // Only show unlocked badges
+        return achievements
+            .filter { it.achievedDate != null } // Only show unlocked achievements as badges
             .map { achievement ->
                 Badge(
                     id = achievement.achievementId.toString(),
-                    name = achievement.achievementName, 
-                    iconResId = getIconForAchievement(achievement.achievementName) // Map name/id to icon
+                    name = achievement.achievementName,
+                    iconResId = getIconForAchievement(achievement.iconName) // Use iconName from entity
                 )
             }
     }
 
-    // Placeholder icon mapping for badges
-    private fun getIconForAchievement(achievementName: String): Int {
-        // Basic example - expand this logic
-        return when {
-            achievementName.contains("Budget") -> R.drawable.ic_trophy
-            achievementName.contains("Expense") -> R.drawable.ic_track_expenses
-            achievementName.contains("Saving") -> R.drawable.ic_achievement_unlocked
-            else -> R.drawable.ic_set_goals
+    // Placeholder icon mapping - use iconName from AchievementEntity
+    private fun getIconForAchievement(iconName: String?): Int {
+        return when (iconName) {
+            "ic_track_expenses" -> R.drawable.ic_track_expenses
+            "ic_set_goals" -> R.drawable.ic_set_goals
+            "ic_trophy" -> R.drawable.ic_trophy
+            // Add mappings for other icon names stored in the DB
+            else -> R.drawable.ic_achievement_unlocked // Default fallback icon
         }
     }
 
-    // Placeholder Leaderboard
-    private fun getPlaceholderLeaderboard(currentUserName: String): List<LeaderboardRank> {
-         return listOf(
-                LeaderboardRank("user1", "Sarah Miller", R.drawable.ic_profile_placeholder, 2450),
-                LeaderboardRank("user2", "John Doe", R.drawable.ic_profile_placeholder, 2280),
-                LeaderboardRank(currentUserId.toString(), currentUserName, R.drawable.ic_profile_placeholder, 2150) // Example placement
-            ).sortedByDescending { it.points }
+    // Map UserWithPoints list to LeaderboardRank list
+    private fun mapLeaderboardEntries(usersWithPoints: List<UserWithPoints>): List<LeaderboardRank> {
+        return usersWithPoints.mapIndexed { index, userWithPoints -> // Add index for rank
+            LeaderboardRank(
+                // rank = index + 1, // Rank is based on position
+                userId = userWithPoints.user.userId.toString(),
+                name = userWithPoints.user.name ?: "Unknown User",
+                profileImageRes = R.drawable.ic_profile_placeholder, // TODO: Use real image if available
+                points = userWithPoints.points.currentPoints
+            )
+        }
+    }
+
+    fun refreshData() {
+        loadRewardsData()
     }
 } 

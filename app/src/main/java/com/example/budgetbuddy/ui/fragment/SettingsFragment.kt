@@ -5,17 +5,28 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity // Import for ActionBar
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels // Import viewModels delegate
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.budgetbuddy.R // Ensure R is imported
 import com.example.budgetbuddy.databinding.FragmentSettingsBinding
+import com.example.budgetbuddy.ui.viewmodel.SettingsEvent // Import event
+import com.example.budgetbuddy.ui.viewmodel.SettingsViewModel // Import ViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch // Import launch
 
 @AndroidEntryPoint
 class SettingsFragment : Fragment() {
 
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
+
+    // Get reference to the ViewModel
+    private val viewModel: SettingsViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -29,6 +40,7 @@ class SettingsFragment : Fragment() {
 
         loadSettings()
         setupListeners()
+        observeViewModelEvents() // Observe navigation/other events
     }
 
     private fun loadSettings() {
@@ -40,8 +52,14 @@ class SettingsFragment : Fragment() {
     }
 
     private fun setupListeners() {
-        binding.editProfileRow.setOnClickListener { /* TODO */ Toast.makeText(context, "Edit Profile", Toast.LENGTH_SHORT).show() }
-        binding.changePasswordRow.setOnClickListener { /* TODO */ Toast.makeText(context, "Change Password", Toast.LENGTH_SHORT).show() }
+        binding.editProfileRow.setOnClickListener {
+            // Navigate to Edit Profile using the new action
+            findNavController().navigate(R.id.action_settingsFragment_to_editProfileFragment)
+        }
+        binding.changePasswordRow.setOnClickListener {
+             // Navigate to Change Password using the new action
+            findNavController().navigate(R.id.action_settingsFragment_to_changePasswordFragment)
+        }
 
         binding.budgetAlertsSwitch.setOnCheckedChangeListener { _, isChecked ->
             // TODO: Save budget alerts setting
@@ -64,8 +82,7 @@ class SettingsFragment : Fragment() {
         }
 
         binding.signOutRow.setOnClickListener {
-            // TODO: Implement logout logic (clear session, navigate to login)
-            Toast.makeText(context, "Sign Out", Toast.LENGTH_SHORT).show()
+            viewModel.onSignOutClicked() // Call ViewModel function
         }
 
         // Remove listeners for views that were removed from the layout
@@ -75,8 +92,44 @@ class SettingsFragment : Fragment() {
         // binding.logoutButton.setOnClickListener { ... }
     }
 
+    // Observe one-time events from the ViewModel
+    private fun observeViewModelEvents() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.eventFlow.collect { event ->
+                    when (event) {
+                        is SettingsEvent.NavigateToLogin -> {
+                            // Navigate to the login/auth graph start destination
+                            // Replace R.id.auth_graph with your actual nav graph ID if different
+                            // Use popUpTo to clear the back stack up to the main graph
+                            findNavController().navigate(R.id.auth_graph, null, 
+                                androidx.navigation.NavOptions.Builder()
+                                    .setPopUpTo(R.id.main_graph, true) // Pop back stack to main graph start, inclusive
+                                    .build()
+                            )
+                        }
+                        // Handle other events like errors if added later
+                    }
+                }
+            }
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    // Hide default ActionBar when this fragment is shown
+    override fun onResume() {
+        super.onResume()
+        (activity as? AppCompatActivity)?.supportActionBar?.hide()
+    }
+
+    // Show default ActionBar again if needed when leaving
+    override fun onPause() {
+        super.onPause()
+        // Keep hidden
+        // (activity as? AppCompatActivity)?.supportActionBar?.show()
     }
 } 

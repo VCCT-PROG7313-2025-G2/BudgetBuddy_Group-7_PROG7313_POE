@@ -7,41 +7,128 @@
     android:padding="16dp"
     tools:context=".ui.fragment.BudgetSetupFragment">
 
-    <!-- Title removed -->
+    <!-- Back Button -->
+    <ImageView
+        android:id="@+id/backButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_arrow_left"
+        android:padding="8dp"
+        android:contentDescription="@string/back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?android:attr/textColorPrimary" />
 
-    <!-- Monthly Budget Input -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/monthlyBudgetInputLayout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+    <TextView
+        android:id="@+id/titleTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Budget Setup"
+        android:textAppearance="?attr/textAppearanceHeadline6"
+        app:layout_constraintTop_toTopOf="@id/backButton"
+        app:layout_constraintBottom_toBottomOf="@+id/backButton"
+        app:layout_constraintStart_toEndOf="@+id/backButton"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Monthly Budget Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/monthlyBudgetCard"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        app:cardBackgroundColor="@android:color/white"
         android:layout_marginTop="16dp"
-        android:hint="@string/hint_set_monthly_budget"
-        app:prefixText="$"
-        app:layout_constraintTop_toTopOf="parent" 
+        app:cardElevation="4dp"
+        app:cardCornerRadius="8dp"
+        app:layout_constraintTop_toBottomOf="@id/backButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/monthlyBudgetEditText"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="numberDecimal" />
+            android:padding="16dp">
 
-    </com.google.android.material.textfield.TextInputLayout>
+            <TextView
+                android:id="@+id/monthlyBudgetLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Set Monthly Budget"
+                android:textAppearance="?attr/textAppearanceSubtitle1"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Auto-recommendations Switch -->
-    <com.google.android.material.materialswitch.MaterialSwitch
-        android:id="@+id/autoRecommendSwitch"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/monthlyBudgetInputLayout"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:prefixText="$"
+                app:layout_constraintTop_toBottomOf="@id/monthlyBudgetLabel"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/monthlyBudgetEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal"
+                    android:text="0.00" /> 
+
+            </com.google.android.material.textfield.TextInputLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Auto-recommendations Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/autoRecommendCard"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        app:cardBackgroundColor="@android:color/white"
         android:layout_marginTop="16dp"
-        android:text="@string/auto_recommendations_label"
-        android:checked="true"
-        android:textAppearance="?attr/textAppearanceBody1"
-        app:layout_constraintTop_toBottomOf="@id/monthlyBudgetInputLayout"
+        app:cardElevation="4dp"
+        app:cardCornerRadius="8dp"
+        app:layout_constraintTop_toBottomOf="@id/monthlyBudgetCard"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/autoRecommendLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Auto-Budget Recommendations"
+                android:textAppearance="?attr/textAppearanceSubtitle1"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/autoRecommendSwitch"/>
+
+            <TextView
+                android:id="@+id/autoRecommendDescription"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Let AI optimize your budget"
+                android:textAppearance="?attr/textAppearanceBody2"
+                android:layout_marginTop="4dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/autoRecommendLabel"
+                app:layout_constraintEnd_toStartOf="@+id/autoRecommendSwitch"/>
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/autoRecommendSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="false"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
 
     <!-- Category Budgets Section Label and Add Button -->
     <TextView
@@ -52,19 +139,90 @@
         android:text="@string/category_budgets_label"
         android:textAppearance="?attr/textAppearanceSubtitle1"
         android:textStyle="bold"
-        app:layout_constraintTop_toBottomOf="@id/autoRecommendSwitch"
+        app:layout_constraintTop_toBottomOf="@id/autoRecommendCard"
         app:layout_constraintStart_toStartOf="parent" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/addCategoryButton"
-        style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+        style="@style/Widget.Material3.Button.IconButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/add_category"
+        android:contentDescription="@string/add_category"
         app:icon="@drawable/ic_add"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/categoryBudgetsLabel"
         app:layout_constraintBottom_toBottomOf="@id/categoryBudgetsLabel"/>
+
+    <!-- Inline Add Category Section (Initially Hidden) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/addCategoryInputCard"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:cardBackgroundColor="@android:color/white"
+        android:layout_marginTop="8dp"
+        app:cardElevation="2dp"
+        app:cardCornerRadius="8dp"
+        android:visibility="gone"
+        tools:visibility="visible" 
+        app:layout_constraintTop_toBottomOf="@id/categoryBudgetsLabel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <!-- TODO: Add category icon selector? -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/newCategoryNameInputLayout"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="Category Name"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/newCategoryNameEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/newCategoryAmountInputLayout"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:hint="Budget Amount"
+                app:prefixText="$"
+                app:layout_constraintTop_toBottomOf="@id/newCategoryNameInputLayout"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/inlineAddButton">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/newCategoryAmountEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/inlineAddButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add"
+                android:backgroundTint="@android:color/black"
+                android:textColor="@android:color/white"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/newCategoryAmountInputLayout"
+                app:layout_constraintBottom_toBottomOf="@id/newCategoryAmountInputLayout"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
 
     <!-- RecyclerView for category budgets -->
     <androidx.recyclerview.widget.RecyclerView
@@ -74,8 +232,8 @@
         android:layout_marginTop="8dp"
         android:layout_marginBottom="16dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintTop_toBottomOf="@id/categoryBudgetsLabel"
-        app:layout_constraintBottom_toTopOf="@id/saveBudgetButton"
+        app:layout_constraintTop_toBottomOf="@id/addCategoryInputCard" 
+        app:layout_constraintBottom_toTopOf="@+id/saveBudgetButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         tools:listitem="@layout/item_category_budget"
@@ -89,6 +247,7 @@
         android:text="@string/save_changes"
         android:paddingTop="12dp"
         android:paddingBottom="12dp"
+        android:backgroundTint="@android:color/black"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

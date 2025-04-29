@@ -2,6 +2,7 @@ package com.example.budgetbuddy.di
 
 import com.example.budgetbuddy.data.db.dao.* // Import all DAOs
 import com.example.budgetbuddy.data.repository.*
+import com.example.budgetbuddy.util.SessionManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -40,8 +41,12 @@ object RepositoryModule {
     // You might create a separate AuthRepository or include auth in UserRepository
     @Provides
     @Singleton
-    fun provideAuthRepository(userDao: UserDao): AuthRepository {
-        // Example: Using UserRepository for auth for now
-        return AuthRepository(userDao)
+    fun provideAuthRepository(
+        userDao: UserDao,
+        rewardsRepository: RewardsRepository,
+        sessionManager: SessionManager
+    ): AuthRepository {
+        // Pass all dependencies to the constructor
+        return AuthRepository(userDao, rewardsRepository, sessionManager)
     }
 } 

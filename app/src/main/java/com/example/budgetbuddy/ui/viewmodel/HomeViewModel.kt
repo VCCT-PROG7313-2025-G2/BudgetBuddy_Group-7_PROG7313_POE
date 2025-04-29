@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.data.PieEntry
+import com.example.budgetbuddy.util.SessionManager // Add import
 
 // Define the static list of categories to always display
 private val STATIC_CATEGORIES = listOf(
@@ -62,26 +63,32 @@ data class HomeCategoryItemUiState(
 class HomeViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val budgetRepository: BudgetRepository,
-    private val expenseRepository: ExpenseRepository
-    // private val rewardsRepository: RewardsRepository // Inject when needed
-    // TODO: Inject SessionManager/DataStore to get currentUserId
+    private val expenseRepository: ExpenseRepository,
+    private val sessionManager: SessionManager // Inject SessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState(isLoading = true))
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    // TODO: Replace with actual user ID retrieval from SessionManager/DataStore
-    private val currentUserId: Long = 1L // Placeholder
+    // Get the current user ID from SessionManager
+    private fun getCurrentUserId(): Long = sessionManager.getUserId()
 
     init {
         loadHomeScreenData()
     }
 
     private fun loadHomeScreenData() {
+        val userId = getCurrentUserId()
+        if (userId == SessionManager.NO_USER_LOGGED_IN) {
+            Log.e("HomeViewModel", "Cannot load data, no user logged in")
+            _uiState.value = HomeUiState(isLoading = false, error = "Please log in.")
+            return
+        }
+
         viewModelScope.launch {
             try {
                 // Get user for greeting
-                val userFlow = userRepository.getUser(currentUserId)
+                val userFlow = userRepository.getUser(userId)
 
                 // Get budget and spending for the current month
                 val monthYearFormat = SimpleDateFormat("yyyy-MM", Locale.getDefault())
@@ -89,14 +96,14 @@ class HomeViewModel @Inject constructor(
                 val startOfMonth = getStartOfMonth().time
                 val endOfMonth = getEndOfMonth().time
 
-                val budgetFlow = budgetRepository.getBudgetForMonth(currentUserId, currentMonthYear)
-                val spentFlow = expenseRepository.getTotalSpendingBetween(currentUserId, Date(startOfMonth), Date(endOfMonth)).map { it ?: BigDecimal.ZERO }
-                val categorySpendingFlow = expenseRepository.getSpendingByCategoryBetween(currentUserId, Date(startOfMonth), Date(endOfMonth))
+                val budgetFlow = budgetRepository.getBudgetForMonth(userId, currentMonthYear)
+                val spentFlow = expenseRepository.getTotalSpendingBetween(userId, Date(startOfMonth), Date(endOfMonth)).map { it ?: BigDecimal.ZERO }
+                val categorySpendingFlow = expenseRepository.getSpendingByCategoryBetween(userId, Date(startOfMonth), Date(endOfMonth))
 
                 // Get data for daily spending chart (last 7 days)
                 val weekStartDate = getStartOfWeek().time
                 val todayEndDate = getEndOfDay().time
-                val dailyExpensesFlow = expenseRepository.getExpensesBetween(currentUserId, Date(weekStartDate), Date(todayEndDate))
+                val dailyExpensesFlow = expenseRepository.getExpensesBetween(userId, Date(weekStartDate), Date(todayEndDate))
 
                 // Combine flows to build the UI State
                 combine(

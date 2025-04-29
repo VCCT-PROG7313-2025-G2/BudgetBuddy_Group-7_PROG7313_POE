@@ -6,8 +6,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AchievementDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(achievement: AchievementEntity): Long
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(achievement: AchievementEntity)
 
     @Update
     suspend fun update(achievement: AchievementEntity)
@@ -18,6 +18,12 @@ interface AchievementDao {
     @Query("SELECT * FROM achievements WHERE achievementId = :id")
     suspend fun getAchievementById(id: Long): AchievementEntity?
 
-    @Query("UPDATE achievements SET achievedDate = :date WHERE achievementId = :id")
-    suspend fun markAchievementAchieved(id: Long, date: Long) // Use Long for Date timestamp
+    @Query("SELECT * FROM achievements WHERE achievementId = :achievementId AND userId = :userId LIMIT 1")
+    suspend fun getAchievementByIdAndUser(achievementId: Long, userId: Long): AchievementEntity?
+
+    @Query("UPDATE achievements SET achievedDate = :achievedTimestamp WHERE achievementId = :achievementId")
+    suspend fun markAchievementAchieved(achievementId: Long, achievedTimestamp: Long)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertAll(achievements: List<AchievementEntity>)
 } 
