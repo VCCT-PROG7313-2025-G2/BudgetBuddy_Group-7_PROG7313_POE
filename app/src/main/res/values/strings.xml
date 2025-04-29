@@ -133,6 +133,8 @@
     <string name="sync_frequency_label">Sync Frequency</string>
     <string name="account_label">Account</string>
     <string name="sign_out_label">Sign Out</string>
+    <string name="alex_johnson">Alex Johnson</string>
+    <string name="alex_johnson_example_com">alex.johnson@example.com</string>
 
     <!-- Add other strings as needed -->
 
