@@ -81,7 +81,10 @@
     <string name="your_points_label">Points:</string>
     <string name="achievements_label">Achievements</string>
     <string name="achievement_icon_desc">Achievement icon</string>
-    <string name="points_to_next_level_format">%d points to next level</string> 
+    <string name="points_to_next_level_format">%d points to next level</string>
+    <string name="share_rewards">Share your rewards</string>
+    <string name="user_profile_image_desc">Profile picture of user</string>
+    <string name="next_reward_label">Next Reward</string>
 
     <!-- Profile Screen -->
     <string name="profile_title">Profile</string>
@@ -135,6 +138,7 @@
     <string name="sign_out_label">Sign Out</string>
     <string name="alex_johnson">Alex Johnson</string>
     <string name="alex_johnson_example_com">alex.johnson@example.com</string>
+    <string name="rewards_and_achievements_title" />
 
     <!-- Add other strings as needed -->
 
