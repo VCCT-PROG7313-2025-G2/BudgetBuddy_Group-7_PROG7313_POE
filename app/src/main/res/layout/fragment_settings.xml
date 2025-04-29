@@ -63,7 +63,8 @@
 
         <LinearLayout
             android:id="@+id/editProfileRow"
-            style="@style/SettingsRowStyle">
+            style="@style/SettingsRowStyle"
+            tools:ignore="UseCompoundDrawables">
             <TextView
                 style="@style/SettingsRowTextStyle"
                 android:text="@string/edit_profile_label" />
