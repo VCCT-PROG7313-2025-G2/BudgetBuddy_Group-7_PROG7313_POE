@@ -73,7 +73,7 @@
     <string name="spending_breakdown_label">Spending Breakdown</string>
     <string name="monthly_spending_trend_label">Monthly Spending Trend</string>
     <string name="key_stats_label">Key Stats</string>
-    <string name="average_spending_placeholder">Average Daily Spending: $--.--</string>
+    <string name="average_spending_placeholder">Average Daily Spending: $&#8212;.&#8212;</string>
     <string name="biggest_expense_placeholder">Biggest Expense: ------ ($--.--)</string>
 
     <!-- Rewards Screen -->

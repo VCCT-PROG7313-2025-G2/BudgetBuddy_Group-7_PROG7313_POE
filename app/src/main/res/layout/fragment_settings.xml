@@ -13,13 +13,13 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Header Row: Back Button (left), Centered Title -->
+        <!-- Header Row: Title -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp">
 
-            <!-- Back Button with minimum 48dp touch target -->
+            <!-- Back Button -->
             <FrameLayout
                 android:id="@+id/backButtonContainer"
                 android:layout_width="48dp"
@@ -53,7 +53,7 @@
                 app:layout_constraintEnd_toEndOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- Profile Header (Image, Name, Email) -->
+        <!-- Profile Header -->
         <LinearLayout
             android:id="@+id/profileHeader"
             android:layout_width="match_parent"
