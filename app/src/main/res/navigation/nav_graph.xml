@@ -94,6 +94,10 @@
         <action
             android:id="@+id/action_profileFragment_to_settingsFragment"
             app:destination="@id/settingsFragment" />
+        <!-- Action to Expense History -->
+        <action
+            android:id="@+id/action_profileFragment_to_expenseHistoryFragment"
+            app:destination="@id/expenseHistoryFragment" />
     </fragment>
 
     <!-- New Expense Fragment -->
@@ -176,6 +180,13 @@
             app:popUpToInclusive="true" />
     </fragment>
 
+    <!-- Expense History Fragment -->
+    <fragment
+        android:id="@+id/expenseHistoryFragment"
+        android:name="com.example.budgetbuddy.ui.fragment.ExpenseHistoryFragment"
+        android:label="fragment_expense_history"
+        tools:layout="@layout/fragment_expense_history" />
+
     <!-- Separate Auth Graph (if you have one) -->
     <navigation android:id="@+id/auth_graph" app:startDestination="@id/loginSignupFragment">
         <!-- Include login/signup/account creation fragments here -->
@@ -253,6 +264,10 @@
              <action
                 android:id="@+id/action_profileFragment_to_settingsFragment"
                 app:destination="@id/settingsFragment" />
+             <!-- Action to Expense History -->
+             <action
+                 android:id="@+id/action_profileFragment_to_expenseHistoryFragment"
+                 app:destination="@id/expenseHistoryFragment" />
         </fragment>
         <fragment
             android:id="@+id/settingsFragment"
