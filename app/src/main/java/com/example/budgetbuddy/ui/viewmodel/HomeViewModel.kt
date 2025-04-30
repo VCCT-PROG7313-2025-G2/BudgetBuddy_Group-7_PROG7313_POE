@@ -45,7 +45,7 @@ data class HomeUiState(
     val budgetProgress: Int = 0, // 0-100
     val dailySpendingData: Pair<List<BarEntry>, List<String>>? = null,
     val budgetCategories: List<HomeCategoryItemUiState> = emptyList(),
-    val rewardsText: String = "", // Placeholder for now
+    val leaderboardPositionText: String = "", // To show user's rank
     val isLoading: Boolean = true,
     val error: String? = null
 )
@@ -64,6 +64,7 @@ class HomeViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val budgetRepository: BudgetRepository,
     private val expenseRepository: ExpenseRepository,
+    private val rewardsRepository: RewardsRepository, // Inject RewardsRepository
     private val sessionManager: SessionManager // Inject SessionManager
 ) : ViewModel() {
 
@@ -111,9 +112,17 @@ class HomeViewModel @Inject constructor(
                     budgetFlow,             // Flow<BudgetEntity?>
                     spentFlow,              // Flow<BigDecimal>
                     categorySpendingFlow,   // Flow<List<CategorySpending>>
-                    dailyExpensesFlow       // Flow<List<ExpenseEntity>>
+                    dailyExpensesFlow,      // Flow<List<ExpenseEntity>>
+                    rewardsRepository.getFullLeaderboard() // Add leaderboard flow
                     // TODO: Add rewards flow later
-                ) { user, budget, spent, categorySpendingList, weekExpenses ->
+                ) { flows -> // Change to single parameter (array)
+                    // Access and cast values from the flows array
+                    val user = flows[0] as com.example.budgetbuddy.data.db.entity.UserEntity?
+                    val budget = flows[1] as com.example.budgetbuddy.data.db.entity.BudgetEntity?
+                    val spent = flows[2] as java.math.BigDecimal
+                    val categorySpendingList = flows[3] as List<com.example.budgetbuddy.data.db.pojo.CategorySpending>
+                    val weekExpenses = flows[4] as List<com.example.budgetbuddy.data.db.entity.ExpenseEntity>
+                    val leaderboard = flows[5] as List<com.example.budgetbuddy.model.UserWithPoints>
 
                     val greeting = user?.name?.substringBefore(" ")?.let { "Hi, $it" } ?: "Welcome"
                     val budgetTotal = budget?.totalAmount ?: BigDecimal.ZERO
@@ -124,6 +133,14 @@ class HomeViewModel @Inject constructor(
                     val categoryUiList = generateCategoryUiList(budget?.budgetId, categorySpendingList)
                     val dailySpendingData = generateDailySpendingChartData(weekExpenses)
 
+                    // Calculate leaderboard position
+                    val userPosition = leaderboard.indexOfFirst { it.user.userId == userId }
+                    val positionText = if (userPosition != -1) {
+                        "Rank #${userPosition + 1} on Leaderboard" // TODO: Move to strings.xml
+                    } else {
+                        "Not Ranked Yet" // TODO: Move to strings.xml
+                    }
+
                     HomeUiState(
                         greeting = greeting,
                         budgetTotal = budgetTotal,
@@ -131,7 +148,7 @@ class HomeViewModel @Inject constructor(
                         budgetProgress = budgetProgress,
                         dailySpendingData = dailySpendingData,
                         budgetCategories = categoryUiList,
-                        rewardsText = "You're #5 on the leaderboard!", // Placeholder
+                        leaderboardPositionText = positionText,
                         isLoading = false,
                         error = null
                     )
