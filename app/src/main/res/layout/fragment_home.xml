@@ -32,9 +32,10 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_help"
             android:contentDescription="@string/help_button_desc"
+            app:tint="?attr/colorControlNormal" 
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="@id/greetingTextView"/>
+            app:layout_constraintBottom_toBottomOf="@+id/greetingTextView"/>
 
         <ImageButton
             android:id="@+id/notificationsButton"
@@ -44,9 +45,10 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_notifications"
             android:contentDescription="@string/notifications_button_desc"
+            app:tint="?attr/colorControlNormal" 
             app:layout_constraintEnd_toStartOf="@id/helpButton"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="@id/greetingTextView"/>
+            app:layout_constraintBottom_toBottomOf="@+id/greetingTextView"/>
 
 
         <!-- Balance Section -->

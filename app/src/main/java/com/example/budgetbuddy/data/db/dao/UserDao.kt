@@ -17,4 +17,7 @@ interface UserDao {
 
     @Query("SELECT * FROM users WHERE userId = :userId LIMIT 1")
     fun getUserById(userId: Long): Flow<UserEntity?> // Flow for observing changes
+
+    @Query("SELECT * FROM users WHERE userId = :userId LIMIT 1")
+    suspend fun getUserByIdNonFlow(userId: Long): UserEntity? // Add non-flow version
 } 

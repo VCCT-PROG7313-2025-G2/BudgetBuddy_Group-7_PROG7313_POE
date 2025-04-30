@@ -2,6 +2,7 @@ package com.example.budgetbuddy.ui.fragment
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -72,9 +73,9 @@ class RewardsFragment : Fragment() {
     }
 
     private fun shareRewards() {
-        // Create the text content to share
-        // TODO: Customize this text with actual data from ViewModel if needed
-        val shareText = "Check out my progress on BudgetBuddy! Level: ${viewModel.uiState.value.userLevel}, Next Reward: ${viewModel.uiState.value.nextRewardName}"
+        // Use available fields from state for sharing
+        val state = viewModel.uiState.value
+        val shareText = "Check out my progress on BudgetBuddy! Level ${state.userLevel} (${state.userLevelName}), ${state.currentPoints} points."
 
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
@@ -102,24 +103,44 @@ class RewardsFragment : Fragment() {
                     if (!state.isLoading) {
                         // Update User Info
                         binding.userNameTextView.text = state.userName
-                        binding.userLevelTextView.text = state.userLevel
-                        // Load profile image (e.g., using Glide) - Optional
+                        // Combine level number and name
+                        binding.userLevelTextView.text = "Level ${state.userLevel} ${state.userLevelName}"
+                        // Load profile image - Use placeholder as userProfileImageUrl was removed from state
                         Glide.with(this@RewardsFragment)
-                             .load(state.userProfileImageUrl ?: R.drawable.ic_profile_placeholder)
-                             .circleCrop() // Make it circular
+                             .load(R.drawable.ic_profile_placeholder) // Use placeholder
+                             .circleCrop()
                              .placeholder(R.drawable.ic_profile_placeholder)
                              .into(binding.userProfileImageView)
 
-                        // Update Next Reward
-                        binding.nextRewardNameTextView.text = state.nextRewardName
-                        binding.nextRewardProgressBar.progress = state.nextRewardProgress
-                        binding.nextRewardPercentageTextView.text = "${state.nextRewardProgress}%"
+                        // Update Next Reward section based on points/level
+                        // Use nextLevelPoints from state if needed for text, otherwise remove or adjust
+                        binding.nextRewardNameTextView.text = "Next Level: ${state.nextLevelPoints} pts"
+                        binding.nextRewardProgressBar.max = state.pointsNeededForLevel
+                        binding.nextRewardProgressBar.progress = state.pointsInLevel
+                        // Calculate percentage text based on actual points
+                        val progressPercent = if (state.pointsNeededForLevel > 0) {
+                            ((state.pointsInLevel.toDouble() / state.pointsNeededForLevel) * 100).toInt()
+                        } else {
+                            100 // Handle edge case where level requires 0 points (shouldn't happen with coerceAtLeast(1))
+                        }
+                        binding.nextRewardPercentageTextView.text = "$progressPercent%"
 
-                        // Update Badges RecyclerView
-                        badgeAdapter.updateData(state.badges) // Assuming adapter has updateData
+                        // *** Add Logging Here ***
+                        Log.d("RewardsFragment", "Updating badge adapter. Badge count: ${state.achievements.size}")
+                        state.achievements.forEach { badge ->
+                             Log.d("RewardsFragment", "  - Badge: ${badge.name}, ID: ${badge.id}, IconRes: ${badge.iconResId}")
+                        }
+                        // ***********************
 
-                        // Update Leaderboard RecyclerView
-                        leaderboardAdapter.updateData(state.leaderboard) // Assuming adapter has updateData
+                        // Update Badges RecyclerView using state.achievements
+                        badgeAdapter.updateData(state.achievements) // Use the correct field name
+
+                        // *** Add Logging Here Too ***
+                        Log.d("RewardsFragment", "Updating leaderboard adapter. Entry count: ${state.leaderboardEntries.size}")
+                        // **************************
+
+                        // Update Leaderboard RecyclerView using state.leaderboardEntries
+                        leaderboardAdapter.updateData(state.leaderboardEntries) // Use the correct field name
                     }
 
                     // Handle error state (can be shown even if loading fails)

@@ -47,6 +47,7 @@ class MainActivity : AppCompatActivity() {
             when (destination.id) {
                 R.id.homeFragment,
                 R.id.reportsFragment,
+                R.id.rewardsFragment,
                 R.id.profileFragment -> {
                     bottomNavigationView.visibility = View.VISIBLE
                     supportActionBar?.setDisplayHomeAsUpEnabled(false)

@@ -138,9 +138,178 @@
         android:name="com.example.budgetbuddy.ui.fragment.SettingsFragment"
         android:label="@string/settings_title"
         tools:layout="@layout/fragment_settings">
-        <!-- Navigation actions FROM SettingsFragment if needed -->
+        <!-- Add Action to Edit Profile -->
+        <action
+            android:id="@+id/action_settingsFragment_to_editProfileFragment"
+            app:destination="@id/editProfileFragment" />
+        <!-- Add Action to Change Password -->
+        <action
+            android:id="@+id/action_settingsFragment_to_changePasswordFragment"
+            app:destination="@+id/changePasswordFragment" />
     </fragment>
 
-    <!-- Fragments and actions will be defined here later -->
+    <!-- Edit Profile Fragment -->
+    <fragment
+        android:id="@+id/editProfileFragment"
+        android:name="com.example.budgetbuddy.ui.fragment.EditProfileFragment"
+        android:label="Edit Profile"
+        tools:layout="@layout/fragment_edit_profile">
+        <!-- Action back to Settings (optional) -->
+        <action
+            android:id="@+id/action_editProfileFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment"
+            app:popUpTo="@id/settingsFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- Change Password Fragment -->
+    <fragment
+        android:id="@+id/changePasswordFragment"
+        android:name="com.example.budgetbuddy.ui.fragment.ChangePasswordFragment"
+        android:label="Change Password"
+        tools:layout="@layout/fragment_change_password">
+        <!-- Action back to Settings (optional) -->
+         <action
+            android:id="@+id/action_changePasswordFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment"
+            app:popUpTo="@id/settingsFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- Separate Auth Graph (if you have one) -->
+    <navigation android:id="@+id/auth_graph" app:startDestination="@id/loginSignupFragment">
+        <!-- Include login/signup/account creation fragments here -->
+         <fragment
+            android:id="@+id/loginSignupFragment"
+            android:name="com.example.budgetbuddy.ui.fragment.LoginSignupFragment"
+            android:label="fragment_login_signup"
+            tools:layout="@layout/fragment_login_signup" >
+            <!-- Action to Account Creation -->
+            <action
+                android:id="@+id/action_loginSignupFragment_to_accountCreationFragment"
+                app:destination="@id/accountCreationFragment" />
+            <!-- Action to Main Graph after successful login -->
+             <action
+                android:id="@+id/action_loginSignupFragment_to_main_graph"
+                app:destination="@id/main_graph"
+                app:popUpTo="@id/auth_graph" 
+                app:popUpToInclusive="true" />
+        </fragment>
+         <fragment
+            android:id="@+id/accountCreationFragment"
+            android:name="com.example.budgetbuddy.ui.fragment.AccountCreationFragment" 
+            android:label="fragment_account_creation"
+            tools:layout="@layout/fragment_account_creation">
+             <!-- Action back to Login/Sign Up -->
+            <action
+                android:id="@+id/action_accountCreationFragment_to_loginSignupFragment"
+                app:destination="@id/loginSignupFragment"
+                app:popUpTo="@id/loginSignupFragment" 
+                app:popUpToInclusive="true" /> 
+             <!-- Action to Main Graph after successful sign up -->
+            <action
+                android:id="@+id/action_accountCreationFragment_to_main_graph"
+                app:destination="@id/main_graph"
+                app:popUpTo="@id/auth_graph" 
+                app:popUpToInclusive="true" />
+        </fragment>
+    </navigation>
+
+     <!-- Main App Graph (nested) -->
+    <navigation android:id="@+id/main_graph" app:startDestination="@id/homeFragment">
+         <!-- Add existing fragments to this nested graph with full definitions -->
+        <fragment
+            android:id="@+id/homeFragment"
+            android:name="com.example.budgetbuddy.ui.fragment.HomeFragment"
+            tools:layout="@layout/fragment_home">
+            <action
+                android:id="@+id/action_homeFragment_to_newExpenseFragment"
+                app:destination="@id/newExpenseFragment" />
+            <action
+                android:id="@+id/action_homeFragment_to_expensesFragment"
+                app:destination="@id/expensesFragment" />
+             <action
+                android:id="@+id/action_homeFragment_to_budgetSetupFragment"
+                app:destination="@id/budgetSetupFragment" />
+            <action
+                android:id="@+id/action_homeFragment_to_rewardsFragment"
+                app:destination="@id/rewardsFragment" />
+             <!-- Consider global actions for profile/settings -->
+             <action android:id="@+id/action_homeFragment_to_profileFragment" app:destination="@id/profileFragment"/>
+             <action android:id="@+id/action_homeFragment_to_settingsFragment" app:destination="@id/settingsFragment"/>
+        </fragment>
+        <fragment
+            android:id="@+id/reportsFragment"
+            android:name="com.example.budgetbuddy.ui.fragment.ReportsFragment"
+            tools:layout="@layout/fragment_reports" />
+        <fragment
+            android:id="@+id/profileFragment"
+            android:name="com.example.budgetbuddy.ui.fragment.ProfileFragment"
+            android:label="@string/profile_title"
+            tools:layout="@layout/fragment_profile">
+             <action
+                android:id="@+id/action_profileFragment_to_budgetSetupFragment"
+                app:destination="@id/budgetSetupFragment" />
+             <action
+                android:id="@+id/action_profileFragment_to_settingsFragment"
+                app:destination="@id/settingsFragment" />
+        </fragment>
+        <fragment
+            android:id="@+id/settingsFragment"
+            android:name="com.example.budgetbuddy.ui.fragment.SettingsFragment"
+            android:label="@string/settings_title"
+            tools:layout="@layout/fragment_settings">
+            <action
+                android:id="@+id/action_settingsFragment_to_editProfileFragment"
+                app:destination="@id/editProfileFragment" />
+            <action
+                android:id="@+id/action_settingsFragment_to_changePasswordFragment"
+                app:destination="@id/changePasswordFragment" />
+        </fragment>
+        <fragment
+            android:id="@+id/newExpenseFragment"
+            android:name="com.example.budgetbuddy.ui.fragment.NewExpenseFragment"
+            android:label="@string/new_expense_title"
+            tools:layout="@layout/fragment_new_expense" />
+        <fragment
+            android:id="@+id/expensesFragment"
+            android:name="com.example.budgetbuddy.ui.fragment.ExpensesFragment"
+            android:label="@string/expenses_title"
+            tools:layout="@layout/fragment_expenses" />
+        <fragment
+            android:id="@+id/budgetSetupFragment"
+            android:name="com.example.budgetbuddy.ui.fragment.BudgetSetupFragment"
+            android:label="@string/budget_setup_title"
+            tools:layout="@layout/fragment_budget_setup" />
+        <fragment
+            android:id="@+id/rewardsFragment"
+            android:name="com.example.budgetbuddy.ui.fragment.RewardsFragment"
+            android:label="@string/rewards_and_achievements_title"
+            tools:layout="@layout/fragment_rewards" />
+        <fragment
+            android:id="@+id/editProfileFragment"
+            android:name="com.example.budgetbuddy.ui.fragment.EditProfileFragment"
+            android:label="Edit Profile"
+            tools:layout="@layout/fragment_edit_profile">
+            <action
+                android:id="@+id/action_editProfileFragment_to_settingsFragment"
+                app:destination="@id/settingsFragment"
+                app:popUpTo="@id/settingsFragment"
+                app:popUpToInclusive="true" />
+        </fragment>
+        <fragment
+            android:id="@+id/changePasswordFragment"
+            android:name="com.example.budgetbuddy.ui.fragment.ChangePasswordFragment"
+            android:label="Change Password"
+            tools:layout="@layout/fragment_change_password">
+             <action
+                android:id="@+id/action_changePasswordFragment_to_settingsFragment"
+                app:destination="@id/settingsFragment"
+                app:popUpTo="@id/settingsFragment"
+                app:popUpToInclusive="true" />
+        </fragment>
+          <!-- Add global actions if needed (e.g., accessible from multiple fragments) -->
+          <!-- <action android:id="@+id/action_global_settingsFragment" app:destination="@id/settingsFragment" /> -->
+     </navigation>
 
 </navigation> 
