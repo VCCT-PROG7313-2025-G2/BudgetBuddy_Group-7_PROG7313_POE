@@ -16,6 +16,7 @@ import com.example.budgetbuddy.R // Ensure R is imported
 import com.example.budgetbuddy.databinding.FragmentSettingsBinding
 import com.example.budgetbuddy.ui.viewmodel.SettingsEvent // Import event
 import com.example.budgetbuddy.ui.viewmodel.SettingsViewModel // Import ViewModel
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch // Import launch
 
@@ -28,10 +29,19 @@ class SettingsFragment : Fragment() {
     // Get reference to the ViewModel
     private val viewModel: SettingsViewModel by viewModels()
 
+    // Define sync frequency options
+    private val syncFrequencyOptions by lazy {
+        arrayOf("Manual", "Every hour", "Every 2 hours", "Daily") // Can be moved to resources
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentSettingsBinding.inflate(inflater, container, false)
+
+        // Setup Click Listeners
+        setupClickListeners()
+
         return binding.root
     }
 
@@ -47,8 +57,8 @@ class SettingsFragment : Fragment() {
         // TODO: Load actual settings from SharedPreferences or ViewModel/Repository
         binding.budgetAlertsSwitch.isChecked = true // Placeholder
         binding.dailyRemindersSwitch.isChecked = true // Placeholder - Renamed from goalRemindersSwitch
-        // Update currency text if dynamic
-        binding.syncFrequencyValueTextView.text = "Every 2 hours" // Placeholder
+        // TODO: Load saved sync frequency preference here
+        binding.syncFrequencyValueTextView.text = syncFrequencyOptions[2] // Default placeholder to "Every 2 hours"
     }
 
     private fun setupListeners() {
@@ -77,8 +87,7 @@ class SettingsFragment : Fragment() {
         }
 
         binding.syncFrequencyRow.setOnClickListener {
-            // TODO: Implement sync frequency selection
-            Toast.makeText(context, "Sync Frequency", Toast.LENGTH_SHORT).show()
+            showSyncFrequencyDialog()
         }
 
         binding.signOutRow.setOnClickListener {
@@ -90,6 +99,26 @@ class SettingsFragment : Fragment() {
         // binding.exportDataTextView.setOnClickListener { ... }
         // binding.importDataTextView.setOnClickListener { ... }
         // binding.logoutButton.setOnClickListener { ... }
+    }
+
+    private fun setupClickListeners() {
+        binding.backButton.setOnClickListener {
+            findNavController().navigateUp()
+        }
+
+        // TODO: Add listeners for other rows (Edit Profile, Change Password, Sign Out, etc.)
+        binding.editProfileRow.setOnClickListener {
+            // Example: navigate to edit profile screen
+             Toast.makeText(context, "Edit Profile Clicked", Toast.LENGTH_SHORT).show()
+        }
+        binding.changePasswordRow.setOnClickListener {
+             Toast.makeText(context, "Change Password Clicked", Toast.LENGTH_SHORT).show()
+        }
+        binding.signOutRow.setOnClickListener {
+            // TODO: Implement sign out logic (e.g., call ViewModel)
+             Toast.makeText(context, "Sign Out Clicked", Toast.LENGTH_SHORT).show()
+        }
+        // Add listeners for switches if needed
     }
 
     // Observe one-time events from the ViewModel
@@ -131,5 +160,31 @@ class SettingsFragment : Fragment() {
         super.onPause()
         // Keep hidden
         // (activity as? AppCompatActivity)?.supportActionBar?.show()
+    }
+
+    private fun showSyncFrequencyDialog() {
+        val currentSelection = binding.syncFrequencyValueTextView.text.toString()
+        var checkedItemIndex = syncFrequencyOptions.indexOf(currentSelection)
+        if (checkedItemIndex == -1) {
+            checkedItemIndex = 2 // Default to "Every 2 hours" if current text not found
+        }
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Select Sync Frequency")
+            .setSingleChoiceItems(syncFrequencyOptions, checkedItemIndex) { dialog, which ->
+                // Store the selection index temporarily when an item is clicked
+                checkedItemIndex = which
+            }
+            .setPositiveButton("OK") { dialog, _ ->
+                // Update the TextView with the selected option
+                val selectedFrequency = syncFrequencyOptions[checkedItemIndex]
+                binding.syncFrequencyValueTextView.text = selectedFrequency
+                // TODO: Save the selectedFrequency preference (e.g., call ViewModel)
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
     }
 } 

@@ -34,11 +34,14 @@ class ChangePasswordFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupListeners()
+        setupClickListeners()
         observeViewModel()
     }
 
-    private fun setupListeners() {
+    private fun setupClickListeners() {
+        binding.backButton.setOnClickListener {
+            findNavController().navigateUp()
+        }
         binding.saveButton.setOnClickListener {
             val oldPassword = binding.oldPasswordEditText.text.toString()
             val newPassword = binding.newPasswordEditText.text.toString()

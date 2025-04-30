@@ -63,7 +63,6 @@
             android:layout_height="154dp"
             android:clickable="true"
             android:focusable="false"
-            android:clickable="true"
             android:inputType="none" /> 
 
     </com.google.android.material.textfield.TextInputLayout>

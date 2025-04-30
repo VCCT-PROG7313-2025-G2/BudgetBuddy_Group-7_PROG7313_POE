@@ -154,5 +154,9 @@
     <string name="prompt_email">Email</string>
     <string name="back">Back</string>
     <string name="settings">Settings</string>
+    <string name="back_button_desc">Back</string>
+    <string name="rewards_and_achievements_title">Rewards &amp; Achievements</string>
+    <string name="alex_johnson">Alex Johnson</string> 
+    <string name="alex_johnson_example_com">alex.johnson@example.com</string>
 
 </resources>

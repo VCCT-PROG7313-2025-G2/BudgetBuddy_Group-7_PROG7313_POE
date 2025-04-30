@@ -95,9 +95,7 @@ class ProfileFragment : Fragment() {
 
         // Handle Expense History Row Click
         binding.expenseHistoryRow.setOnClickListener {
-            // TODO: Navigate to an ExpenseHistoryFragment (needs to be created or use ExpensesFragment)
-            // Example: findNavController().navigate(R.id.action_profileFragment_to_expensesFragment)
-            Toast.makeText(context, "Expense History Clicked (Not implemented)", Toast.LENGTH_SHORT).show()
+            findNavController().navigate(R.id.action_profileFragment_to_expenseHistoryFragment)
         }
 
         // Handle Settings Row Click
@@ -109,10 +107,9 @@ class ProfileFragment : Fragment() {
         // Removed budgetSetupLinkTextView listener (if not needed here)
 
         // Removed saveProfileButton listener
-    }
 
-    // Removed saveProfileChanges() method as edit/save is likely moved
-    // private fun saveProfileChanges() { ... }
+        // Removed saveProfileChanges() method as edit/save is likely moved
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()

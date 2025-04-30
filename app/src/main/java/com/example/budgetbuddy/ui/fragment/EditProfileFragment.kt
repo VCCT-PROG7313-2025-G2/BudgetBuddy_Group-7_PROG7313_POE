@@ -34,23 +34,18 @@ class EditProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupListeners()
+        setupClickListeners()
         observeViewModel()
     }
 
-    private fun setupListeners() {
-        binding.saveButton.setOnClickListener {
-            val name = binding.nameEditText.text.toString().trim()
-            val email = binding.emailEditText.text.toString().trim()
-            // Basic validation
-            if (name.isNotEmpty() && email.isNotEmpty()) {
-                // Consider adding email format validation here
-                viewModel.saveProfile(name, email)
-            } else {
-                Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_SHORT).show()
-            }
+    private fun setupClickListeners() {
+        binding.backButton.setOnClickListener {
+            findNavController().navigateUp()
         }
-        // TODO: Add listener for profile picture change if implementing
+        binding.saveButton.setOnClickListener {
+            // TODO: Call ViewModel to save profile changes
+            Toast.makeText(context, "Save Clicked (Not Implemented)", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun observeViewModel() {
