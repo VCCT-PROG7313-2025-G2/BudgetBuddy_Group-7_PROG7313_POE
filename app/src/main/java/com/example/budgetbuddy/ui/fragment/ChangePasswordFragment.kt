@@ -34,12 +34,13 @@ class ChangePasswordFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupListeners()
-        observeViewModel()
+        setupListeners() //wire up button clicks
+        observeViewModel() //collect user interface state and respond
     }
 
     private fun setupListeners() {
         binding.saveButton.setOnClickListener {
+            // Read text from each input field
             val oldPassword = binding.oldPasswordEditText.text.toString()
             val newPassword = binding.newPasswordEditText.text.toString()
             val confirmPassword = binding.confirmPasswordEditText.text.toString()
@@ -57,15 +58,19 @@ class ChangePasswordFragment : Fragment() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
                     binding.saveButton.isEnabled = !state.isLoading
+
+                    // Clear previous validation errors
                     binding.oldPasswordInputLayout.error = null
                     binding.newPasswordInputLayout.error = null
                     binding.confirmPasswordInputLayout.error = null
 
+                    //if validation is successful notify user
                     if (state.isSuccess) {
                         Toast.makeText(context, "Password changed successfully", Toast.LENGTH_SHORT).show()
                         findNavController().popBackStack()
                     }
 
+                    // if validation is not successful and display appropriate message
                     state.error?.let {
                         when {
                             it.contains("match") -> binding.confirmPasswordInputLayout.error = it

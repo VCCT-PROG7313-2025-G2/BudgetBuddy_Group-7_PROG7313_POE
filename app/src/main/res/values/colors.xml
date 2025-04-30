@@ -2,6 +2,7 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="purple">#FF6750a4</color>
 
     <!-- Placeholder color for UI elements under development -->
     <color name="placeholder_background">#FFE0E0E0</color> 
