@@ -7,7 +7,7 @@
     android:padding="24dp"
     tools:context=".ui.fragment.LoginSignupFragment">
 
-    <!-- Logo -->
+    <!-- App Logo -->
     <ImageView
         android:id="@+id/logoImageView"
         android:layout_width="80dp"
@@ -19,7 +19,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:contentDescription="@string/app_logo" />
 
-    <!-- Email Input -->
+    <!-- Email Input field -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/emailInputLayout"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -39,7 +39,7 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Password Input -->
+    <!-- Password Input field with toggle visibility -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/passwordInputLayout"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -97,9 +97,11 @@
         android:text="@string/biometric_login"
         android:textAppearance="?attr/textAppearanceCaption"
         android:textColor="@android:color/black"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
         app:icon="@drawable/ic_fingerprint"
         app:iconGravity="textStart"
-        app:iconPadding="8dp"
+        app:iconPadding="12dp"
         app:layout_constraintTop_toBottomOf="@+id/loginButton"
         app:layout_constraintStart_toStartOf="@+id/loginButton"
         app:layout_constraintEnd_toEndOf="@+id/loginButton" />

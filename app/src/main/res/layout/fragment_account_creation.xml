@@ -7,7 +7,7 @@
     android:padding="24dp"
     tools:context=".ui.fragment.AccountCreationFragment">
 
-    <!-- Title -->
+    <!-- Title for the account creation screen-->
     <TextView
         android:id="@+id/titleTextView"
         android:layout_width="wrap_content"
@@ -19,7 +19,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Full Name Input -->
+    <!-- Input field for full name-->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/fullNameInputLayout"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -39,7 +39,7 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Email Input -->
+    <!--  Input field for Email -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/emailInputLayout"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -59,7 +59,7 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Password Input -->
+    <!--  Input field for Password -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/passwordInputLayout"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -81,7 +81,7 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Confirm Password Input -->
+    <!--  Input field for Confirming Password -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/confirmPasswordInputLayout"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -102,7 +102,7 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Terms Checkbox -->
+    <!-- Terms and conditions Checkbox -->
     <CheckBox
         android:id="@+id/termsCheckBox"
         android:layout_width="0dp"
@@ -114,7 +114,7 @@
         app:layout_constraintStart_toStartOf="@+id/confirmPasswordInputLayout"
         app:layout_constraintEnd_toEndOf="@+id/confirmPasswordInputLayout" />
 
-    <!-- Sign Up Button -->
+    <!-- Button to submit and create the account -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/signUpButton"
         android:layout_width="0dp"
@@ -128,7 +128,7 @@
         app:layout_constraintStart_toStartOf="@+id/termsCheckBox"
         app:layout_constraintEnd_toEndOf="@+id/termsCheckBox" />
 
-    <!-- Back to Login Button -->
+    <!-- Button to navigate Back to Login page -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/backToLoginButton"
         style="@style/Widget.MaterialComponents.Button.TextButton"
