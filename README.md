@@ -145,6 +145,7 @@ git clone https://github.com/ST10359034/BudgetBuddy.git
 - [Kotlin Official Documentation](https://kotlinlang.org/docs/home.html)
 - [MPAndroidChart Documentation](https://github.com/PhilJay/MPAndroidChart)
 - [Room Persistence Library](https://developer.android.com/jetpack/androidx/releases/room)
+- [OpenAI](https://chatgpt.com/)
 
 ---
 
