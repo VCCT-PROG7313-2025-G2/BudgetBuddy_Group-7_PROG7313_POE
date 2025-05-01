@@ -36,13 +36,14 @@ import java.util.Locale
 @AndroidEntryPoint
 class HomeFragment : Fragment() {
 
+    // --- Properties ---
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
 
     private val viewModel: HomeViewModel by viewModels()
     private lateinit var categoryAdapter: HomeCategoryAdapter
 
-    // --- RecyclerView Adapter (Moved outside data class for clarity) ---
+    // --- Inner Class: RecyclerView Adapter ---
     class HomeCategoryAdapter(private var categories: List<HomeCategoryItemUiState>) :
         RecyclerView.Adapter<HomeCategoryAdapter.ViewHolder>() {
 
@@ -71,6 +72,7 @@ class HomeFragment : Fragment() {
     }
     // --- End RecyclerView Adapter ---
 
+    // --- Lifecycle Methods ---
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -88,6 +90,22 @@ class HomeFragment : Fragment() {
         observeViewModel()
     }
 
+    override fun onResume() {
+        super.onResume()
+        (activity as? AppCompatActivity)?.supportActionBar?.hide()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        (activity as? AppCompatActivity)?.supportActionBar?.show()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+    // --- UI Setup ---
     private fun setupRecyclerView() {
         categoryAdapter = HomeCategoryAdapter(emptyList()) // Initialize with empty list
         binding.budgetCategoriesRecyclerView.apply {
@@ -128,6 +146,7 @@ class HomeFragment : Fragment() {
         // binding.rewardsLabelTextView.setOnClickListener { ... }
     }
 
+    // --- ViewModel Observation ---
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -166,6 +185,7 @@ class HomeFragment : Fragment() {
         }
     }
 
+    // --- Chart Update --- 
     private fun updateSpendingTrendChart(entries: List<BarEntry>, labels: List<String>) {
         val chart: BarChart = binding.spendingTrendChartView
         if (entries.isEmpty()) {
@@ -203,21 +223,5 @@ class HomeFragment : Fragment() {
 
         chart.axisRight.isEnabled = false
         chart.invalidate() // Refresh chart
-    }
-
-
-    override fun onResume() {
-        super.onResume()
-        (activity as? AppCompatActivity)?.supportActionBar?.hide()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        (activity as? AppCompatActivity)?.supportActionBar?.show()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 } 

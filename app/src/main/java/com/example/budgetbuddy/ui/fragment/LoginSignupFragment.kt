@@ -23,11 +23,13 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class LoginSignupFragment : Fragment() {
 
+    // --- Properties ---
     private var _binding: FragmentLoginSignupBinding? = null
     private val binding get() = _binding!!
 
     private val viewModel: AuthViewModel by viewModels()
 
+    // --- Lifecycle Methods ---
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -43,6 +45,24 @@ class LoginSignupFragment : Fragment() {
         observeViewModel()
     }
 
+    override fun onResume() {
+        super.onResume()
+        (activity as? AppCompatActivity)?.supportActionBar?.hide()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        (activity as? AppCompatActivity)?.supportActionBar?.show()
+        // Optionally reset state if user navigates back
+        // viewModel.resetState()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+    // --- UI Setup ---
     private fun setupClickListeners() {
          binding.loginButton.setOnClickListener {
             val email = binding.emailEditText.text.toString().trim()
@@ -68,6 +88,7 @@ class LoginSignupFragment : Fragment() {
         }
     }
 
+    // --- ViewModel Observation ---
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -92,22 +113,5 @@ class LoginSignupFragment : Fragment() {
                 }
             }
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        (activity as? AppCompatActivity)?.supportActionBar?.hide()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        (activity as? AppCompatActivity)?.supportActionBar?.show()
-        // Optionally reset state if user navigates back
-        // viewModel.resetState()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 } 

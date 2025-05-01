@@ -23,11 +23,13 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class AccountCreationFragment : Fragment() {
 
+    // --- Properties --- 
     private var _binding: FragmentAccountCreationBinding? = null
     private val binding get() = _binding!!
 
     private val viewModel: AuthViewModel by viewModels()
 
+    // --- Lifecycle Methods --- 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -43,6 +45,24 @@ class AccountCreationFragment : Fragment() {
         observeViewModel()
     }
 
+    override fun onResume() {
+        super.onResume()
+        (activity as? AppCompatActivity)?.supportActionBar?.hide()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        (activity as? AppCompatActivity)?.supportActionBar?.show()
+        // Optionally reset state if user navigates back
+        // viewModel.resetState()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+    // --- UI Setup --- 
     private fun setupClickListeners() {
          binding.signUpButton.setOnClickListener {
             val fullName = binding.fullNameEditText.text.toString().trim()
@@ -74,6 +94,7 @@ class AccountCreationFragment : Fragment() {
         }
     }
 
+    // --- ViewModel Observation --- 
      private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -98,22 +119,5 @@ class AccountCreationFragment : Fragment() {
                 }
             }
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        (activity as? AppCompatActivity)?.supportActionBar?.hide()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        (activity as? AppCompatActivity)?.supportActionBar?.show()
-        // Optionally reset state if user navigates back
-        // viewModel.resetState()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 } 

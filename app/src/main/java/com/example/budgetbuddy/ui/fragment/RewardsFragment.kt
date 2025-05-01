@@ -27,6 +27,7 @@ import androidx.appcompat.app.AppCompatActivity
 @AndroidEntryPoint
 class RewardsFragment : Fragment() {
 
+    // --- Properties ---
     private var _binding: FragmentRewardsBinding? = null
     private val binding get() = _binding!!
 
@@ -34,6 +35,7 @@ class RewardsFragment : Fragment() {
     private lateinit var badgeAdapter: BadgeAdapter
     private lateinit var leaderboardAdapter: LeaderboardAdapter
 
+    // --- Lifecycle Methods ---
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -49,6 +51,26 @@ class RewardsFragment : Fragment() {
         observeViewModel()
     }
 
+    override fun onResume() {
+        super.onResume()
+        (activity as? AppCompatActivity)?.supportActionBar?.hide()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // Decide if you want to show it again when leaving, or keep it hidden
+        // (activity as? AppCompatActivity)?.supportActionBar?.show()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // Important to avoid leaks with RecyclerViews in Fragments
+        binding.badgesRecyclerView.adapter = null
+        binding.leaderboardRecyclerView.adapter = null
+        _binding = null
+    }
+
+    // --- UI Setup ---
     private fun setupRecyclerViews() {
         // Badge Adapter
         badgeAdapter = BadgeAdapter(emptyList()) // Assuming adapter takes List<Badge>
@@ -72,29 +94,7 @@ class RewardsFragment : Fragment() {
         }
     }
 
-    private fun shareRewards() {
-        val state = viewModel.uiState.value // Get the current state
-        val points = state.currentPoints   // Use correct field name
-        val level = state.userLevelName // Use correct field name
-
-        // Construct the share message
-        val shareText = "Check out my progress on BudgetBuddy! I\'m level \"$level\" with $points points. Join me in managing finances! #BudgetBuddyApp"
-        // TODO: Consider adding a dynamic link to the app store or website
-
-        val sendIntent: Intent = Intent().apply {
-            action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, shareText)
-            type = "text/plain"
-        }
-
-        val shareIntent = Intent.createChooser(sendIntent, null)
-        try {
-            startActivity(shareIntent)
-        } catch (e: Exception) {
-            Toast.makeText(context, "Cannot share content. No sharing app found?", Toast.LENGTH_SHORT).show()
-        }
-    }
-
+    // --- ViewModel Observation ---
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -158,24 +158,27 @@ class RewardsFragment : Fragment() {
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        // Important to avoid leaks with RecyclerViews in Fragments
-        binding.badgesRecyclerView.adapter = null
-        binding.leaderboardRecyclerView.adapter = null
-        _binding = null
-    }
+    // --- Helper Functions ---
+    private fun shareRewards() {
+        val state = viewModel.uiState.value // Get the current state
+        val points = state.currentPoints   // Use correct field name
+        val level = state.userLevelName // Use correct field name
 
-    // Hide default ActionBar when this fragment is shown
-    override fun onResume() {
-        super.onResume()
-        (activity as? AppCompatActivity)?.supportActionBar?.hide()
-    }
+        // Construct the share message
+        val shareText = "Check out my progress on BudgetBuddy! I\'m level \"$level\" with $points points. Join me in managing finances! #BudgetBuddyApp"
+        // TODO: Consider adding a dynamic link to the app store or website
 
-    // Show default ActionBar again if needed when leaving
-    override fun onPause() {
-        super.onPause()
-        // Decide if you want to show it again when leaving, or keep it hidden
-        // (activity as? AppCompatActivity)?.supportActionBar?.show()
+        val sendIntent: Intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, shareText)
+            type = "text/plain"
+        }
+
+        val shareIntent = Intent.createChooser(sendIntent, null)
+        try {
+            startActivity(shareIntent)
+        } catch (e: Exception) {
+            Toast.makeText(context, "Cannot share content. No sharing app found?", Toast.LENGTH_SHORT).show()
+        }
     }
 } 
