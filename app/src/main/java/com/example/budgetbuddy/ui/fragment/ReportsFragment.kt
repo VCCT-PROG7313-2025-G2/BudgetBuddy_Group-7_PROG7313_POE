@@ -40,13 +40,11 @@ import android.graphics.Color
 @AndroidEntryPoint
 class ReportsFragment : Fragment() {
 
-    // --- Properties ---
     private var _binding: FragmentReportsBinding? = null
     private val binding get() = _binding!!
 
     private val viewModel: ReportsViewModel by viewModels()
 
-    // --- Lifecycle Methods ---
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -62,22 +60,6 @@ class ReportsFragment : Fragment() {
         observeViewModel()
     }
 
-    override fun onResume() {
-        super.onResume()
-        (activity as? AppCompatActivity)?.supportActionBar?.hide()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        (activity as? AppCompatActivity)?.supportActionBar?.show()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
-    // --- UI Setup ---
     private fun setupCharts() {
         // Basic Pie Chart Setup
         binding.categoryPieChart.apply {
@@ -142,23 +124,21 @@ class ReportsFragment : Fragment() {
          }
     }
 
-    // --- ViewModel Observation ---
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
-                    // Update general UI elements
                     binding.monthYearTextView.text = state.selectedMonthYearText
                     binding.totalSpendingAmountTextView.text = formatCurrency(state.totalSpending)
                     binding.spendingChangeTextView.text = state.spendingChangeText
                     // TODO: Update spending change icon based on text/value
 
-                    // Update charts and legend
                     updatePieChart(state.pieChartData, state.pieChartColors, state.totalSpending)
                     updatePieLegend(state.pieChartLegend, state.pieChartColors) // Pass colors for legend dots
                      state.barChartData?.let { (entries, labels) ->
                         updateBarChart(entries, labels)
                     } ?: binding.dailySpendingBarChart.clear()
+
 
                     // Handle loading and error states if needed
                     // binding.progressBar.isVisible = state.isLoading
@@ -170,7 +150,6 @@ class ReportsFragment : Fragment() {
         }
     }
 
-    // --- Chart Update Functions ---
     private fun updatePieChart(entries: List<PieEntry>, colors: List<Int>, totalSpending: BigDecimal) {
         if (entries.isEmpty()) {
             binding.categoryPieChart.clear()
@@ -218,7 +197,7 @@ class ReportsFragment : Fragment() {
         binding.dailySpendingBarChart.invalidate() // Refresh chart
     }
 
-    // --- UI Helper Functions ---
+
     private fun updatePieLegend(legendItems: List<Pair<String, String>>, colors: List<Int>) {
         binding.categoryLegendLayout.removeAllViews() // Clear previous legend items
         val inflater = LayoutInflater.from(context)
@@ -283,5 +262,20 @@ class ReportsFragment : Fragment() {
 
     private fun formatCurrency(amount: BigDecimal): String {
         return NumberFormat.getCurrencyInstance(Locale.getDefault()).format(amount)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        (activity as? AppCompatActivity)?.supportActionBar?.hide()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        (activity as? AppCompatActivity)?.supportActionBar?.show()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 } 

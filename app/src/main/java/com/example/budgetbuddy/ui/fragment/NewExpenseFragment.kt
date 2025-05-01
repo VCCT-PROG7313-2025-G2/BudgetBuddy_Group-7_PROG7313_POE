@@ -44,13 +44,12 @@ import java.io.IOException
 @AndroidEntryPoint
 class NewExpenseFragment : Fragment() {
 
-    // --- Properties ---
     private var _binding: FragmentNewExpenseBinding? = null
     private val binding get() = _binding!!
 
     private val viewModel: NewExpenseViewModel by viewModels()
 
-    // Activity Result Launchers for picking/capturing images
+    // Activity Result Launchers for picking images
     private lateinit var pickMedia: ActivityResultLauncher<PickVisualMediaRequest>
     private lateinit var getContentLauncher: ActivityResultLauncher<String>
     private lateinit var takePictureLauncher: ActivityResultLauncher<Uri>
@@ -62,50 +61,12 @@ class NewExpenseFragment : Fragment() {
     // URI for the temporary camera image file
     private var cameraImageUri: Uri? = null
 
-    // State variables
     private var selectedDate: Date = Date() // Store selected date as a Date object
-    private var copiedReceiptPath: String? = null // Store path to the *copied* receipt image in internal storage
+    private var copiedReceiptPath: String? = null
 
-    // --- Fragment Lifecycle Methods ---
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        initializeActivityLaunchers()
-    }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentNewExpenseBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        setupCategoryDropdown()
-        setupDatepicker()
-        setupClickListeners()
-        observeViewModel()
-        observeCategories()
-        updateDateDisplay() // Show initial date
-    }
-
-    override fun onResume() {
-        super.onResume()
-        (activity as? AppCompatActivity)?.supportActionBar?.hide()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        (activity as? AppCompatActivity)?.supportActionBar?.show()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
-    // --- Initialization ---
-    private fun initializeActivityLaunchers() {
         // Initialize the Activity Result Launchers
         pickMedia = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
             uri?.let { handleSelectedImage(it) }
@@ -137,10 +98,25 @@ class NewExpenseFragment : Fragment() {
         }
     }
 
-    // --- UI Setup ---
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentNewExpenseBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupCategoryDropdown()
+        setupDatepicker()
+        setupClickListeners()
+        observeViewModel()
+        observeCategories()
+        updateDateDisplay() // Show initial date
+    }
+
     private fun setupCategoryDropdown() {
         // Use the same restricted list of categories as the home screen
-        // TODO: Ideally, fetch categories from a shared source or ViewModel
         val categories = listOf("Food & Dining", "Transport", "Shopping", "Utilities", "Other")
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, categories)
         binding.categoryAutoCompleteTextView.setAdapter(adapter)
@@ -171,12 +147,17 @@ class NewExpenseFragment : Fragment() {
         }
     }
 
+    private fun updateDateDisplay() {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) // Common format
+        binding.dateEditText.setText(dateFormat.format(selectedDate))
+    }
+
     private fun setupClickListeners() {
         binding.saveExpenseButton.setOnClickListener {
             saveExpense()
         }
         binding.attachReceiptButton.setOnClickListener {
-            showImageSourceDialog()
+            launchImagePicker()
         }
         binding.backButton.setOnClickListener {
             findNavController().navigateUp()
@@ -190,65 +171,8 @@ class NewExpenseFragment : Fragment() {
         }
     }
 
-    // --- ViewModel Observation ---
-    private fun observeViewModel() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { state ->
-                    binding.saveExpenseButton.isEnabled = state !is NewExpenseUiState.Loading
-                    // binding.loadingIndicator.isVisible = state is NewExpenseUiState.Loading
-
-                    when (state) {
-                        is NewExpenseUiState.Success -> {
-                            Toast.makeText(context, "Expense saved!", Toast.LENGTH_SHORT).show()
-                            findNavController().navigateUp() // Go back after successful save
-                            viewModel.resetState()
-                        }
-                        is NewExpenseUiState.Error -> {
-                            Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
-                            viewModel.resetState()
-                        }
-                        else -> Unit // Idle or Loading
-                    }
-                }
-            }
-        }
-    }
-
-    private fun observeCategories() {
-        // Example: Observe categories from ViewModel if dynamic
-        // viewModel.categories.collectLatest { categories ->
-        //    val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, categories)
-        //    binding.categoryAutoCompleteTextView.setAdapter(adapter)
-        // }
-    }
-
-    // --- Core Logic ---
-    private fun saveExpense() {
-        val amountText = binding.amountEditText.text.toString()
-        val category = binding.categoryAutoCompleteTextView.text.toString()
-        val notes = binding.notesEditText.text.toString().trim()
-
-        // Basic Validation
-        if (amountText.isBlank() || category.isBlank()) {
-            Toast.makeText(context, "Amount and Category are required", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val amount = try {
-            BigDecimal(amountText)
-        } catch (e: NumberFormatException) {
-            Toast.makeText(context, "Invalid amount format", Toast.LENGTH_SHORT).show()
-            return@saveExpense // Return explicitly from lambda
-        }
-
-        // Pass data to ViewModel
-        viewModel.saveExpense(amount, selectedDate, category, notes, copiedReceiptPath)
-    }
-
-    // --- Image Handling ---
-    private fun showImageSourceDialog() {
-        // Renamed from launchImagePicker for clarity
+    private fun launchImagePicker() {
+        // Show choice dialog
         AlertDialog.Builder(requireContext())
             .setTitle("Attach Receipt")
             .setItems(arrayOf("Take Photo", "Choose from Gallery")) { _, which ->
@@ -260,13 +184,12 @@ class NewExpenseFragment : Fragment() {
             .show()
     }
 
+    // Separate function to launch gallery pickers
     private fun launchGalleryPicker() {
-        // Use the modern Photo Picker first
         try {
             pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         } catch (e: Exception) {
             Log.e("NewExpenseFragment", "PickVisualMedia failed, falling back to GetContent", e)
-            // Fallback to GetContent if Photo Picker is not available or fails
             try {
                 getContentLauncher.launch("image/*")
             } catch (e2: Exception) {
@@ -282,13 +205,17 @@ class NewExpenseFragment : Fragment() {
                 requireContext(),
                 android.Manifest.permission.CAMERA
             ) == android.content.pm.PackageManager.PERMISSION_GRANTED -> {
-                // Permission is already granted
+                // You can use the API that requires the permission.
                 dispatchTakePictureIntent()
             }
             shouldShowRequestPermissionRationale(android.Manifest.permission.CAMERA) -> {
-                // Explain why the permission is needed (optional, good practice)
-                // Show rationale dialog here... then call requestPermissionLauncher
-                requestPermissionLauncher.launch(android.Manifest.permission.CAMERA) // Request after showing rationale
+                // In an educational UI, explain to the user why your app requires this
+                // permission for a specific feature to behave as expected, and what
+                // features are disabled if it's declined. In this UI, include a
+                // "cancel" or "no thanks" button that lets the user continue
+                // using your app without granting the permission.
+                // TODO: Show rationale if needed
+                requestPermissionLauncher.launch(android.Manifest.permission.CAMERA)
             }
             else -> {
                 // Directly ask for the permission.
@@ -297,25 +224,6 @@ class NewExpenseFragment : Fragment() {
         }
     }
 
-    @Throws(IOException::class)
-    private fun createImageFile(): File {
-        // Create an image file name (e.g., using timestamp)
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val storageDir: File? = requireContext().getExternalFilesDir("receipts") // Use app-specific external storage
-        if (storageDir != null && !storageDir.exists()) {
-            storageDir.mkdirs() // Create directory if it doesn't exist
-        }
-        return File.createTempFile(
-            "JPEG_${timeStamp}_", /* prefix */
-            ".jpg", /* suffix */
-            storageDir /* directory */
-        ).apply {
-            // Save a file path for use with ACTION_VIEW intents if needed
-             // currentPhotoPath = absolutePath
-        }
-    }
-
-
     private fun dispatchTakePictureIntent() {
         try {
             // Create a temporary file using FileProvider
@@ -323,7 +231,6 @@ class NewExpenseFragment : Fragment() {
                 createImageFile()
             } catch (ex: IOException) {
                 Log.e("NewExpenseFragment", "Error creating image file", ex)
-                Toast.makeText(context, "Error preparing camera", Toast.LENGTH_SHORT).show()
                 null
             }
 
@@ -333,7 +240,7 @@ class NewExpenseFragment : Fragment() {
                     "${requireContext().packageName}.provider", // Match authorities in Manifest
                     it
                 )
-                cameraImageUri = photoURI // Store the URI for the result handler
+                cameraImageUri = photoURI // Store the URI for the result
                 takePictureLauncher.launch(photoURI)
             }
         } catch (e: Exception) {
@@ -342,69 +249,123 @@ class NewExpenseFragment : Fragment() {
         }
     }
 
-    private fun handleSelectedImage(sourceUri: Uri) {
-        // Copy the selected image to internal storage for persistent access
-        copiedReceiptPath = copyImageToInternalStorage(sourceUri)
+    @Throws(IOException::class)
+    private fun createImageFile(): File {
+        // Create an image file name
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val storageDir: File = requireContext().cacheDir // Use cache directory
+        return File.createTempFile(
+            "JPEG_${timeStamp}_", /* prefix */
+            ".jpg", /* suffix */
+            storageDir /* directory */
+        )
+    }
 
+    private fun handleSelectedImage(uri: Uri) {
+        copiedReceiptPath = copyImageToInternalStorage(uri)
         if (copiedReceiptPath != null) {
-            // Load the *copied* image into the preview
-            Glide.with(this)
-                .load(copiedReceiptPath) // Load from the internal path
-                .error(R.drawable.ic_broken_image) // Optional error placeholder
-                .into(binding.receiptPreviewImageView)
             binding.receiptPreviewImageView.isVisible = true
+            Glide.with(this)
+                .load(copiedReceiptPath)
+                .centerCrop()
+                .into(binding.receiptPreviewImageView)
+            Log.d("NewExpenseFragment", "Receipt attached: $copiedReceiptPath")
         } else {
-            Toast.makeText(context, "Failed to attach receipt", Toast.LENGTH_SHORT).show()
-            clearReceiptPreview() // Clear preview if copy failed
+            Toast.makeText(context, "Failed to process receipt image", Toast.LENGTH_SHORT).show()
+            clearReceiptPreview()
         }
     }
 
-    private fun copyImageToInternalStorage(sourceUri: Uri): String? {
-        val context = requireContext()
-        val inputStream: InputStream? = context.contentResolver.openInputStream(sourceUri)
-        if (inputStream == null) {
-            Log.e("NewExpenseFragment", "Failed to get input stream from URI: $sourceUri")
-            return null
-        }
-
-        // Create a unique filename (e.g., using timestamp)
-        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val fileName = "receipt_$timeStamp.jpg"
-        val outputFile = File(context.filesDir, fileName) // Store in app's internal files directory
-
+    private fun copyImageToInternalStorage(uri: Uri): String? {
+        var inputStream: InputStream? = null
         var outputStream: FileOutputStream? = null
         try {
+            inputStream = requireContext().contentResolver.openInputStream(uri) ?: return null
+            val timestamp = System.currentTimeMillis()
+            val fileName = "receipt_$timestamp.jpg"
+            val outputFile = File(requireContext().cacheDir, fileName)
             outputStream = FileOutputStream(outputFile)
             inputStream.copyTo(outputStream)
-            Log.d("NewExpenseFragment", "Receipt copied to: ${outputFile.absolutePath}")
-            return outputFile.absolutePath // Return the path of the copied file
+            return outputFile.absolutePath
         } catch (e: Exception) {
-            Log.e("NewExpenseFragment", "Failed to copy receipt image", e)
-            outputFile.delete() // Clean up partially copied file on error
+            Log.e("CopyImage", "Error copying image to internal storage", e)
             return null
         } finally {
-            try {
-                inputStream.close()
-                outputStream?.close()
-            } catch (e: IOException) {
-                Log.e("NewExpenseFragment", "Error closing streams", e)
-            }
+            inputStream?.close()
+            outputStream?.close()
         }
     }
 
     private fun clearReceiptPreview() {
-        binding.receiptPreviewImageView.setImageDrawable(null) // Clear the image
+        binding.receiptPreviewImageView.setImageDrawable(null)
         binding.receiptPreviewImageView.isVisible = false
-        copiedReceiptPath = null // Clear the stored path
-        // Optionally, delete the copied file if it's no longer needed immediately
-        // File(copiedReceiptPath).delete()
+        copiedReceiptPath = null
+        Log.d("NewExpenseFragment", "Receipt preview cleared.")
     }
 
-    // --- UI Helper Functions ---
-    private fun updateDateDisplay() {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) // Use a consistent format
-        binding.dateEditText.setText(dateFormat.format(selectedDate))
+    private fun saveExpense() {
+        val amountText = binding.amountEditText.text.toString()
+        val amount = try {
+            BigDecimal(amountText)
+        } catch (e: NumberFormatException) {
+            Toast.makeText(context, "Invalid amount", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val category = binding.categoryAutoCompleteTextView.text.toString()
+        val description = binding.descriptionEditText.text.toString()
+
+        viewModel.saveExpense(amount, category, selectedDate, description, copiedReceiptPath)
     }
 
-} 
+    private fun observeViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    binding.saveExpenseButton.isEnabled = state !is NewExpenseUiState.Loading
+                    // TODO: Show loading indicator
+
+                    when (state) {
+                        is NewExpenseUiState.Success -> {
+                            Toast.makeText(context, "Expense saved successfully!", Toast.LENGTH_SHORT).show()
+                            findNavController().navigateUp() // Go back
+                            viewModel.resetState()
+                        }
+                        is NewExpenseUiState.Error -> {
+                            Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_LONG).show()
+                            viewModel.resetState()
+                        }
+                        else -> Unit // Idle or Loading
+                    }
+                }
+            }
+        }
+    }
+
+    private fun observeCategories() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.categories.collectLatest { categoryList ->
+                    val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, categoryList)
+                    binding.categoryAutoCompleteTextView.setAdapter(adapter)
+                    Log.d("NewExpenseFragment", "Updated categories: $categoryList")
+                }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        (activity as? AppCompatActivity)?.supportActionBar?.hide()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // Removed code that showed the action bar on pause to prevent it flashing during image picking
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 } 

@@ -70,6 +70,10 @@
         <action
             android:id="@+id/action_homeFragment_to_rewardsFragment"
             app:destination="@id/rewardsFragment" />
+        <!-- Action to Settings Screen (Added here too) -->
+        <action
+            android:id="@+id/action_homeFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
     </fragment>
 
     <!-- Placeholder for Reports Fragment -->

@@ -28,16 +28,14 @@ import androidx.core.view.isVisible
 @AndroidEntryPoint
 class BudgetSetupFragment : Fragment() {
 
-    // --- Properties ---
     private var _binding: FragmentBudgetSetupBinding? = null
     private val binding get() = _binding!!
 
     private val viewModel: BudgetSetupViewModel by viewModels()
     private lateinit var categoryBudgetAdapter: CategoryBudgetAdapter
-    private val categoryBudgets = mutableListOf<CategoryBudget>() // Local cache for category budgets being edited
+    private val categoryBudgets = mutableListOf<CategoryBudget>() // Store current category budget data
 
     // Temporary map to hold placeholder icon resources based on a generated ID
-    // TODO: Replace with actual icon selection logic
     private val tempIconMap = mapOf(
         "cat_food" to R.drawable.ic_category_food,
         "cat_transport" to R.drawable.ic_category_transport,
@@ -46,7 +44,6 @@ class BudgetSetupFragment : Fragment() {
         "cat_other" to R.drawable.ic_category_other
     )
 
-    // --- Lifecycle Methods ---
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -72,12 +69,6 @@ class BudgetSetupFragment : Fragment() {
         // Don't show the action bar on pause to prevent it from flashing
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
-    // --- UI Setup ---
     private fun setupClickListeners() {
         binding.addCategoryButton.setOnClickListener {
             // Toggle visibility of the inline add card
@@ -99,10 +90,13 @@ class BudgetSetupFragment : Fragment() {
 
     private fun setupRecyclerView() {
         categoryBudgetAdapter = CategoryBudgetAdapter { categoryBudget, newLimit ->
-            // Callback for when a limit is updated in the adapter
+            // TODO: Handle the updated limit for a specific category
+            // Find the item in our local list and update it
             val index = categoryBudgets.indexOfFirst { it.categoryId == categoryBudget.categoryId }
             if (index != -1) {
-                categoryBudgets[index].budgetLimit = newLimit // Update local cache
+                categoryBudgets[index].budgetLimit = newLimit
+                // Note: Adapter's internal list is handled by submitList.
+                // This update is for our local copy if needed for saving.
             }
             println("Updated budget for ${categoryBudget.categoryName}: $newLimit") // Placeholder
         }
@@ -110,9 +104,9 @@ class BudgetSetupFragment : Fragment() {
             layoutManager = LinearLayoutManager(context)
             adapter = categoryBudgetAdapter
         }
+        // TODO: Load existing category budgets from ViewModel if editing
     }
 
-    // --- Data Handling ---
     private fun loadBudgetData() {
         // TODO: Load existing budget data from ViewModel/Repository
         // For now, load placeholder categories
@@ -133,18 +127,40 @@ class BudgetSetupFragment : Fragment() {
             return
         }
 
-        // Get current category limits from the adapter's snapshot (more reliable than local cache)
-        val currentCategoryLimits = categoryBudgetAdapter.getCurrentCategoryBudgets()
-
-        // Map the current CategoryBudget list to CategoryBudgetInput for ViewModel
-        val categoryBudgetInputs = currentCategoryLimits.map {
+        // Map the current CategoryBudget list (from fragment state) to CategoryBudgetInput for ViewModel
+        val categoryBudgetInputs = categoryBudgets.map {
             CategoryBudgetInput(
                 categoryName = it.categoryName,
+                // Ensure limit is not null, default to ZERO if it is (or handle appropriately)
                 limit = it.budgetLimit?.toBigDecimal() ?: BigDecimal.ZERO
             )
         }
 
         viewModel.saveBudget(totalBudget, categoryBudgetInputs)
+    }
+
+    private fun observeViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    // TODO: Handle loading state (e.g., show progress bar)
+                    binding.saveBudgetButton.isEnabled = state !is BudgetSetupUiState.Loading
+
+                    when (state) {
+                        is BudgetSetupUiState.Success -> {
+                            Toast.makeText(context, "Budget saved successfully!", Toast.LENGTH_SHORT).show()
+                            findNavController().navigateUp() // Navigate back after success
+                            viewModel.resetState() // Reset state in ViewModel
+                        }
+                        is BudgetSetupUiState.Error -> {
+                            Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_LONG).show()
+                            viewModel.resetState()
+                        }
+                        else -> Unit // Idle or Loading
+                    }
+                }
+            }
+        }
     }
 
     private fun addNewCategoryBudget() {
@@ -172,7 +188,7 @@ class BudgetSetupFragment : Fragment() {
             categoryId = categoryId,
             categoryName = name,
             categoryIconRes = iconRes,
-            budgetLimit = amount.toDouble() // Adapter might need Double?
+            budgetLimit = amount.toDouble() // Adapter expects Double?
         )
 
         // Add to local list and update adapter
@@ -186,32 +202,7 @@ class BudgetSetupFragment : Fragment() {
         Toast.makeText(context, "Category '$name' added", Toast.LENGTH_SHORT).show()
     }
 
-    // --- ViewModel Observation ---
-    private fun observeViewModel() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { state ->
-                    // TODO: Handle loading state (e.g., show progress bar)
-                    binding.saveBudgetButton.isEnabled = state !is BudgetSetupUiState.Loading
-
-                    when (state) {
-                        is BudgetSetupUiState.Success -> {
-                            Toast.makeText(context, "Budget saved successfully!", Toast.LENGTH_SHORT).show()
-                            findNavController().navigateUp() // Navigate back after success
-                            viewModel.resetState() // Reset state in ViewModel
-                        }
-                        is BudgetSetupUiState.Error -> {
-                            Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_LONG).show()
-                            viewModel.resetState()
-                        }
-                        else -> Unit // Idle or Loading
-                    }
-                }
-            }
-        }
-    }
-
-    // --- Placeholder Data Generation (Temporary) ---
+    // --- Placeholder Data Generation --- 
     private fun getPlaceholderCategoryBudgets(): List<CategoryBudget> {
         // Use the same icons as in ExpensesFragment for consistency
         return listOf(
@@ -223,4 +214,9 @@ class BudgetSetupFragment : Fragment() {
         )
     }
     // --- End Placeholder Data ---
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 } 

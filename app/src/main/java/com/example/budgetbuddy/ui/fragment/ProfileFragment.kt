@@ -29,7 +29,6 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class ProfileFragment : Fragment() {
 
-    // --- Properties ---
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
 
@@ -40,7 +39,6 @@ class ProfileFragment : Fragment() {
     // Get reference to the ViewModel
     private val viewModel: ProfileViewModel by viewModels()
 
-    // --- Lifecycle Methods ---
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -57,23 +55,6 @@ class ProfileFragment : Fragment() {
         observeViewModel() // Start observing the ViewModel
     }
 
-    override fun onResume() {
-        super.onResume()
-        (activity as? AppCompatActivity)?.supportActionBar?.hide()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        // Keep hidden if navigating within profile/settings sections
-        // (activity as? AppCompatActivity)?.supportActionBar?.show()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
-    // --- ViewModel Observation ---
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -83,7 +64,6 @@ class ProfileFragment : Fragment() {
                     binding.budgetAmountTextView.text = state.budgetLimitText
                     binding.budgetRemainingTextView.text = state.budgetRemainingText
                     binding.budgetProgressBar.progress = state.budgetProgress
-                    binding.leaderboardTextView.text = state.leaderboardPositionText // Update leaderboard text
 
                     // Load profile image (using Glide as an example)
                     Glide.with(this@ProfileFragment)
@@ -105,7 +85,6 @@ class ProfileFragment : Fragment() {
         }
     }
 
-    // --- UI Setup ---
     private fun setupClickListeners() {
         // Removed changePictureButton listener
 
@@ -131,5 +110,23 @@ class ProfileFragment : Fragment() {
         // Removed saveProfileButton listener
 
         // Removed saveProfileChanges() method as edit/save is likely moved
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+    // Hide default ActionBar when this fragment is shown
+    override fun onResume() {
+        super.onResume()
+        (activity as? AppCompatActivity)?.supportActionBar?.hide()
+    }
+
+    // Show default ActionBar again when leaving (optional)
+    override fun onPause() {
+        super.onPause()
+        // Keep hidden if navigating within profile/settings sections
+        // (activity as? AppCompatActivity)?.supportActionBar?.show()
     }
 } 

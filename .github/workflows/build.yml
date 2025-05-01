@@ -1,0 +1,43 @@
+name: Android CI Build & Test
+
+on:
+  push:
+    branches: [ "main" ] # Trigger on pushes to main branch
+  pull_request:
+    branches: [ "main" ] # Trigger on pull requests targeting main branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # Use the latest Ubuntu runner
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4 # Action to check out the code
+
+    - name: Set up JDK 17 # Or your project's required JDK version
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin' # Or 'zulu', 'adopt', etc.
+        cache: gradle # Cache Gradle dependencies
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew # Make the Gradle wrapper executable
+
+    - name: Run lint checks (Debug)
+      run: ./gradlew lintDebug # Run Android Lint on the debug variant
+
+    - name: Run unit tests (Debug)
+      run: ./gradlew testDebugUnitTest # Run local unit tests for the debug variant
+
+    - name: Build debug APK
+      run: ./gradlew assembleDebug # Build the debug version of the app
+
+    # Optional: Upload APK artifact (uncomment to enable)
+    # - name: Upload Debug APK
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: budgetbuddy-debug-apk
+    #     path: app/build/outputs/apk/debug/app-debug.apk
+
+ 

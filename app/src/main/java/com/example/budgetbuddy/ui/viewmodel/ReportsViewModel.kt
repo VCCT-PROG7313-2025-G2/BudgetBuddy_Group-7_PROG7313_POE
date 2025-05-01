@@ -315,7 +315,7 @@ class ReportsViewModel @Inject constructor(
                 val (pieChartData, rawCategoryData) = processCategoryData(categorySpendingList, totalSpendingSelected)
                 val pieChartLegend = formatLegendData(rawCategoryData, _uiState.value.categoryDisplayMode, totalSpendingSelected)
                 val barChartData = processBarChartData(dailyExpensesList, startOfMonth, endOfMonth, Period.MONTHLY)
-                val pieChartColors = com.github.mikephil.charting.utils.ColorTemplate.MATERIAL_COLORS.toList() + com.github.mikephil.charting.utils.ColorTemplate.VORDIPLOM_COLORS.toList()
+                val pieChartColors = generateGreyShades(pieChartData.size)
 
                 // Update state with all necessary fields
                 _uiState.update {

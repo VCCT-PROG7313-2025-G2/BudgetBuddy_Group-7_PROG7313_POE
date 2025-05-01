@@ -30,7 +30,6 @@ import java.util.*
 @AndroidEntryPoint
 class ExpenseHistoryFragment : Fragment() {
 
-    // --- Properties ---
     private var _binding: FragmentExpenseHistoryBinding? = null
     private val binding get() = _binding!!
 
@@ -40,7 +39,6 @@ class ExpenseHistoryFragment : Fragment() {
     // Date formatter for the chip
     private val chipDateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
 
-    // --- Lifecycle Methods ---
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -57,17 +55,6 @@ class ExpenseHistoryFragment : Fragment() {
         updateChipText(null, null) // Initially show default text
     }
 
-    override fun onResume() {
-        super.onResume()
-        (activity as? AppCompatActivity)?.supportActionBar?.hide()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
-    // --- UI Setup ---
     private fun setupRecyclerView() {
         expenseHistoryAdapter = ExpenseHistoryAdapter(
             context = requireContext(),
@@ -95,36 +82,6 @@ class ExpenseHistoryFragment : Fragment() {
         }
     }
 
-    // --- ViewModel Observation ---
-    private fun observeViewModel() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { state ->
-                    binding.progressBar.isVisible = state is ExpenseHistoryUiState.Loading
-                    binding.expensesRecyclerView.isVisible = state is ExpenseHistoryUiState.Success
-                    binding.emptyStateTextView.isVisible = state is ExpenseHistoryUiState.Empty || state is ExpenseHistoryUiState.Error
-
-                    when (state) {
-                        is ExpenseHistoryUiState.Success -> {
-                            expenseHistoryAdapter.submitList(state.items)
-                        }
-                        is ExpenseHistoryUiState.Error -> {
-                            binding.emptyStateTextView.text = state.message
-                             Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_LONG).show()
-                        }
-                        is ExpenseHistoryUiState.Loading -> {
-                            // Handled by progressBar visibility
-                        }
-                        is ExpenseHistoryUiState.Empty -> {
-                             binding.emptyStateTextView.text = "No expenses found."
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // --- UI Helper Functions ---
     private fun showDateRangePicker() {
         // Build the date range picker
         val dateRangePicker = MaterialDatePicker.Builder.dateRangePicker()
@@ -162,8 +119,47 @@ class ExpenseHistoryFragment : Fragment() {
         }
     }
 
+    private fun observeViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    binding.progressBar.isVisible = state is ExpenseHistoryUiState.Loading
+                    binding.expensesRecyclerView.isVisible = state is ExpenseHistoryUiState.Success
+                    binding.emptyStateTextView.isVisible = state is ExpenseHistoryUiState.Empty || state is ExpenseHistoryUiState.Error
+
+                    when (state) {
+                        is ExpenseHistoryUiState.Success -> {
+                            expenseHistoryAdapter.submitList(state.items)
+                        }
+                        is ExpenseHistoryUiState.Error -> {
+                            binding.emptyStateTextView.text = state.message
+                             Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_LONG).show()
+                        }
+                        is ExpenseHistoryUiState.Loading -> {
+                            // Handled by progressBar visibility
+                        }
+                        is ExpenseHistoryUiState.Empty -> {
+                             binding.emptyStateTextView.text = "No expenses found."
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Function to show the receipt dialog
     private fun showReceiptDialog(receiptUri: Uri) {
         val dialogFragment = ReceiptDialogFragment.newInstance(receiptUri)
         dialogFragment.show(parentFragmentManager, ReceiptDialogFragment.TAG)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        (activity as? AppCompatActivity)?.supportActionBar?.hide()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 } 
