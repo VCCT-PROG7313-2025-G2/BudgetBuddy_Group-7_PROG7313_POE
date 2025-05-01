@@ -36,6 +36,8 @@ import java.math.BigDecimal
 import java.text.NumberFormat
 import java.util.*
 import android.graphics.Color
+import android.content.ContentResolver
+import androidx.annotation.RequiresApi
 
 @AndroidEntryPoint
 class ReportsFragment : Fragment() {
@@ -228,40 +230,9 @@ class ReportsFragment : Fragment() {
 
         // Saving to MediaStore Downloads collection is only reliably supported on API 29+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val contentValues = ContentValues().apply {
-                put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
-                put(MediaStore.MediaColumns.MIME_TYPE, "text/plain")
-                // RELATIVE_PATH is the key for API 29+
-                put(MediaStore.MediaColumns.RELATIVE_PATH, "Download/BudgetBuddy")
-            }
-
-            // Use the specific Downloads collection URI
-            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
-
-            if (uri == null) {
-                Log.e("ReportsFragment", "Failed to create new MediaStore record for API 29+.")
-                Toast.makeText(context, "Failed to prepare download location.", Toast.LENGTH_SHORT).show()
-                return
-            }
-
-            try {
-                resolver.openOutputStream(uri)?.use { outputStream ->
-                    outputStream.write(reportContent.toByteArray())
-                }
-                Toast.makeText(context, "Report saved to Downloads/BudgetBuddy", Toast.LENGTH_LONG).show()
-            } catch (e: Exception) {
-                Log.e("ReportsFragment", "Failed to save report to $uri", e)
-                Toast.makeText(context, "Failed to save report.", Toast.LENGTH_SHORT).show()
-                // Clean up the MediaStore entry if saving failed
-                try {
-                    resolver.delete(uri, null, null)
-                } catch (deleteException: Exception) {
-                    Log.e("ReportsFragment", "Failed to delete MediaStore entry after save failure", deleteException)
-                }
-            }
+            saveReportApi29(resolver, filename, reportContent)
         } else {
             // Fallback for API < 29
-            // Option 1: Disable feature
             Log.w("ReportsFragment", "Download report feature requires Android 10 (API 29) or higher.")
             Toast.makeText(context, "Download report requires Android 10+", Toast.LENGTH_LONG).show()
 
@@ -286,6 +257,39 @@ class ReportsFragment : Fragment() {
                 Toast.makeText(context, "Failed to save report.", Toast.LENGTH_SHORT).show()
             }
             */
+        }
+    }
+
+    // Separate function annotated for clarity and Lint
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun saveReportApi29(resolver: ContentResolver, filename: String, reportContent: String) {
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+            put(MediaStore.MediaColumns.MIME_TYPE, "text/plain")
+            put(MediaStore.MediaColumns.RELATIVE_PATH, "Download/BudgetBuddy")
+        }
+
+        val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+
+        if (uri == null) {
+            Log.e("ReportsFragment", "Failed to create new MediaStore record for API 29+.")
+            Toast.makeText(context, "Failed to prepare download location.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        try {
+            resolver.openOutputStream(uri)?.use { outputStream ->
+                outputStream.write(reportContent.toByteArray())
+            }
+            Toast.makeText(context, "Report saved to Downloads/BudgetBuddy", Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            Log.e("ReportsFragment", "Failed to save report to $uri", e)
+            Toast.makeText(context, "Failed to save report.", Toast.LENGTH_SHORT).show()
+            try {
+                resolver.delete(uri, null, null)
+            } catch (deleteException: Exception) {
+                Log.e("ReportsFragment", "Failed to delete MediaStore entry after save failure", deleteException)
+            }
         }
     }
 
