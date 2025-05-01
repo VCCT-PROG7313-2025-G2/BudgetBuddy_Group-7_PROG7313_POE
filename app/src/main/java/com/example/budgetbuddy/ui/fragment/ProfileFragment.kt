@@ -90,8 +90,8 @@ class ProfileFragment : Fragment() {
 
         // Handle Edit Profile Button Click
         binding.editProfileButton.setOnClickListener {
-            // TODO: Navigate to an EditProfileFragment (needs to be created)
-            Toast.makeText(context, "Edit Profile Clicked (Not implemented)", Toast.LENGTH_SHORT).show()
+            // Navigate using the newly defined action
+            findNavController().navigate(R.id.action_profileFragment_to_editProfileFragment)
         }
 
         // Handle Expense History Row Click

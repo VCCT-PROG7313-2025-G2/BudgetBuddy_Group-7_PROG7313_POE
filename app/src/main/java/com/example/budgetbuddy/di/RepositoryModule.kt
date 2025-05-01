@@ -22,8 +22,12 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideBudgetRepository(budgetDao: BudgetDao, categoryBudgetDao: CategoryBudgetDao): BudgetRepository {
-        return BudgetRepository(budgetDao, categoryBudgetDao)
+    fun provideBudgetRepository(
+        budgetDao: BudgetDao,
+        categoryBudgetDao: CategoryBudgetDao,
+        expenseRepository: ExpenseRepository
+    ): BudgetRepository {
+        return BudgetRepository(budgetDao, categoryBudgetDao, expenseRepository)
     }
 
     @Provides

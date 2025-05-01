@@ -37,4 +37,14 @@ object DateUtils {
             }
         }
     }
+
+    /**
+     * Formats a Date object into a "yyyy-MM" string.
+     */
+    fun formatDateToMonthYear(date: Date): String {
+        val monthYearFormat = SimpleDateFormat("yyyy-MM", Locale.getDefault())
+        return monthYearFormat.format(date)
+    }
+
+    // Add other date utility functions here if needed
 } 

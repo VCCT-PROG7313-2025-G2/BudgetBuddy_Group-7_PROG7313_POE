@@ -109,18 +109,18 @@ class ReportsFragment : Fragment() {
     }
 
      private fun setupClickListeners() {
-        binding.previousMonthButton.setOnClickListener {
+        binding.previousMonthNavButton.setOnClickListener {
             viewModel.changeMonth(-1)
         }
-        binding.nextMonthButton.setOnClickListener {
+        binding.nextMonthNavButton.setOnClickListener {
             viewModel.changeMonth(1)
         }
         binding.downloadReportButton.setOnClickListener {
             downloadReport()
         }
          binding.moreOptionsButton.setOnClickListener {
-             // TODO: Implement more options menu (e.g., filter, date range)
-            Toast.makeText(context, "More Options (Not Implemented)", Toast.LENGTH_SHORT).show()
+              // Toggle category display mode
+              viewModel.toggleCategoryDisplayMode()
          }
     }
 

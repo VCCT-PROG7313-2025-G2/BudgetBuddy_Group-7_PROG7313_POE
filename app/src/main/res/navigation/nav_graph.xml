@@ -98,6 +98,10 @@
         <action
             android:id="@+id/action_profileFragment_to_expenseHistoryFragment"
             app:destination="@id/expenseHistoryFragment" />
+        <!-- Action to Edit Profile -->
+        <action
+            android:id="@+id/action_profileFragment_to_editProfileFragment"
+            app:destination="@id/editProfileFragment" />
     </fragment>
 
     <!-- New Expense Fragment -->
@@ -245,9 +249,10 @@
             <action
                 android:id="@+id/action_homeFragment_to_rewardsFragment"
                 app:destination="@id/rewardsFragment" />
-             <!-- Consider global actions for profile/settings -->
-             <action android:id="@+id/action_homeFragment_to_profileFragment" app:destination="@id/profileFragment"/>
-             <action android:id="@+id/action_homeFragment_to_settingsFragment" app:destination="@id/settingsFragment"/>
+            <!-- Added missing action to SettingsFragment -->
+            <action
+                android:id="@+id/action_homeFragment_to_settingsFragment"
+                app:destination="@id/settingsFragment" />
         </fragment>
         <fragment
             android:id="@+id/reportsFragment"
@@ -268,6 +273,10 @@
              <action
                  android:id="@+id/action_profileFragment_to_expenseHistoryFragment"
                  app:destination="@id/expenseHistoryFragment" />
+             <!-- Action to Edit Profile -->
+             <action
+                 android:id="@+id/action_profileFragment_to_editProfileFragment"
+                 app:destination="@id/editProfileFragment" />
         </fragment>
         <fragment
             android:id="@+id/settingsFragment"

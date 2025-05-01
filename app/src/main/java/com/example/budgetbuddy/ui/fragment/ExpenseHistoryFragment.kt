@@ -1,5 +1,6 @@
 package com.example.budgetbuddy.ui.fragment
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.budgetbuddy.R
 import com.example.budgetbuddy.adapter.ExpenseHistoryAdapter
 import com.example.budgetbuddy.databinding.FragmentExpenseHistoryBinding
+import com.example.budgetbuddy.ui.dialog.ReceiptDialogFragment
 import com.example.budgetbuddy.ui.viewmodel.ExpenseHistoryUiState
 import com.example.budgetbuddy.ui.viewmodel.ExpenseHistoryViewModel
 import com.google.android.material.datepicker.MaterialDatePicker
@@ -54,10 +56,17 @@ class ExpenseHistoryFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        expenseHistoryAdapter = ExpenseHistoryAdapter(requireContext()) { expenseItem ->
-            // TODO: Handle item click - e.g., navigate to expense details
-            Toast.makeText(context, "Clicked on ${expenseItem.description}", Toast.LENGTH_SHORT).show()
-        }
+        expenseHistoryAdapter = ExpenseHistoryAdapter(
+            context = requireContext(),
+            onExpenseClicked = { expenseItem ->
+                // TODO: Handle item click - e.g., navigate to expense details
+                Toast.makeText(context, "Clicked on ${expenseItem.description}", Toast.LENGTH_SHORT).show()
+            },
+            onViewReceiptClicked = { receiptUri ->
+                // Show the receipt dialog when the button is clicked
+                showReceiptDialog(receiptUri)
+            }
+        )
         binding.expensesRecyclerView.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = expenseHistoryAdapter
@@ -116,14 +125,13 @@ class ExpenseHistoryFragment : Fragment() {
                 viewModel.uiState.collect { state ->
                     binding.progressBar.isVisible = state is ExpenseHistoryUiState.Loading
                     binding.expensesRecyclerView.isVisible = state is ExpenseHistoryUiState.Success
-                    binding.emptyStateTextView.isVisible = state is ExpenseHistoryUiState.Empty
+                    binding.emptyStateTextView.isVisible = state is ExpenseHistoryUiState.Empty || state is ExpenseHistoryUiState.Error
 
                     when (state) {
                         is ExpenseHistoryUiState.Success -> {
                             expenseHistoryAdapter.submitList(state.items)
                         }
                         is ExpenseHistoryUiState.Error -> {
-                            binding.emptyStateTextView.isVisible = true
                             binding.emptyStateTextView.text = state.message
                              Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_LONG).show()
                         }
@@ -137,6 +145,12 @@ class ExpenseHistoryFragment : Fragment() {
                 }
             }
         }
+    }
+
+    // Function to show the receipt dialog
+    private fun showReceiptDialog(receiptUri: Uri) {
+        val dialogFragment = ReceiptDialogFragment.newInstance(receiptUri)
+        dialogFragment.show(parentFragmentManager, ReceiptDialogFragment.TAG)
     }
 
     override fun onResume() {

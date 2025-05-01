@@ -58,10 +58,10 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <ImageButton
-            android:id="@+id/previousMonthButton"
+            android:id="@+id/previousMonthNavButton"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/ic_add" 
+            android:src="@android:drawable/ic_media_previous" 
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/previous_month"
             android:padding="8dp"
@@ -69,25 +69,28 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:iconSize="20dp" />
+            android:layout_marginStart="8dp" />
 
         <TextView
             android:id="@+id/monthYearTextView"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             tools:text="January 2025"
             android:textAppearance="?attr/textAppearanceSubtitle1"
             android:textStyle="bold"
+            android:gravity="center_horizontal"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp" 
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@id/previousMonthButton"
-            app:layout_constraintEnd_toStartOf="@id/nextMonthButton" />
+            app:layout_constraintStart_toEndOf="@id/previousMonthNavButton"
+            app:layout_constraintEnd_toStartOf="@id/nextMonthNavButton" /> 
 
         <ImageButton
-            android:id="@+id/nextMonthButton"
+            android:id="@+id/nextMonthNavButton"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/ic_chevron_right" 
+            android:src="@android:drawable/ic_media_next" 
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/next_month"
             android:padding="8dp"
@@ -95,7 +98,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:iconSize="20dp" />
+            android:layout_marginEnd="8dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

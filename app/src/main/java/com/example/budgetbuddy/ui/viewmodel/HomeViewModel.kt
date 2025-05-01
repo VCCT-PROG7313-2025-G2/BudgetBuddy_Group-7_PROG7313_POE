@@ -27,15 +27,7 @@ import javax.inject.Inject
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.data.PieEntry
 import com.example.budgetbuddy.util.SessionManager // Add import
-
-// Define the static list of categories to always display
-private val STATIC_CATEGORIES = listOf(
-    "Food & Dining", 
-    "Transport", 
-    "Shopping", 
-    "Utilities", 
-    "Other"
-) // Updated list
+import com.example.budgetbuddy.util.DateUtils // Import DateUtils
 
 // --- UI State Definitions (Keep as is) --- 
 data class HomeUiState(
@@ -94,17 +86,20 @@ class HomeViewModel @Inject constructor(
                 // Get budget and spending for the current month
                 val monthYearFormat = SimpleDateFormat("yyyy-MM", Locale.getDefault())
                 val currentMonthYear = monthYearFormat.format(Date())
-                val startOfMonth = getStartOfMonth().time
-                val endOfMonth = getEndOfMonth().time
+                val startOfMonthDate = getStartOfMonth() // Keep as Date
+                val endOfMonthDate = getEndOfMonth()   // Keep as Date
 
                 val budgetFlow = budgetRepository.getBudgetForMonth(userId, currentMonthYear)
-                val spentFlow = expenseRepository.getTotalSpendingBetween(userId, Date(startOfMonth), Date(endOfMonth)).map { it ?: BigDecimal.ZERO }
-                val categorySpendingFlow = expenseRepository.getSpendingByCategoryBetween(userId, Date(startOfMonth), Date(endOfMonth))
+                val spentFlow = expenseRepository.getTotalSpendingBetween(userId, startOfMonthDate, endOfMonthDate).map { it ?: BigDecimal.ZERO }
+                val categorySpendingFlow = expenseRepository.getSpendingByCategoryBetween(userId, startOfMonthDate, endOfMonthDate)
 
                 // Get data for daily spending chart (last 7 days)
                 val weekStartDate = getStartOfWeek().time
                 val todayEndDate = getEndOfDay().time
                 val dailyExpensesFlow = expenseRepository.getExpensesBetween(userId, Date(weekStartDate), Date(todayEndDate))
+
+                // Get the dynamic list of relevant category names for the current month
+                val relevantCategoriesFlow = budgetRepository.getRelevantCategoryNamesForPeriod(userId, startOfMonthDate, endOfMonthDate)
 
                 // Combine flows to build the UI State
                 combine(
@@ -113,7 +108,8 @@ class HomeViewModel @Inject constructor(
                     spentFlow,              // Flow<BigDecimal>
                     categorySpendingFlow,   // Flow<List<CategorySpending>>
                     dailyExpensesFlow,      // Flow<List<ExpenseEntity>>
-                    rewardsRepository.getFullLeaderboard() // Add leaderboard flow
+                    rewardsRepository.getFullLeaderboard(), // Leaderboard flow
+                    relevantCategoriesFlow  // Flow<List<String>>
                     // TODO: Add rewards flow later
                 ) { flows -> // Change to single parameter (array)
                     // Access and cast values from the flows array
@@ -123,6 +119,7 @@ class HomeViewModel @Inject constructor(
                     val categorySpendingList = flows[3] as List<com.example.budgetbuddy.data.db.pojo.CategorySpending>
                     val weekExpenses = flows[4] as List<com.example.budgetbuddy.data.db.entity.ExpenseEntity>
                     val leaderboard = flows[5] as List<com.example.budgetbuddy.model.UserWithPoints>
+                    val relevantCategoryNames = flows[6] as List<String>
 
                     val greeting = user?.name?.substringBefore(" ")?.let { "Hi, $it" } ?: "Welcome"
                     val budgetTotal = budget?.totalAmount ?: BigDecimal.ZERO
@@ -130,7 +127,8 @@ class HomeViewModel @Inject constructor(
                         (spent.divide(budgetTotal, 2, RoundingMode.HALF_UP) * BigDecimal(100)).toInt().coerceIn(0, 100)
                     } else 0
 
-                    val categoryUiList = generateCategoryUiList(budget?.budgetId, categorySpendingList)
+                    // Generate category UI list using the dynamic names
+                    val categoryUiList = generateDynamicCategoryUiList(budget?.budgetId, categorySpendingList, relevantCategoryNames)
                     val dailySpendingData = generateDailySpendingChartData(weekExpenses)
 
                     // Calculate leaderboard position
@@ -167,7 +165,11 @@ class HomeViewModel @Inject constructor(
     }
 
     // Helper to generate category UI list
-    private suspend fun generateCategoryUiList(budgetId: Long?, categorySpendingList: List<CategorySpending>): List<HomeCategoryItemUiState> {
+    private suspend fun generateDynamicCategoryUiList(
+        budgetId: Long?,
+        categorySpendingList: List<CategorySpending>,
+        relevantCategoryNames: List<String> // Use the dynamic list passed in
+    ): List<HomeCategoryItemUiState> {
         // Fetch category limits ONLY if a budget exists for the month
         val categoryLimits = if (budgetId != null) {
             budgetRepository.getCategoryBudgets(budgetId).firstOrNull() ?: emptyList()
@@ -179,8 +181,8 @@ class HomeViewModel @Inject constructor(
         // Map spending for easy lookup
         val spendingMap = categorySpendingList.associate { it.categoryName to it.total }
         
-        // Use the STATIC_CATEGORIES list as the source of truth
-        return STATIC_CATEGORIES.map { categoryName ->
+        // Build the UI list based on relevant categories
+        return relevantCategoryNames.map { categoryName ->
             val spent = spendingMap[categoryName] ?: BigDecimal.ZERO // Look up spending for this category
             val limit = limitsMap[categoryName] ?: BigDecimal.ZERO // Look up the limit for this category
 
@@ -189,7 +191,7 @@ class HomeViewModel @Inject constructor(
                 (spent.divide(limit, 2, RoundingMode.HALF_UP) * BigDecimal(100)).toInt().coerceIn(0, 100)
             } else {
                 // No limit defined for this static category, display progress as 0%
-                0
+                0 // Display 0% progress if no specific limit is set
             }
 
             // *** ADD LOGGING HERE ***
@@ -202,6 +204,7 @@ class HomeViewModel @Inject constructor(
                 iconResId = getIconForCategory(categoryName)
             )
         } // No need to sort if using a predefined order
+        .sortedBy { it.name } // Sort alphabetically
     }
 
     // Helper to generate chart data from expenses

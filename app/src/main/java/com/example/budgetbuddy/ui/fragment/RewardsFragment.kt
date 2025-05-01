@@ -73,9 +73,13 @@ class RewardsFragment : Fragment() {
     }
 
     private fun shareRewards() {
-        // Use available fields from state for sharing
-        val state = viewModel.uiState.value
-        val shareText = "Check out my progress on BudgetBuddy! Level ${state.userLevel} (${state.userLevelName}), ${state.currentPoints} points."
+        val state = viewModel.uiState.value // Get the current state
+        val points = state.currentPoints   // Use correct field name
+        val level = state.userLevelName // Use correct field name
+
+        // Construct the share message
+        val shareText = "Check out my progress on BudgetBuddy! I\'m level \"$level\" with $points points. Join me in managing finances! #BudgetBuddyApp"
+        // TODO: Consider adding a dynamic link to the app store or website
 
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
@@ -83,11 +87,11 @@ class RewardsFragment : Fragment() {
             type = "text/plain"
         }
 
-        val shareIntent = Intent.createChooser(sendIntent, "Share your progress via")
+        val shareIntent = Intent.createChooser(sendIntent, null)
         try {
             startActivity(shareIntent)
         } catch (e: Exception) {
-            Toast.makeText(context, "Could not open share options.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Cannot share content. No sharing app found?", Toast.LENGTH_SHORT).show()
         }
     }
 

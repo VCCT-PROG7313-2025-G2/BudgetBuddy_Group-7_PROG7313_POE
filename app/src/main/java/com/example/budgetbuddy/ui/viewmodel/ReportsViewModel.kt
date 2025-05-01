@@ -29,9 +29,13 @@ import kotlinx.coroutines.flow.catch
 import android.graphics.Color
 import java.text.NumberFormat
 
-// Define Period Enum here or import if defined elsewhere
+// Define Enums
 enum class Period {
     DAILY, WEEKLY, MONTHLY // Add YEARLY etc. if needed
+}
+
+enum class CategoryDisplayMode {
+   PERCENTAGE, AMOUNT
 }
 
 // Define ChartData or import if defined elsewhere
@@ -46,18 +50,20 @@ data class ChartData(
 data class ReportsUiState(
     val isLoading: Boolean = true,
     val selectedPeriod: Period = Period.MONTHLY,
+    val categoryDisplayMode: CategoryDisplayMode = CategoryDisplayMode.PERCENTAGE, // Add display mode state
     val totalSpending: BigDecimal = BigDecimal.ZERO,
     val averageBudget: BigDecimal = BigDecimal.ZERO, // Example field
-    val spendingByCategoryChart: ChartData? = null, // Holds PieChart data
-    val spendingTrendChart: ChartData? = null, // Holds BarChart data
+    val spendingByCategoryChart: ChartData? = null, // Holds PieChart data // Potentially remove if pieChartData used directly
+    val spendingTrendChart: ChartData? = null, // Holds BarChart data // Potentially remove if barChartData used directly
     val error: String? = null,
-    // Fields from the older version that might be needed by the current Fragment:
+    // Fields from the older version that might be needed by the current Fragment implementation:
     val selectedDate: Calendar = Calendar.getInstance(),
     val selectedMonthYearText: String = "",
     val spendingChangeText: String = "",
     val pieChartData: List<PieEntry> = emptyList(),
     val pieChartColors: List<Int> = emptyList(),
-    val pieChartLegend: List<Pair<String, String>> = emptyList(),
+    val categorySpendingData: List<Pair<String, BigDecimal>> = emptyList(), // Store raw category amounts
+    val pieChartLegend: List<Pair<String, String>> = emptyList(), // Formatted legend for display
     val barChartData: Pair<List<BarEntry>, List<String>>? = null
 )
 
@@ -114,13 +120,14 @@ class ReportsViewModel @Inject constructor(
 
                     val totalSpending = expenses.sumOf { it.amount }
                     val avgBudget = budgetForMonth?.totalAmount ?: BigDecimal.ZERO // Use the fetched budget
-                    val (pieEntries, legend) = processPieChartData(categorySpendingList, totalSpending)
+                    val (pieEntries, rawCategoryData) = processCategoryData(categorySpendingList, totalSpending)
                     val barData = processBarChartData(expenses, startDate, endDate, period) // Pass dates/period for bar chart processing
 
                     // Populate the state object correctly
                     ReportsUiState(
                         isLoading = false,
                         selectedPeriod = period,
+                        categoryDisplayMode = _uiState.value.categoryDisplayMode, // Keep current mode
                         totalSpending = totalSpending,
                         averageBudget = avgBudget, // Populate with actual monthly budget
                         // Populate the fields used by the current Fragment implementation:
@@ -129,7 +136,8 @@ class ReportsViewModel @Inject constructor(
                         spendingChangeText = "", // TODO: Recalculate if needed
                         pieChartData = pieEntries,
                         pieChartColors = generateGreyShades(pieEntries.size), // Generate grey shades
-                        pieChartLegend = legend,
+                        categorySpendingData = rawCategoryData, // Store the raw data
+                        pieChartLegend = formatLegendData(rawCategoryData, _uiState.value.categoryDisplayMode, totalSpending),
                         barChartData = barData,
                         error = null
                         // Remove spendingByCategoryChart, spendingTrendChart if replaced by specific fields
@@ -180,49 +188,49 @@ class ReportsViewModel @Inject constructor(
         return Pair(startDate, endDate)
     }
 
-    private fun processPieChartData(categorySpendingList: List<CategorySpending>, totalSpending: BigDecimal): Pair<List<PieEntry>, List<Pair<String, String>>> {
-         if (totalSpending <= BigDecimal.ZERO || categorySpendingList.isEmpty()) {
-             return Pair(emptyList(), emptyList())
-         }
-         val pieEntries = mutableListOf<PieEntry>()
-         val legendItems = mutableListOf<Pair<String, String>>()
-         categorySpendingList.forEach { categorySpending ->
-             val percentage = (categorySpending.total.divide(totalSpending, 4, RoundingMode.HALF_UP) * BigDecimal(100))
-             val percentageFloat = percentage.toFloat()
-             if (percentageFloat > 0.5) { // Threshold to avoid tiny slices
-                 pieEntries.add(PieEntry(percentageFloat, categorySpending.categoryName))
-                 legendItems.add(categorySpending.categoryName to "${percentage.setScale(1, RoundingMode.HALF_UP)}%")
-             }
-         }
-         legendItems.sortByDescending { it.second.removeSuffix("%").toFloatOrNull() ?: 0f }
-         return Pair(pieEntries, legendItems)
-     }
+    private fun processCategoryData(categorySpendingList: List<CategorySpending>, totalSpending: BigDecimal): Pair<List<PieEntry>, List<Pair<String, BigDecimal>>> {
+        if (totalSpending <= BigDecimal.ZERO || categorySpendingList.isEmpty()) {
+            return Pair(emptyList(), emptyList()) // Return empty for both
+        }
+        val pieEntries = mutableListOf<PieEntry>()
+        val categoryData = mutableListOf<Pair<String, BigDecimal>>()
+        categorySpendingList.forEach { categorySpending ->
+            val percentage = (categorySpending.total.divide(totalSpending, 4, RoundingMode.HALF_UP) * BigDecimal(100))
+            val percentageFloat = percentage.toFloat()
+            if (percentageFloat > 0.5) { // Threshold to avoid tiny slices
+                pieEntries.add(PieEntry(percentageFloat, categorySpending.categoryName))
+                categoryData.add(categorySpending.categoryName to categorySpending.total) // Store raw amount
+            }
+        }
+        categoryData.sortByDescending { it.second } // Sort by amount
+        return Pair(pieEntries, categoryData)
+    }
 
-     private fun processBarChartData(dailyExpensesList: List<ExpenseEntity>, startDate: Date, endDate: Date, period: Period): Pair<List<BarEntry>, List<String>> {
-         val entries = ArrayList<BarEntry>()
-         val labels = ArrayList<String>()
-         val calendar = Calendar.getInstance()
+    private fun processBarChartData(dailyExpensesList: List<ExpenseEntity>, startDate: Date, endDate: Date, period: Period): Pair<List<BarEntry>, List<String>> {
+        val entries = ArrayList<BarEntry>()
+        val labels = ArrayList<String>()
+        val calendar = Calendar.getInstance()
 
-         when (period) {
-             Period.MONTHLY -> {
-                 calendar.time = startDate
-                 val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
-                 val dailyTotals = Array(daysInMonth + 1) { BigDecimal.ZERO } // Index 1 = Day 1
-                 val expenseCalendar = Calendar.getInstance()
-                 dailyExpensesList.forEach { expense ->
-                     expenseCalendar.time = expense.date
-                     val dayOfMonth = expenseCalendar.get(Calendar.DAY_OF_MONTH)
-                     if (dayOfMonth in 1..daysInMonth) {
-                         dailyTotals[dayOfMonth] += expense.amount
-                     }
-                 }
-                 for (day in 1..daysInMonth) {
-                     entries.add(BarEntry(day.toFloat(), dailyTotals[day].toFloat()))
-                     labels.add(if (daysInMonth <= 10 || day % 5 == 0 || day == 1 || day == daysInMonth) day.toString() else "") // Smart labeling
-                 }
-             }
-             // TODO: Implement similar logic for WEEKLY and DAILY periods if needed
-             Period.WEEKLY, Period.DAILY -> {
+        when (period) {
+            Period.MONTHLY -> {
+                calendar.time = startDate
+                val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+                val dailyTotals = Array(daysInMonth + 1) { BigDecimal.ZERO } // Index 1 = Day 1
+                val expenseCalendar = Calendar.getInstance()
+                dailyExpensesList.forEach { expense ->
+                    expenseCalendar.time = expense.date
+                    val dayOfMonth = expenseCalendar.get(Calendar.DAY_OF_MONTH)
+                    if (dayOfMonth in 1..daysInMonth) {
+                        dailyTotals[dayOfMonth] += expense.amount
+                    }
+                }
+                for (day in 1..daysInMonth) {
+                    entries.add(BarEntry(day.toFloat(), dailyTotals[day].toFloat()))
+                    labels.add(if (daysInMonth <= 10 || day % 5 == 0 || day == 1 || day == daysInMonth) day.toString() else "") // Smart labeling
+                }
+            }
+            // TODO: Implement similar logic for WEEKLY and DAILY periods if needed
+            Period.WEEKLY, Period.DAILY -> {
                   // Example: Logic for weekly (adapt as needed)
                   val weeklyTotals = Array(7) { BigDecimal.ZERO } // 0=Sun, 1=Mon...
                   val dayFormat = SimpleDateFormat("E", Locale.getDefault()) // Short day name
@@ -245,9 +253,9 @@ class ReportsViewModel @Inject constructor(
                         entries.add(BarEntry(i.toFloat(), weeklyTotals[i].toFloat()))
                    }
              }
-         }
-         return Pair(entries, labels)
-     }
+        }
+        return Pair(entries, labels)
+    }
 
     // Helper to set calendar to start of the day
     private fun setCalendarToStartOfDay(calendar: Calendar) {
@@ -304,8 +312,8 @@ class ReportsViewModel @Inject constructor(
 
                 // Process data
                 val spendingChangeText = calculateSpendingChange(totalSpendingSelected, totalSpendingPrevious)
-                val (pieChartData, pieChartLegend) = processPieChartData(categorySpendingList, totalSpendingSelected)
-                // Call processBarChartData with correct parameters - assuming Monthly period for this specific loader
+                val (pieChartData, rawCategoryData) = processCategoryData(categorySpendingList, totalSpendingSelected)
+                val pieChartLegend = formatLegendData(rawCategoryData, _uiState.value.categoryDisplayMode, totalSpendingSelected)
                 val barChartData = processBarChartData(dailyExpensesList, startOfMonth, endOfMonth, Period.MONTHLY)
                 val pieChartColors = com.github.mikephil.charting.utils.ColorTemplate.MATERIAL_COLORS.toList() + com.github.mikephil.charting.utils.ColorTemplate.VORDIPLOM_COLORS.toList()
 
@@ -319,7 +327,8 @@ class ReportsViewModel @Inject constructor(
                         spendingChangeText = spendingChangeText,
                         pieChartData = pieChartData,
                         pieChartColors = pieChartColors,
-                        pieChartLegend = pieChartLegend,
+                        categorySpendingData = rawCategoryData, // Store raw data
+                        pieChartLegend = pieChartLegend,       // Store formatted legend
                         barChartData = barChartData,
                         error = null
                     )
@@ -435,4 +444,51 @@ class ReportsViewModel @Inject constructor(
     private fun formatCurrency(amount: BigDecimal): String {
         return NumberFormat.getCurrencyInstance(Locale.getDefault()).format(amount)
     }
-} 
+
+    fun toggleCategoryDisplayMode() {
+        _uiState.update { currentState ->
+            val newMode = if (currentState.categoryDisplayMode == CategoryDisplayMode.PERCENTAGE) {
+                CategoryDisplayMode.AMOUNT
+            } else {
+                CategoryDisplayMode.PERCENTAGE
+            }
+
+            // Use the stored raw data to recalculate the legend for the new mode
+            val updatedLegend = formatLegendData(
+                categoryData = currentState.categorySpendingData, // Use stored raw data
+                mode = newMode,
+                totalSpending = currentState.totalSpending
+            )
+
+            currentState.copy(
+                categoryDisplayMode = newMode,
+                pieChartLegend = updatedLegend // Update the legend in the state
+            )
+        }
+    }
+
+    // Add or adjust this helper function if it doesn't exist or needs modification
+    // It should take raw category spending data (Pair<String, BigDecimal>) and format it
+    private fun formatLegendData(
+        categoryData: List<Pair<String, BigDecimal>>, // Expects raw category names and amounts
+        mode: CategoryDisplayMode,
+        totalSpending: BigDecimal
+    ): List<Pair<String, String>> {
+        val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
+        return categoryData.map { (categoryName, amount) ->
+            val formattedValue = when (mode) {
+                CategoryDisplayMode.PERCENTAGE -> {
+                    if (totalSpending > BigDecimal.ZERO) {
+                        val percentage = (amount.divide(totalSpending, 4, RoundingMode.HALF_UP) * BigDecimal(100))
+                            .setScale(1, RoundingMode.HALF_UP)
+                        "$percentage%"
+                    } else {
+                        "0.0%"
+                    }
+                }
+                CategoryDisplayMode.AMOUNT -> formatter.format(amount)
+            }
+            categoryName to formattedValue
+        }
+    }
+}

@@ -166,7 +166,13 @@
 
     <!-- Navigation descriptions -->
     <string name="navigate_to_budget_setup">Navigate to budget setup</string>
+    <string name="navigate_to_profile">Navigate to profile</string>
 
     <!-- Error Messages -->
+
+    <!-- Receipt Feature Strings -->
+    <string name="view_receipt_desc">View attached receipt</string>
+    <string name="receipt_image_desc">Image of the attached receipt</string>
+    <string name="close_dialog_desc">Close receipt view</string>
 
 </resources>

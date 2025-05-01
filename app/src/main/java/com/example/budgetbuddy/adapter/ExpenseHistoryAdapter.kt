@@ -1,6 +1,7 @@
 package com.example.budgetbuddy.adapter
 
 import android.content.Context
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +15,7 @@ import com.example.budgetbuddy.R
 import com.example.budgetbuddy.databinding.ItemDateHeaderBinding
 import com.example.budgetbuddy.databinding.ItemExpenseHistoryBinding
 import com.example.budgetbuddy.model.ExpenseItemUi
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -23,7 +25,11 @@ sealed class HistoryListItem {
     data class ExpenseEntry(val expense: ExpenseItemUi) : HistoryListItem()
 }
 
-class ExpenseHistoryAdapter(private val context: Context, private val onExpenseClicked: (ExpenseItemUi) -> Unit) :
+class ExpenseHistoryAdapter(
+    private val context: Context,
+    private val onExpenseClicked: (ExpenseItemUi) -> Unit,
+    private val onViewReceiptClicked: (Uri) -> Unit
+) :
     ListAdapter<HistoryListItem, RecyclerView.ViewHolder>(HistoryDiffCallback()) {
 
     private val VIEW_TYPE_DATE_HEADER = 0
@@ -58,7 +64,7 @@ class ExpenseHistoryAdapter(private val context: Context, private val onExpenseC
             }
             VIEW_TYPE_EXPENSE -> {
                 val binding = ItemExpenseHistoryBinding.inflate(inflater, parent, false)
-                ExpenseViewHolder(binding, onExpenseClicked)
+                ExpenseViewHolder(binding, onExpenseClicked, onViewReceiptClicked)
             }
             else -> throw IllegalArgumentException("Invalid view type")
         }
@@ -81,7 +87,8 @@ class ExpenseHistoryAdapter(private val context: Context, private val onExpenseC
 
     class ExpenseViewHolder(
         private val binding: ItemExpenseHistoryBinding,
-        private val onExpenseClicked: (ExpenseItemUi) -> Unit
+        private val onExpenseClicked: (ExpenseItemUi) -> Unit,
+        private val onViewReceiptClicked: (Uri) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(expense: ExpenseItemUi, context: Context, iconMap: Map<String, Int>) {
@@ -92,10 +99,21 @@ class ExpenseHistoryAdapter(private val context: Context, private val onExpenseC
             val iconRes = iconMap[expense.category] ?: R.drawable.ic_category_other // Default icon
             binding.categoryIconImageView.setImageResource(iconRes)
 
-            // Receipt indicator
-            binding.receiptIndicatorLayout.isVisible = expense.receiptPath != null
+            // Handle View Receipt Button
+            if (expense.receiptPath != null) {
+                binding.viewReceiptButton.isVisible = true
+                binding.viewReceiptButton.setOnClickListener {
+                    val file = File(expense.receiptPath)
+                    if(file.exists()){
+                        onViewReceiptClicked(Uri.fromFile(file))
+                    }
+                }
+            } else {
+                binding.viewReceiptButton.isVisible = false
+                binding.viewReceiptButton.setOnClickListener(null)
+            }
 
-            // Click listener
+            // Click listener for the whole item
             itemView.setOnClickListener {
                 onExpenseClicked(expense)
             }

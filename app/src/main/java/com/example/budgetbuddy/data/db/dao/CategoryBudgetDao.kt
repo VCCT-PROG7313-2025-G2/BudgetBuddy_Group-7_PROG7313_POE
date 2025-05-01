@@ -18,6 +18,9 @@ interface CategoryBudgetDao {
     @Query("SELECT * FROM category_budgets WHERE budgetId = :budgetId")
     fun getCategoryBudgetsForBudgetId(budgetId: Long): Flow<List<CategoryBudgetEntity>>
 
+    @Query("SELECT * FROM category_budgets WHERE budgetId = :budgetId")
+    suspend fun getCategoryBudgetsForBudgetIdOnce(budgetId: Long): List<CategoryBudgetEntity>
+
     @Query("DELETE FROM category_budgets WHERE budgetId = :budgetId")
     suspend fun deleteCategoryBudgetsForBudgetId(budgetId: Long)
 } 

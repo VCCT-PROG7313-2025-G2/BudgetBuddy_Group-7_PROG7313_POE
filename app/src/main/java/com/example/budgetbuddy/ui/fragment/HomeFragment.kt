@@ -102,11 +102,8 @@ class HomeFragment : Fragment() {
         binding.addExpenseButton.setOnClickListener {
             findNavController().navigate(R.id.action_homeFragment_to_newExpenseFragment)
         }
-        binding.notificationsButton.setOnClickListener {
-            Toast.makeText(context, "Notifications Clicked (Not implemented)", Toast.LENGTH_SHORT).show()
-        }
-        binding.helpButton.setOnClickListener {
-            Toast.makeText(context, "Help Clicked (Not implemented)", Toast.LENGTH_SHORT).show()
+        binding.settingsButton.setOnClickListener {
+            findNavController().navigate(R.id.action_homeFragment_to_settingsFragment)
         }
 
         // Navigate to Budget Setup when edit icons are clicked
