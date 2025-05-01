@@ -51,7 +51,7 @@
     <string name="hint_date">Date</string>
     <string name="hint_category">Select Category</string>
     <string name="hint_notes">Add notes about this expense</string>
-    <string name="attach_receipt">Attach Receipt</string>
+    <string name="attach_receipt">Attach Receipts</string>
     <string name="receipt_preview_desc">Attached receipt preview</string>
     <string name="save_expense">Save Expense</string>
 
@@ -71,7 +71,7 @@
     <!-- Reports Screen -->
     <string name="reports_title">Reports &amp; Insights</string>
     <string name="spending_breakdown_label">Spending Breakdown</string>
-    <string name="monthly_spending_trend_label">Monthly Spending Trend</string>
+    <string name="monthly_spending_trend_label">Monthly Spending Trends</string>
     <string name="key_stats_label">Key Stats</string>
     <string name="average_spending_placeholder">Average Daily Spending: $&#8212;.&#8212;</string>
     <string name="biggest_expense_placeholder">Biggest Expense: ------ ($--.--)</string>
