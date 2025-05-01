@@ -45,9 +45,29 @@ interface RewardPointsDao {
     @Query("UPDATE reward_points SET currentPoints = currentPoints + :pointsToAdd WHERE userId = :userId")
     suspend fun incrementPoints(userId: Long, pointsToAdd: Int): Int
 
+    /** Fetches all users along with their points, ordered by points descending. */
+    @Query("""
+        SELECT u.*,
+               rp.pointsId AS points_pointsId,
+               rp.userId AS points_userId,
+               rp.currentPoints AS points_currentPoints
+        FROM users u
+        INNER JOIN reward_points rp ON u.userId = rp.userId
+        ORDER BY rp.currentPoints DESC
+    """)
+    fun getAllUsersWithPoints(): Flow<List<UserWithPoints>>
+
     @Transaction
     suspend fun addOrUpdatePoints(userId: Long, pointsToAdd: Int) {
-        val insertedRowId = insertInitialPoints(RewardPointsEntity(userId = userId, currentPoints = 0))
-        incrementPoints(userId, pointsToAdd)
+        // Ensure a user has an entry before incrementing. Initialize with 0 if not present.
+        val existingPoints = getPointsForUserOnce(userId)
+        if (existingPoints == null) {
+            // Use insertOrUpdate to handle potential concurrent initializations safely
+            insertOrUpdatePoints(RewardPointsEntity(userId = userId, currentPoints = 0))
+        }
+        // Now increment the points. This is safe even if the initial value was just inserted.
+        val rowsAffected = incrementPoints(userId, pointsToAdd)
+        // Optional: Log if rowsAffected == 0, indicating the user ID might not exist in users table
+        // if (rowsAffected == 0) { Log.w("RewardPointsDao", "Increment points failed, user ID $userId might not exist.") }
     }
 } 

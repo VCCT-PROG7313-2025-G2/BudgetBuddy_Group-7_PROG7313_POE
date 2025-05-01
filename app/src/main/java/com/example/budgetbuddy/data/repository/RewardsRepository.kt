@@ -12,6 +12,7 @@ import javax.inject.Singleton
 import android.util.Log
 import com.example.budgetbuddy.util.Constants
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 
 @Singleton
 class RewardsRepository @Inject constructor(
@@ -80,4 +81,12 @@ class RewardsRepository @Inject constructor(
     fun getLeaderboard(limit: Int = 10): Flow<List<UserWithPoints>> {
         return rewardPointsDao.getLeaderboard(limit)
     }
+
+    /** Fetches the entire leaderboard, sorted by points descending. */
+    fun getFullLeaderboard(): Flow<List<UserWithPoints>> =
+        rewardPointsDao.getAllUsersWithPoints()
+
+    fun getPointsForUserFlow(userId: Long): Flow<Int> =
+        rewardPointsDao.getPointsForUserFlow(userId)
+            .map { it?.currentPoints ?: 0 }
 } 

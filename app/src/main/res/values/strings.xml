@@ -95,8 +95,6 @@
     <string name="spending_by_category">Spending by Category</string>
     <string name="daily_spending_trends">Daily Spending Trends</string>
 
-
-
     <!-- Profile Screen -->
     <string name="profile_title">Profile</string>
     <string name="change_profile_picture">Change Picture</string>
@@ -154,5 +152,21 @@
     <string name="prompt_email">Email</string>
     <string name="back">Back</string>
     <string name="settings">Settings</string>
+    <string name="back_button_desc">Back</string>
+    <string name="rewards_and_achievements_title">Rewards &amp; Achievements</string>
+    <string name="alex_johnson">Alex Johnson</string> 
+    <string name="alex_johnson_example_com">alex.johnson@example.com</string>
+
+    <!-- New strings added from the code block -->
+    <string name="total_spent_label">Total Spent This Month</string>
+    <string name="budget_remaining_label">Budget Remaining</string>
+
+    <!-- String related to Leaderboard -->
+    <string name="navigate_to_leaderboard">Navigate to Leaderboard</string>
+
+    <!-- Navigation descriptions -->
+    <string name="navigate_to_budget_setup">Navigate to budget setup</string>
+
+    <!-- Error Messages -->
 
 </resources>

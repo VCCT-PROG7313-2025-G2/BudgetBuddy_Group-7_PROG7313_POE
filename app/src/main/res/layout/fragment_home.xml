@@ -75,15 +75,14 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <ImageButton
-                    android:id="@+id/editBudgetButton"
+                <ImageView
+                    android:id="@+id/balanceArrowIcon"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_edit"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/edit_budget_button_desc"
-                    app:tint="@android:color/black" 
-                    app:layout_constraintTop_toTopOf="@id/balanceLabelTextView"
+                    android:src="@drawable/ic_arrow_right" 
+                    android:contentDescription="@string/navigate_to_budget_setup"
+                    app:tint="?attr/colorControlNormal"
+                    app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />
 
                 <TextView
@@ -95,18 +94,6 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/balanceLabelTextView"
                     tools:text="$3,450 / $5,000" />
-
-                <ImageButton
-                    android:id="@+id/editCategoriesButton"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_edit"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/edit_category_budgets_button_desc"
-                    app:tint="@android:color/black" 
-                    app:layout_constraintTop_toTopOf="@id/budgetCategoriesLabelTextView"
-                    app:layout_constraintBottom_toBottomOf="@id/budgetCategoriesLabelTextView"
-                    app:layout_constraintEnd_toEndOf="parent" />
 
                 <ProgressBar
                     android:id="@+id/budgetProgressBar"
@@ -182,6 +169,17 @@
                     android:textStyle="bold"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageView
+                    android:id="@+id/categoriesArrowIcon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginTop="0dp" 
+                    android:src="@drawable/ic_arrow_right"
+                    android:contentDescription="@string/navigate_to_budget_setup"
+                    app:tint="?attr/colorControlNormal"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/budgetCategoriesRecyclerView"

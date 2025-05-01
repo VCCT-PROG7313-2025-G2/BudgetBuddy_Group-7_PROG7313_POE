@@ -1,7 +1,10 @@
 package com.example.budgetbuddy.ui.fragment
 
-import android.graphics.Color
+import android.content.ContentValues
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -32,6 +35,7 @@ import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.text.NumberFormat
 import java.util.*
+import android.graphics.Color
 
 @AndroidEntryPoint
 class ReportsFragment : Fragment() {
@@ -67,7 +71,6 @@ class ReportsFragment : Fragment() {
             setHoleRadius(58f)
             setTransparentCircleRadius(61f)
             setDrawCenterText(true)
-            centerText = "Spending" // TODO: Make dynamic?
             setCenterTextSize(16f)
             setCenterTextColor(Color.BLACK)
             rotationAngle = 0f
@@ -76,6 +79,7 @@ class ReportsFragment : Fragment() {
             animateY(1400, Easing.EaseInOutQuad)
             setEntryLabelColor(Color.BLACK)
             setEntryLabelTextSize(12f)
+            setDrawEntryLabels(false) // Disable drawing category labels on slices
         }
 
         // Basic Bar Chart Setup
@@ -112,8 +116,7 @@ class ReportsFragment : Fragment() {
             viewModel.changeMonth(1)
         }
         binding.downloadReportButton.setOnClickListener {
-            // TODO: Implement report download functionality
-            Toast.makeText(context, "Download Report (Not Implemented)", Toast.LENGTH_SHORT).show()
+            downloadReport()
         }
          binding.moreOptionsButton.setOnClickListener {
              // TODO: Implement more options menu (e.g., filter, date range)
@@ -130,7 +133,7 @@ class ReportsFragment : Fragment() {
                     binding.spendingChangeTextView.text = state.spendingChangeText
                     // TODO: Update spending change icon based on text/value
 
-                    updatePieChart(state.pieChartData, state.pieChartColors)
+                    updatePieChart(state.pieChartData, state.pieChartColors, state.totalSpending)
                     updatePieLegend(state.pieChartLegend, state.pieChartColors) // Pass colors for legend dots
                      state.barChartData?.let { (entries, labels) ->
                         updateBarChart(entries, labels)
@@ -147,13 +150,15 @@ class ReportsFragment : Fragment() {
         }
     }
 
-    private fun updatePieChart(entries: List<PieEntry>, colors: List<Int>) {
+    private fun updatePieChart(entries: List<PieEntry>, colors: List<Int>, totalSpending: BigDecimal) {
         if (entries.isEmpty()) {
             binding.categoryPieChart.clear()
-            binding.categoryPieChart.centerText = "No spending data"
+            binding.categoryPieChart.centerText = "No Spending\nThis Period"
             binding.categoryPieChart.invalidate()
             return
         }
+
+        binding.categoryPieChart.centerText = formatCurrency(totalSpending)
 
         val dataSet = PieDataSet(entries, "Spending Categories")
         dataSet.sliceSpace = 3f
@@ -164,6 +169,7 @@ class ReportsFragment : Fragment() {
         data.setValueFormatter(PercentFormatter(binding.categoryPieChart)) // Use PieChart context here
         data.setValueTextSize(11f)
         data.setValueTextColor(Color.BLACK)
+        data.setDrawValues(false) // Disable drawing values on slices
 
         binding.categoryPieChart.data = data
         binding.categoryPieChart.highlightValues(null) // Unhighlight everything
@@ -206,6 +212,51 @@ class ReportsFragment : Fragment() {
             legendBinding.legendPercentage.text = percentage
 
             binding.categoryLegendLayout.addView(legendBinding.root)
+        }
+    }
+
+    private fun downloadReport() {
+        val reportContent = viewModel.generateReportContent()
+        if (reportContent == null) {
+            Toast.makeText(context, "Cannot generate report at this time.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val state = viewModel.uiState.value // Get current state for filename
+        val filename = "BudgetReport_${state.selectedMonthYearText.replace(" ", "_")}.txt"
+        val resolver = requireContext().contentResolver
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+            put(MediaStore.MediaColumns.MIME_TYPE, "text/plain")
+            // Put in Downloads subdirectory (requires API 29+)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                put(MediaStore.MediaColumns.RELATIVE_PATH, "Download/BudgetBuddy")
+            }
+        }
+
+        // Use MediaStore API to get a URI for the new file
+        val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+
+        if (uri == null) {
+            Log.e("ReportsFragment", "Failed to create new MediaStore record.")
+            Toast.makeText(context, "Failed to prepare download location.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        try {
+            resolver.openOutputStream(uri)?.use { outputStream ->
+                outputStream.write(reportContent.toByteArray())
+            }
+            Toast.makeText(context, "Report saved to Downloads/BudgetBuddy", Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            Log.e("ReportsFragment", "Failed to save report to $uri", e)
+            Toast.makeText(context, "Failed to save report.", Toast.LENGTH_SHORT).show()
+            // Clean up the MediaStore entry if saving failed
+            try {
+                resolver.delete(uri, null, null)
+            } catch (deleteException: Exception) {
+                Log.e("ReportsFragment", "Failed to delete MediaStore entry after save failure", deleteException)
+            }
         }
     }
 

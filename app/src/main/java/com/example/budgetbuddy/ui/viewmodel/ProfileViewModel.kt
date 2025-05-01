@@ -7,6 +7,8 @@ import com.example.budgetbuddy.data.repository.BudgetRepository
 import com.example.budgetbuddy.data.repository.ExpenseRepository
 import com.example.budgetbuddy.data.repository.UserRepository
 import com.example.budgetbuddy.util.SessionManager
+import com.example.budgetbuddy.data.repository.RewardsRepository
+import com.example.budgetbuddy.model.UserWithPoints
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -33,6 +35,7 @@ class ProfileViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val budgetRepository: BudgetRepository,
     private val expenseRepository: ExpenseRepository,
+    private val rewardsRepository: RewardsRepository,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -64,6 +67,7 @@ class ProfileViewModel @Inject constructor(
                     budgetRepository.getBudgetForMonth(userId, currentMonthYear),
                     expenseRepository.getTotalSpendingBetween(userId, Date(startOfMonth), Date(endOfMonth))
                 ) { user, budget, spentAmount ->
+                    Log.d("ProfileViewModel", "User ID: $userId")
 
                     val name = user?.name ?: "User"
                     val email = user?.email ?: ""

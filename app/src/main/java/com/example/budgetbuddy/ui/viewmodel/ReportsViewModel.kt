@@ -26,6 +26,8 @@ import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.utils.ColorTemplate
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.catch
+import android.graphics.Color
+import java.text.NumberFormat
 
 // Define Period Enum here or import if defined elsewhere
 enum class Period {
@@ -126,7 +128,7 @@ class ReportsViewModel @Inject constructor(
                         selectedMonthYearText = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(startDate),
                         spendingChangeText = "", // TODO: Recalculate if needed
                         pieChartData = pieEntries,
-                        pieChartColors = ColorTemplate.MATERIAL_COLORS.toList() + ColorTemplate.VORDIPLOM_COLORS.toList(), // Generate colors
+                        pieChartColors = generateGreyShades(pieEntries.size), // Generate grey shades
                         pieChartLegend = legend,
                         barChartData = barData,
                         error = null
@@ -365,5 +367,72 @@ class ReportsViewModel @Inject constructor(
 
     fun refreshData() {
         loadReportData(selectedPeriod.value)
+    }
+
+    private fun generateGreyShades(count: Int): List<Int> {
+        if (count <= 0) return emptyList()
+
+        val shades = mutableListOf<Int>()
+        // Define base shades (darkest to lightest)
+        val baseGreys = listOf(
+            Color.rgb(50, 50, 50), // Very Dark Grey
+            Color.DKGRAY,
+            Color.GRAY,
+            Color.LTGRAY,
+            Color.rgb(220, 220, 220) // Very Light Grey
+        )
+
+        for (i in 0 until count) {
+            // Cycle through base greys
+            shades.add(baseGreys[i % baseGreys.size])
+            // Optional: Could add interpolation or slight variation if more unique shades are needed
+        }
+        return shades
+    }
+
+    // --- Report Generation ---
+    fun generateReportContent(): String? {
+        val state = _uiState.value
+        if (state.isLoading || state.error != null) {
+            Log.w("ReportsViewModel", "Cannot generate report while loading or in error state.")
+            return null
+        }
+
+        val builder = StringBuilder()
+        builder.appendLine("Budget Buddy Report")
+        builder.appendLine("Period: ${state.selectedMonthYearText}")
+        builder.appendLine("=====================================")
+        builder.appendLine("Total Spending: ${formatCurrency(state.totalSpending)}")
+        // Optional: Add spending change info
+        if (state.spendingChangeText.isNotEmpty()) {
+             builder.appendLine("Change: ${state.spendingChangeText}")
+        }
+        builder.appendLine()
+        builder.appendLine("Spending by Category:")
+        builder.appendLine("-------------------------------------")
+
+        if (state.pieChartLegend.isEmpty()) {
+            builder.appendLine("No category spending data for this period.")
+        } else {
+            state.pieChartLegend.forEach { (category, percentage) ->
+                // Find corresponding spending amount (requires calculation or storing it in state)
+                // For simplicity, let's just use the percentage for now.
+                // To show amount, you'd need to iterate state.pieChartData and match label.
+                builder.appendLine("- $category: $percentage")
+            }
+        }
+
+        // TODO: Add daily spending breakdown from bar chart data if desired
+
+        builder.appendLine()
+        builder.appendLine("=====================================")
+        builder.appendLine("Generated on: ${SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date())}")
+
+        return builder.toString()
+    }
+
+    // Helper function to format currency (already exists potentially)
+    private fun formatCurrency(amount: BigDecimal): String {
+        return NumberFormat.getCurrencyInstance(Locale.getDefault()).format(amount)
     }
 } 

@@ -111,11 +111,18 @@ class HomeFragment : Fragment() {
 
         // Navigate to Budget Setup when edit icons are clicked
         val budgetSetupAction = R.id.action_homeFragment_to_budgetSetupFragment
-        binding.editBudgetButton.setOnClickListener {
+
+        // Navigate to Budget Setup when cards are clicked
+        binding.balanceCardView.setOnClickListener {
             findNavController().navigate(budgetSetupAction)
         }
-        binding.editCategoriesButton.setOnClickListener {
+        binding.budgetCategoriesCardView.setOnClickListener {
             findNavController().navigate(budgetSetupAction)
+        }
+
+        // Navigate to Rewards screen when the rewards card is clicked
+        binding.rewardsContainer.setOnClickListener {
+            findNavController().navigate(R.id.action_homeFragment_to_rewardsFragment)
         }
 
         // Remove temp navigation triggers
@@ -135,8 +142,8 @@ class HomeFragment : Fragment() {
                     binding.balanceAmountTextView.text = "${currencyFormat.format(state.budgetSpent)} / ${currencyFormat.format(state.budgetTotal)}"
                     binding.budgetProgressBar.max = state.budgetTotal.toInt() // Assuming total budget fits in Int for progress bar max
                     binding.budgetProgressBar.progress = state.budgetSpent.toInt()
-                    binding.rewardsContainer.isVisible = state.rewardsText.isNotEmpty() // Show rewards card only if there's text
-                    binding.rewardsTextView.text = state.rewardsText
+                    binding.rewardsContainer.isVisible = state.leaderboardPositionText.isNotEmpty()
+                    binding.rewardsTextView.text = state.leaderboardPositionText
 
                     // Update Category RecyclerView
                     categoryAdapter.updateData(state.budgetCategories)
@@ -193,8 +200,8 @@ class HomeFragment : Fragment() {
 
         val leftAxis = chart.axisLeft
         leftAxis.setDrawGridLines(false)
-        leftAxis.setDrawAxisLine(false)
-        leftAxis.setDrawLabels(false)
+        leftAxis.setDrawAxisLine(true)
+        leftAxis.setDrawLabels(true)
         leftAxis.axisMinimum = 0f
 
         chart.axisRight.isEnabled = false

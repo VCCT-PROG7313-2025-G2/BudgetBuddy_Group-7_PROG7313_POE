@@ -10,14 +10,14 @@
     <!-- Back Arrow -->
     <ImageButton
         android:id="@+id/backButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_arrow_left"
+        android:layout_width="62dp"
+        android:layout_height="48dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/back_button_desc" 
-        app:tint="?attr/colorControlNormal"
+        android:contentDescription="@string/back_button_desc"
+        android:src="@drawable/ic_arrow_left"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/colorControlNormal" />
 
     <!-- Amount Input -->
     <com.google.android.material.textfield.TextInputLayout
@@ -61,9 +61,7 @@
             android:id="@+id/dateEditText"
             android:layout_width="match_parent"
             android:layout_height="154dp"
-            android:clickable="true"
             android:focusable="false"
-            android:clickable="true"
             android:inputType="none" /> 
 
     </com.google.android.material.textfield.TextInputLayout>
