@@ -30,11 +30,6 @@ import android.graphics.Color
 import java.text.NumberFormat
 
 // Define Enums
-// Enum for time periods (currently not used, hardcoded to WEEKLY).
-/* enum class Period {
-    DAILY, WEEKLY, MONTHLY
-} */
-
 // Enum to track whether the category legend should show percentages or amounts.
 enum class CategoryDisplayMode {
    PERCENTAGE, AMOUNT
@@ -97,11 +92,11 @@ class ReportsViewModel @Inject constructor(
 
     // Initialize by loading data for the default (Weekly) period.
     init {
-        loadReportData(Period.WEEKLY) // Hardcoded to load weekly data initially.
+        loadReportData() // Load weekly data initially.
     }
 
-    // Main function to load data based on a period (always WEEKLY now).
-    private fun loadReportData(period: Period = Period.WEEKLY) {
+    // Main function to load data (always WEEKLY now).
+    private fun loadReportData() {
         val userId = getCurrentUserId()
         if (userId == SessionManager.NO_USER_LOGGED_IN) {
             Log.e("ReportsViewModel", "Cannot load data, no user logged in")
@@ -115,7 +110,7 @@ class ReportsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 // Get start and end dates for the current week.
-                val (startDate, endDate) = getDatesForPeriod(Period.WEEKLY)
+                val (startDate, endDate) = getDatesForCurrentWeek()
                 // Determine the month string for fetching the monthly budget (used as reference).
                 val monthYearFormat = SimpleDateFormat("yyyy-MM", Locale.getDefault())
                 val currentMonthYear = monthYearFormat.format(startDate)
@@ -136,7 +131,7 @@ class ReportsViewModel @Inject constructor(
                     val totalSpending = expenses.sumOf { it.amount } // Sum expenses for the week.
                     val avgBudget = budgetForMonth?.totalAmount ?: BigDecimal.ZERO // Use total monthly budget here.
                     val (pieEntries, rawCategoryData) = processCategoryData(categorySpendingList, totalSpending)
-                    val barData = processBarChartData(expenses, startDate, endDate, Period.WEEKLY)
+                    val barData = processWeeklyBarChartData(expenses, startDate) // Use specific weekly processor
 
                     // Create the new UI state object.
                     ReportsUiState(
@@ -155,7 +150,7 @@ class ReportsViewModel @Inject constructor(
                         error = null
                     )
                 }.catch { e: Throwable -> // Handle errors during combine.
-                    Log.e("ReportsViewModel", "Error combining flows for user $userId, period $period", e)
+                    Log.e("ReportsViewModel", "Error combining weekly flows for user $userId", e)
                     _uiState.update { it.copy(isLoading = false, error = "Failed to load report data.") }
                 }.collect { newState: ReportsUiState -> // Update the main UI state.
                     _uiState.value = newState
@@ -167,37 +162,30 @@ class ReportsViewModel @Inject constructor(
         }
     }
 
-    // Calculates the start and end dates for a given period (relative to a base date or today).
-    private fun getDatesForPeriod(period: Period, baseCalendar: Calendar? = null): Pair<Date, Date> {
-        val calendar = baseCalendar?.clone() as Calendar? ?: Calendar.getInstance()
-        val endDate: Date
-        val startDate: Date
+    // Calculates the start and end dates for the current week (Sunday-Saturday).
+    private fun getDatesForCurrentWeek(): Pair<Date, Date> {
+        val calendar = Calendar.getInstance()
+        calendar.firstDayOfWeek = Calendar.SUNDAY // Set week start day
+        calendar.set(Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek)
+        setCalendarToStartOfDay(calendar)
+        val startDate = calendar.time
+        calendar.add(Calendar.DAY_OF_WEEK, 6) // Add 6 days to get Saturday.
+        setCalendarToEndOfDay(calendar)
+        val endDate = calendar.time
+        return Pair(startDate, endDate)
+    }
 
-        when (period) {
-            Period.MONTHLY -> { // Logic for calculating month start/end.
-                calendar.set(Calendar.DAY_OF_MONTH, 1)
-                setCalendarToStartOfDay(calendar)
-                startDate = calendar.time
-                calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
-                setCalendarToEndOfDay(calendar)
-                endDate = calendar.time
-            }
-            Period.WEEKLY -> { // Logic for calculating week start/end (Sunday-Saturday).
-                calendar.firstDayOfWeek = Calendar.SUNDAY
-                calendar.set(Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek)
-                setCalendarToStartOfDay(calendar)
-                startDate = calendar.time
-                calendar.add(Calendar.DAY_OF_WEEK, 6) // Add 6 days to get Saturday.
-                setCalendarToEndOfDay(calendar)
-                endDate = calendar.time
-            }
-            Period.DAILY -> { // Logic for calculating day start/end.
-                 setCalendarToStartOfDay(calendar)
-                 startDate = calendar.time
-                 setCalendarToEndOfDay(calendar)
-                 endDate = calendar.time
-            }
-        }
+    // Calculates the start and end dates for the week containing the start of the given calendar's month.
+    private fun getDatesForWeekStartingInMonth(baseCalendar: Calendar): Pair<Date, Date> {
+        val calendar = baseCalendar.clone() as Calendar
+        calendar.set(Calendar.DAY_OF_MONTH, 1) // Go to start of the month
+        calendar.firstDayOfWeek = Calendar.SUNDAY // Set week start day
+        calendar.set(Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek) // Go to start of that week
+        setCalendarToStartOfDay(calendar)
+        val startDate = calendar.time
+        calendar.add(Calendar.DAY_OF_WEEK, 6) // Add 6 days to get Saturday.
+        setCalendarToEndOfDay(calendar)
+        val endDate = calendar.time
         return Pair(startDate, endDate)
     }
 
@@ -223,50 +211,50 @@ class ReportsViewModel @Inject constructor(
         return Pair(pieEntries, categoryData)
     }
 
-    // Processes the list of expenses into data suitable for the BarChart.
-    private fun processBarChartData(dailyExpensesList: List<ExpenseEntity>, startDate: Date, endDate: Date, period: Period): Pair<List<BarEntry>, List<String>> {
+    // Processes the list of expenses into data suitable for the Weekly BarChart.
+    private fun processWeeklyBarChartData(dailyExpensesList: List<ExpenseEntity>, startDate: Date): Pair<List<BarEntry>, List<String>> {
         val entries = ArrayList<BarEntry>()
         val labels = ArrayList<String>()
         val calendar = Calendar.getInstance()
 
-        when (period) {
-            Period.MONTHLY -> { // Logic for monthly bar chart (not currently used).
-                // ... (sums expenses for each day of the month)
-            }
-            Period.WEEKLY, Period.DAILY -> { // Logic for weekly bar chart (currently used).
-                  val weeklyTotals = Array(7) { BigDecimal.ZERO } // Array to hold totals for Sun-Sat.
-                  val dayFormat = SimpleDateFormat("E", Locale.getDefault()) // Format for day labels ("Sun", "Mon", etc.).
-                  // Create labels for the 7 days starting from the week's start date.
-                  calendar.time = startDate
-                  for(i in 0..6) {
-                       labels.add(dayFormat.format(calendar.time))
-                       calendar.add(Calendar.DATE, 1)
-                  }
-                  // Sum expenses into the correct day's bucket.
-                  val expenseCalendar = Calendar.getInstance()
-                   dailyExpensesList.forEach { expense ->
-                       expenseCalendar.time = expense.date
-                       val diff = (expense.date.time - startDate.time)
-                       val dayIndex = (diff / (1000 * 60 * 60 * 24)).toInt()
-                       if(dayIndex in 0..6) {
-                           weeklyTotals[dayIndex] += expense.amount
-                       }
-                   }
-                   // Create BarEntry for each day.
-                   for(i in 0..6) {
-                        entries.add(BarEntry(i.toFloat(), weeklyTotals[i].toFloat()))
-                   }
-             }
+        val weeklyTotals = Array(7) { BigDecimal.ZERO } // Array to hold totals for Sun-Sat.
+        val dayFormat = SimpleDateFormat("E", Locale.getDefault()) // Format for day labels ("Sun", "Mon", etc.).
+        // Create labels for the 7 days starting from the week's start date.
+        calendar.time = startDate
+        for(i in 0..6) {
+            labels.add(dayFormat.format(calendar.time))
+            calendar.add(Calendar.DATE, 1)
         }
+        // Sum expenses into the correct day's bucket.
+        val expenseCalendar = Calendar.getInstance()
+        dailyExpensesList.forEach { expense ->
+            expenseCalendar.time = expense.date
+            val diff = (expense.date.time - startDate.time)
+            val dayIndex = (diff / (1000 * 60 * 60 * 24)).toInt()
+            if(dayIndex in 0..6) {
+                weeklyTotals[dayIndex] += expense.amount
+            }
+        }
+        // Create BarEntry for each day.
+        for(i in 0..6) {
+            entries.add(BarEntry(i.toFloat(), weeklyTotals[i].toFloat()))
+        }
+
         return Pair(entries, labels)
     }
 
-    // --- Calendar Helpers (Consider moving to DateUtils) --- 
+    // --- Calendar Helpers --- 
     private fun setCalendarToStartOfDay(calendar: Calendar) {
-        // ... sets time to 00:00:00.000
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
     }
     private fun setCalendarToEndOfDay(calendar: Calendar) {
-        // ... sets time to 23:59:59.999
+        calendar.set(Calendar.HOUR_OF_DAY, 23)
+        calendar.set(Calendar.MINUTE, 59)
+        calendar.set(Calendar.SECOND, 59)
+        calendar.set(Calendar.MILLISECOND, 999)
     }
     // --- End Calendar Helpers --- 
 
@@ -293,9 +281,7 @@ class ReportsViewModel @Inject constructor(
                 val selectedMonthYearText = dateFormat.format(calendar.time)
 
                 // *** Get dates for the specific WEEK starting in the selected month. ***
-                val weekCalendar = calendar.clone() as Calendar
-                weekCalendar.set(Calendar.DAY_OF_MONTH, 1)
-                val (startOfWeek, endOfWeek) = getDatesForPeriod(Period.WEEKLY, weekCalendar)
+                val (startOfWeek, endOfWeek) = getDatesForWeekStartingInMonth(calendar)
 
                 // Get previous *month's* start/end for comparison text.
                 val previousMonthCalendar = calendar.clone() as Calendar
@@ -319,7 +305,7 @@ class ReportsViewModel @Inject constructor(
                 val spendingChangeText = calculateSpendingChange(totalSpendingSelected, totalSpendingPrevious)
                 val (pieChartData, rawCategoryData) = processCategoryData(categorySpendingList, totalSpendingSelected)
                 val pieChartLegend = formatLegendData(rawCategoryData, _uiState.value.categoryDisplayMode, totalSpendingSelected)
-                val barChartData = processBarChartData(weeklyExpensesList, startOfWeek, endOfWeek, Period.WEEKLY)
+                val barChartData = processWeeklyBarChartData(weeklyExpensesList, startOfWeek) // Use specific weekly processor
                 val pieChartColors = generateGreyShades(pieChartData.size)
 
                 // Update the UI State.
@@ -347,32 +333,107 @@ class ReportsViewModel @Inject constructor(
 
     // Calculates the percentage change text comparing current spending to previous period.
     private fun calculateSpendingChange(currentSpending: BigDecimal, previousSpending: BigDecimal): String {
-        // ... (calculation logic) ...
+        if (previousSpending <= BigDecimal.ZERO) {
+            return if (currentSpending > BigDecimal.ZERO) "↑ from last month" else "" // No previous data or increase from zero
+        }
+        val change = ((currentSpending - previousSpending).divide(previousSpending, 4, RoundingMode.HALF_UP) * BigDecimal(100))
+        val percentage = change.setScale(1, RoundingMode.HALF_UP)
+        return when {
+            percentage > BigDecimal.ZERO -> "↑ $percentage% from last month"
+            percentage < BigDecimal.ZERO -> "↓ ${percentage.abs()}% from last month"
+            else -> "↔ No change from last month"
+        }
     }
 
     // --- More Date Helpers (For specific month calculations) ---
     private fun getStartOfMonth(calendar: Calendar): Date {
-        // ... gets start of the month represented by the calendar ...
+        val cal = calendar.clone() as Calendar
+        cal.set(Calendar.DAY_OF_MONTH, 1)
+        setCalendarToStartOfDay(cal)
+        return cal.time
     }
     private fun getEndOfMonth(calendar: Calendar): Date {
-         // ... gets end of the month represented by the calendar ...
+         val cal = calendar.clone() as Calendar
+        cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH))
+        setCalendarToEndOfDay(cal)
+        return cal.time
     }
     // --- End Date Helpers ---
 
     // Public function to allow refreshing data manually (e.g., pull-to-refresh).
     fun refreshData() {
-        loadReportData(Period.WEEKLY)
+        loadReportData()
     }
 
     // Generates a list of grey colors for the pie chart.
     private fun generateGreyShades(count: Int): List<Int> {
-        // ... (returns list of grey Color Ints) ...
+        if (count <= 0) return emptyList()
+        val shades = mutableListOf<Int>()
+        val baseGreys = listOf(
+            Color.rgb(50, 50, 50), // Very Dark Grey
+            Color.DKGRAY,
+            Color.GRAY,
+            Color.LTGRAY,
+            Color.rgb(220, 220, 220) // Very Light Grey
+        )
+        for (i in 0 until count) {
+            shades.add(baseGreys[i % baseGreys.size])
+        }
+        return shades
     }
 
     // --- Report Generation Logic --- 
     // Creates a plain text summary of the current report data.
     fun generateReportContent(): String? {
-        // ... (builds a string with report details) ...
+        val state = _uiState.value
+        if (state.isLoading || state.error != null) {
+            Log.w("ReportsViewModel", "Cannot generate report while loading or in error state.")
+            return null
+        }
+
+        val builder = StringBuilder()
+        builder.appendLine("Budget Buddy Report")
+        builder.appendLine("Period Covered: Week starting ${SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(getDatesForCurrentWeek().first)}")
+        builder.appendLine("(Month Displayed: ${state.selectedMonthYearText})") // Clarify which month is shown
+        builder.appendLine("=====================================")
+        builder.appendLine("Total Spending (Week): ${formatCurrency(state.totalSpending)}")
+        if (state.spendingChangeText.isNotEmpty()) {
+             builder.appendLine("Change (Week vs Prev Month): ${state.spendingChangeText}")
+        }
+        builder.appendLine()
+        builder.appendLine("Spending by Category (Week):")
+        builder.appendLine("-------------------------------------")
+
+        if (state.pieChartLegend.isEmpty()) {
+            builder.appendLine("No category spending data for this period.")
+        } else {
+            // Use raw data to show both amount and percentage
+            val total = state.totalSpending
+            state.categorySpendingData.forEach { (category, amount) ->
+                val percentage = if (total > BigDecimal.ZERO) {
+                    (amount.divide(total, 4, RoundingMode.HALF_UP) * BigDecimal(100)).setScale(1, RoundingMode.HALF_UP)
+                } else BigDecimal.ZERO
+                builder.appendLine("- $category: ${formatCurrency(amount)} ($percentage%)")
+            }
+        }
+        // Add weekly breakdown
+        builder.appendLine()
+        builder.appendLine("Spending by Day (Week):")
+        builder.appendLine("-------------------------------------")
+        if (state.barChartData == null || state.barChartData.first.isEmpty()) {
+            builder.appendLine("No daily spending data for this period.")
+        } else {
+            state.barChartData.second.forEachIndexed { index, label ->
+                val amount = state.barChartData.first.getOrNull(index)?.y?.toBigDecimal() ?: BigDecimal.ZERO
+                builder.appendLine("- $label: ${formatCurrency(amount)}")
+            }
+        }
+
+        builder.appendLine()
+        builder.appendLine("=====================================")
+        builder.appendLine("Generated on: ${SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date())}")
+
+        return builder.toString()
     }
 
     // Helper to format currency.
@@ -408,6 +469,21 @@ class ReportsViewModel @Inject constructor(
         mode: CategoryDisplayMode,
         totalSpending: BigDecimal
     ): List<Pair<String, String>> {
-        // ... (formats based on mode - % or currency amount) ...
+        val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
+        return categoryData.map { (categoryName, amount) ->
+            val formattedValue = when (mode) {
+                CategoryDisplayMode.PERCENTAGE -> {
+                    if (totalSpending > BigDecimal.ZERO) {
+                        val percentage = (amount.divide(totalSpending, 4, RoundingMode.HALF_UP) * BigDecimal(100))
+                            .setScale(1, RoundingMode.HALF_UP)
+                        "$percentage%"
+                    } else {
+                        "0.0%"
+                    }
+                }
+                CategoryDisplayMode.AMOUNT -> formatter.format(amount)
+            }
+            categoryName to formattedValue
+        }
     }
 }

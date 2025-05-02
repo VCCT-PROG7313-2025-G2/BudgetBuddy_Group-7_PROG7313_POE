@@ -92,7 +92,6 @@ class ProfileViewModel @Inject constructor(
                     // --- Process Data --- 
                     val name = user?.name ?: "User"
                     val email = user?.email ?: ""
-                    val profileImageUrl = user?.profileImageUrl // Get image URL from user data.
                     val totalBudget = budget?.totalAmount ?: BigDecimal.ZERO
                     val totalSpent = spentAmount ?: BigDecimal.ZERO
                     val remaining = totalBudget - totalSpent
@@ -111,7 +110,7 @@ class ProfileViewModel @Inject constructor(
                         isLoading = false,
                         userName = name,
                         userEmail = email,
-                        profileImageUrl = profileImageUrl, // Include the image URL.
+                        profileImageUrl = null,
                         budgetLimitText = limitText,
                         budgetRemainingText = remainingText,
                         budgetProgress = progress,

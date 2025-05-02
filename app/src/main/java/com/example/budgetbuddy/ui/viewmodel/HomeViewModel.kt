@@ -95,23 +95,22 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 // --- Define Flows for Data --- 
-                // A Flow represents a stream of data that can change over time.
                 val userFlow = userRepository.getUser(userId)
                 val monthYearFormat = SimpleDateFormat("yyyy-MM", Locale.getDefault())
                 val currentMonthYear = monthYearFormat.format(Date())
-                val startOfMonthDate = DateUtils.getStartOfMonth() // Use DateUtils
-                val endOfMonthDate = DateUtils.getEndOfMonth()     // Use DateUtils
+                // Use local date helper functions
+                val startOfMonthDate = getStartOfMonth()
+                val endOfMonthDate = getEndOfMonth()
                 val budgetFlow = budgetRepository.getBudgetForMonth(userId, currentMonthYear)
                 val spentFlow = expenseRepository.getTotalSpendingBetween(userId, startOfMonthDate, endOfMonthDate).map { it ?: BigDecimal.ZERO }
                 val categorySpendingFlow = expenseRepository.getSpendingByCategoryBetween(userId, startOfMonthDate, endOfMonthDate)
-                val weekStartDate = DateUtils.getStartOfWeek() // Use DateUtils
-                val todayEndDate = DateUtils.getEndOfDay()     // Use DateUtils
+                val weekStartDate = getStartOfWeek()
+                val todayEndDate = getEndOfDay()
                 val dailyExpensesFlow = expenseRepository.getExpensesBetween(userId, weekStartDate, todayEndDate)
                 val relevantCategoriesFlow = budgetRepository.getRelevantCategoryNamesForPeriod(userId, startOfMonthDate, endOfMonthDate)
                 val leaderboardFlow = rewardsRepository.getFullLeaderboard()
 
                 // --- Combine Flows --- 
-                // Combine the latest values from all flows. This runs whenever any of the flows emit a new value.
                 combine(
                     userFlow, budgetFlow, spentFlow, categorySpendingFlow,
                     dailyExpensesFlow, leaderboardFlow, relevantCategoriesFlow
@@ -233,12 +232,14 @@ class HomeViewModel @Inject constructor(
             val expenseYear = cal.get(Calendar.YEAR)
 
             // Figure out how many days ago this expense occurred.
-            val daysDiff = DateUtils.calculateDaysDifference(expenseYear, expenseDayOfYear, todayYear, todayDayOfYear)
+            // Use local calculateDaysDifference function
+            val daysDiff = calculateDaysDifference(expenseYear, expenseDayOfYear, todayYear, todayDayOfYear)
 
             // If the expense was within the last 7 days...
             if (daysDiff in 0 until daysToShow) {
                 // Calculate the map index (0 for 6 days ago, up to 6 for today).
-                val index = daysToShow - 1 - daysDiff
+                // Add parentheses for clarity
+                val index = (daysToShow - 1) - daysDiff
                 // Add the expense amount to that day's total.
                 dailyTotals[index] = (dailyTotals[index] ?: BigDecimal.ZERO) + expense.amount
             }
@@ -247,7 +248,8 @@ class HomeViewModel @Inject constructor(
         // Create the BarEntry objects and corresponding labels for the chart.
         cal.timeInMillis = System.currentTimeMillis() // Use current time
         for (i in (daysToShow - 1) downTo 0) {
-            val dayIndex = daysToShow - 1 - i // Index for the dailyTotals map (0 to 6)
+            // Add parentheses for clarity
+            val dayIndex = (daysToShow - 1) - i // Index for the dailyTotals map (0 to 6)
             // Get the calendar day (Sun, Mon, etc.) for the label.
             val dayOfWeek = cal.get(Calendar.DAY_OF_WEEK)
             // Add the bar height (total spending) and label.
@@ -271,8 +273,65 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    // NOTE: Date helper functions were removed as they are now expected
-    // to be in a separate DateUtils object.
+    // --- Date Helper Functions (Restored) --- 
+    private fun getStartOfMonth(): Date {
+        return Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.time
+    }
+
+    private fun getEndOfMonth(): Date {
+        return Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_MONTH, getActualMaximum(Calendar.DAY_OF_MONTH))
+            set(Calendar.HOUR_OF_DAY, 23)
+            set(Calendar.MINUTE, 59)
+            set(Calendar.SECOND, 59)
+            set(Calendar.MILLISECOND, 999)
+        }.time
+    }
+
+    private fun getStartOfWeek(): Date {
+         return Calendar.getInstance().apply {
+            firstDayOfWeek = Calendar.SUNDAY // Or Monday, depending on preference
+            set(Calendar.DAY_OF_WEEK, firstDayOfWeek)
+            // Go back 6 days to include today as the 7th day in the window
+            // Example: If today is Wed, Sunday is 4 days ago. We want Sun-Sat or Mon-Sun.
+            // This might need adjustment based on exact chart requirement (last 7 days vs current week)
+            // Let's assume last 7 days including today:
+            add(Calendar.DAY_OF_YEAR, -6)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.time
+    }
+
+    private fun getEndOfDay(): Date {
+        return Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 23)
+            set(Calendar.MINUTE, 59)
+            set(Calendar.SECOND, 59)
+            set(Calendar.MILLISECOND, 999)
+        }.time
+    }
+
+    // Helper to calculate difference in days (Restored)
+    private fun calculateDaysDifference(year1: Int, dayOfYear1: Int, year2: Int, dayOfYear2: Int): Int {
+        if (year1 == year2) {
+            return dayOfYear2 - dayOfYear1
+        } else if (year2 > year1) {
+            // Approximate for simplicity, assumes non-leap year if crossing boundary
+             val daysInYear1 = if (Calendar.getInstance().apply { set(Calendar.YEAR, year1) }.getActualMaximum(Calendar.DAY_OF_YEAR) > 365) 366 else 365
+            return (daysInYear1 - dayOfYear1) + dayOfYear2 + (year2 - year1 - 1) * 365 // Simplified calculation
+        } else {
+            return -1 // Date 1 is after Date 2, shouldn't happen for past expenses
+        }
+    }
+    // --- End Date Helpers ---
 
     // Add functions for actions like refresh if needed
 } 
