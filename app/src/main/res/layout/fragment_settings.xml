@@ -46,50 +46,37 @@
                 android:textColor="?android:attr/textColorPrimary" />
         </LinearLayout>
 
-        <!-- Profile Header -->
+        <!-- Add User Info Section Here -->
         <LinearLayout
-            android:id="@+id/profileHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingTop="16dp"
+            android:orientation="vertical"
+            android:paddingTop="8dp"
             android:paddingBottom="16dp">
 
-            <ImageView
-                android:id="@+id/profileImageView"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:src="@drawable/ic_profile_placeholder"
-                android:contentDescription="@string/profile_picture"
-                android:layout_marginEnd="16dp"
-                android:scaleType="centerCrop"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:padding="4dp" />
-
-            <LinearLayout
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/userNameTextView"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:textAppearance="?attr/textAppearanceHeadline6"
+                android:gravity="center_horizontal"
+                tools:text="User Full Name" />
 
-                <TextView
-                    android:id="@+id/profileNameTextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/alex_johnson"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
-                    android:textStyle="bold" />
+            <TextView
+                android:id="@+id/userEmailTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBody1"
+                android:textColor="?android:attr/textColorSecondary"
+                android:gravity="center_horizontal"
+                android:layout_marginTop="4dp"
+                tools:text="user.email@example.com" />
 
-                <TextView
-                    android:id="@+id/profileEmailTextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/alex_johnson_example_com"
-                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
-                    android:textColor="?android:attr/textColorSecondary" />
-            </LinearLayout>
         </LinearLayout>
+
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
         <!-- Personal Information Section -->
         <TextView

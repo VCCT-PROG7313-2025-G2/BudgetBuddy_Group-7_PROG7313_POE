@@ -38,7 +38,6 @@ import java.util.*
 import android.graphics.Color
 import android.content.ContentResolver
 import androidx.annotation.RequiresApi
-import android.annotation.SuppressLint
 
 @AndroidEntryPoint
 class ReportsFragment : Fragment() {
@@ -270,8 +269,6 @@ class ReportsFragment : Fragment() {
             put(MediaStore.MediaColumns.RELATIVE_PATH, "Download/BudgetBuddy")
         }
 
-        // Suppress the NewApi lint check for this specific line
-        @SuppressLint("NewApi")
         val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
 
         if (uri == null) {

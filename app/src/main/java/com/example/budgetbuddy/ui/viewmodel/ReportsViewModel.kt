@@ -49,7 +49,6 @@ data class ChartData(
 // Define ReportsUiState matching the data needed by the Fragment
 data class ReportsUiState(
     val isLoading: Boolean = true,
-    val selectedPeriod: Period = Period.MONTHLY,
     val categoryDisplayMode: CategoryDisplayMode = CategoryDisplayMode.PERCENTAGE, // Add display mode state
     val totalSpending: BigDecimal = BigDecimal.ZERO,
     val averageBudget: BigDecimal = BigDecimal.ZERO, // Example field
@@ -74,27 +73,17 @@ class ReportsViewModel @Inject constructor(
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
-    private val _selectedPeriod = MutableStateFlow(Period.MONTHLY)
-    val selectedPeriod: StateFlow<Period> = _selectedPeriod.asStateFlow()
-
     private val _uiState = MutableStateFlow(ReportsUiState())
     val uiState: StateFlow<ReportsUiState> = _uiState.asStateFlow()
 
     private fun getCurrentUserId(): Long = sessionManager.getUserId()
 
     init {
-        viewModelScope.launch {
-            selectedPeriod.collect { period ->
-                loadReportData(period)
-            }
-        }
+        // Load data with hardcoded WEEKLY period
+        loadReportData(Period.WEEKLY)
     }
 
-    fun setPeriod(period: Period) {
-        _selectedPeriod.value = period
-    }
-
-    private fun loadReportData(period: Period) {
+    private fun loadReportData(period: Period = Period.WEEKLY) { // Default and enforce WEEKLY
         val userId = getCurrentUserId()
         if (userId == SessionManager.NO_USER_LOGGED_IN) {
             Log.e("ReportsViewModel", "Cannot load data, no user logged in")
@@ -102,10 +91,12 @@ class ReportsViewModel @Inject constructor(
             return
         }
 
-        _uiState.update { it.copy(isLoading = true, selectedPeriod = period) }
+        // Use Period.WEEKLY explicitly
+        _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             try {
-                val (startDate, endDate) = getDatesForPeriod(period)
+                // Always get dates for WEEKLY
+                val (startDate, endDate) = getDatesForPeriod(Period.WEEKLY)
 
                 // Use correct repository methods
                 // Note: BudgetRepository doesn't have an average budget flow, we fetch the specific month's budget
@@ -121,12 +112,12 @@ class ReportsViewModel @Inject constructor(
                     val totalSpending = expenses.sumOf { it.amount }
                     val avgBudget = budgetForMonth?.totalAmount ?: BigDecimal.ZERO // Use the fetched budget
                     val (pieEntries, rawCategoryData) = processCategoryData(categorySpendingList, totalSpending)
-                    val barData = processBarChartData(expenses, startDate, endDate, period) // Pass dates/period for bar chart processing
+                    // Always process bar chart data for WEEKLY
+                    val barData = processBarChartData(expenses, startDate, endDate, Period.WEEKLY)
 
                     // Populate the state object correctly
                     ReportsUiState(
                         isLoading = false,
-                        selectedPeriod = period,
                         categoryDisplayMode = _uiState.value.categoryDisplayMode, // Keep current mode
                         totalSpending = totalSpending,
                         averageBudget = avgBudget, // Populate with actual monthly budget
@@ -155,8 +146,8 @@ class ReportsViewModel @Inject constructor(
         }
     }
 
-    private fun getDatesForPeriod(period: Period): Pair<Date, Date> {
-        val calendar = Calendar.getInstance()
+    private fun getDatesForPeriod(period: Period, baseCalendar: Calendar? = null): Pair<Date, Date> {
+        val calendar = baseCalendar?.clone() as Calendar? ?: Calendar.getInstance()
         val endDate: Date
         val startDate: Date
 
@@ -285,50 +276,60 @@ class ReportsViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = false, error = "Please log in.") }
             return
         }
+        // Note: This function inherently deals with monthly navigation.
+        // We will still fetch weekly data *for the week containing the start of the navigated-to month*.
+        // If the user expects the *week* to change when navigating months, this needs more complex logic.
         _uiState.update { it.copy(isLoading = true, selectedDate = calendar, error = null) }
         viewModelScope.launch {
             try {
-                // Calculate dates based on the passed calendar
+                // Calculate dates based on the passed calendar (for month text)
                 val dateFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
                 val selectedMonthYearText = dateFormat.format(calendar.time)
-                val startOfMonth = getStartOfMonth(calendar)
-                val endOfMonth = getEndOfMonth(calendar)
+
+                // Get dates for the *week* starting at the beginning of the selected month
+                // This might be slightly counter-intuitive if navigating months but keeping weekly view
+                val weekCalendar = calendar.clone() as Calendar
+                weekCalendar.set(Calendar.DAY_OF_MONTH, 1) // Go to start of month
+                val (startOfWeek, endOfWeek) = getDatesForPeriod(Period.WEEKLY, weekCalendar) // Get week for start of month
+
+                // Fetch previous month's spending for comparison (still based on month)
                 val previousMonthCalendar = calendar.clone() as Calendar
                 previousMonthCalendar.add(Calendar.MONTH, -1)
                 val startOfPreviousMonth = getStartOfMonth(previousMonthCalendar)
                 val endOfPreviousMonth = getEndOfMonth(previousMonthCalendar)
 
-                // Fetch data concurrently (as before)
-                val spendingSelectedMonthDeferred = async { expenseRepository.getTotalSpendingBetween(userId, startOfMonth, endOfMonth).first() }
+                // Fetch data using the calculated WEEKLY range for expenses/categories/bar chart
+                val spendingSelectedWeekDeferred = async { expenseRepository.getTotalSpendingBetween(userId, startOfWeek, endOfWeek).first() }
                 val spendingPreviousMonthDeferred = async { expenseRepository.getTotalSpendingBetween(userId, startOfPreviousMonth, endOfPreviousMonth).first() }
-                val categorySpendingDeferred = async { expenseRepository.getSpendingByCategoryBetween(userId, startOfMonth, endOfMonth).first() }
-                val dailyExpensesDeferred = async { expenseRepository.getExpensesBetween(userId, startOfMonth, endOfMonth).first() }
+                val categorySpendingDeferred = async { expenseRepository.getSpendingByCategoryBetween(userId, startOfWeek, endOfWeek).first() }
+                val weeklyExpensesDeferred = async { expenseRepository.getExpensesBetween(userId, startOfWeek, endOfWeek).first() }
 
                 // Await results
-                val totalSpendingSelected = spendingSelectedMonthDeferred.await() ?: BigDecimal.ZERO
+                val totalSpendingSelected = spendingSelectedWeekDeferred.await() ?: BigDecimal.ZERO
                 val totalSpendingPrevious = spendingPreviousMonthDeferred.await() ?: BigDecimal.ZERO
                 val categorySpendingList = categorySpendingDeferred.await()
-                val dailyExpensesList = dailyExpensesDeferred.await()
+                val weeklyExpensesList = weeklyExpensesDeferred.await()
 
                 // Process data
-                val spendingChangeText = calculateSpendingChange(totalSpendingSelected, totalSpendingPrevious)
+                val spendingChangeText = calculateSpendingChange(totalSpendingSelected, totalSpendingPrevious) // Still compares selected week to previous month
                 val (pieChartData, rawCategoryData) = processCategoryData(categorySpendingList, totalSpendingSelected)
                 val pieChartLegend = formatLegendData(rawCategoryData, _uiState.value.categoryDisplayMode, totalSpendingSelected)
-                val barChartData = processBarChartData(dailyExpensesList, startOfMonth, endOfMonth, Period.MONTHLY)
+                // Always process bar chart for WEEKLY
+                val barChartData = processBarChartData(weeklyExpensesList, startOfWeek, endOfWeek, Period.WEEKLY)
                 val pieChartColors = generateGreyShades(pieChartData.size)
 
                 // Update state with all necessary fields
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        selectedDate = calendar,
+                        selectedDate = calendar, // Keep the calendar representing the month for display
                         selectedMonthYearText = selectedMonthYearText,
-                        totalSpending = totalSpendingSelected,
-                        spendingChangeText = spendingChangeText,
+                        totalSpending = totalSpendingSelected, // Reflects weekly total
+                        spendingChangeText = spendingChangeText, // Reflects week vs previous month
                         pieChartData = pieChartData,
                         pieChartColors = pieChartColors,
-                        categorySpendingData = rawCategoryData, // Store raw data
-                        pieChartLegend = pieChartLegend,       // Store formatted legend
+                        categorySpendingData = rawCategoryData,
+                        pieChartLegend = pieChartLegend,
                         barChartData = barChartData,
                         error = null
                     )
@@ -375,7 +376,7 @@ class ReportsViewModel @Inject constructor(
     }
 
     fun refreshData() {
-        loadReportData(selectedPeriod.value)
+        loadReportData(Period.WEEKLY)
     }
 
     private fun generateGreyShades(count: Int): List<Int> {

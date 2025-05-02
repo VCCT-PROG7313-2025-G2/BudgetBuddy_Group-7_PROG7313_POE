@@ -19,6 +19,7 @@ import com.example.budgetbuddy.ui.viewmodel.SettingsViewModel // Import ViewMode
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch // Import launch
+import androidx.core.view.isVisible
 
 @AndroidEntryPoint
 class SettingsFragment : Fragment() {
@@ -51,6 +52,7 @@ class SettingsFragment : Fragment() {
         loadSettings()
         setupListeners()
         observeViewModelEvents() // Observe navigation/other events
+        observeUiState() // Add call to observe UI state
     }
 
     private fun loadSettings() {
@@ -138,6 +140,29 @@ class SettingsFragment : Fragment() {
                             )
                         }
                         // Handle other events like errors if added later
+                    }
+                }
+            }
+        }
+    }
+
+    // Observe UI state changes from the ViewModel
+    private fun observeUiState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    // Update UI elements based on the state
+                    binding.userNameTextView.text = state.userName
+                    binding.userEmailTextView.text = state.userEmail
+
+                    // Optionally handle loading state (e.g., show/hide a spinner)
+                    // binding.loadingIndicator.isVisible = state.isLoading
+
+                    // Optionally handle error state
+                    state.error?.let {
+                        // Show a Toast or Snackbar for errors
+                        Toast.makeText(context, "Error: $it", Toast.LENGTH_LONG).show()
+                        // Consider resetting the error in the ViewModel after showing it
                     }
                 }
             }

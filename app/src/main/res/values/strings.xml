@@ -89,6 +89,7 @@
     <string name="edit_category_budgets_button_desc">Edit category-specific budgets</string>
     <string name="reports_and_insights_title">Reports &amp; Insights</string>
     <string name="more_options">More Options</string>
+    <string name="period_weekly">Weekly</string>
     <string name="previous_month">Previous Month</string>
     <string name="next_month">Next Month</string>
     <string name="total_spending">Total Spending</string>
