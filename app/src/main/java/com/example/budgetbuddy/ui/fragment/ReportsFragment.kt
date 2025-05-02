@@ -63,13 +63,13 @@ class ReportsFragment : Fragment() {
     }
 
     private fun setupCharts() {
-        // Basic Pie Chart Setup
+        // Pie Chart for Category Spending
         binding.categoryPieChart.apply {
             setUsePercentValues(true)
             description.isEnabled = false
-            legend.isEnabled = false // Using custom legend
+            legend.isEnabled = false
             isDrawHoleEnabled = true
-            setHoleColor(Color.TRANSPARENT) // Use method setHoleColor
+            setHoleColor(Color.TRANSPARENT)
             setHoleRadius(58f)
             setTransparentCircleRadius(61f)
             setDrawCenterText(true)
@@ -81,10 +81,10 @@ class ReportsFragment : Fragment() {
             animateY(1400, Easing.EaseInOutQuad)
             setEntryLabelColor(Color.BLACK)
             setEntryLabelTextSize(12f)
-            setDrawEntryLabels(false) // Disable drawing category labels on slices
+            setDrawEntryLabels(false)
         }
 
-        // Basic Bar Chart Setup
+        // Bar Chart for Daily/Weekly Spending Trend
          binding.dailySpendingBarChart.apply {
             description.isEnabled = false
             legend.isEnabled = false
@@ -93,19 +93,19 @@ class ReportsFragment : Fragment() {
             setDrawGridBackground(false)
             setDrawBarShadow(false)
             setDrawValueAboveBar(true)
-            axisRight.isEnabled = false // Disable right Y axis
+            axisRight.isEnabled = false
 
             val xAxis = xAxis
             xAxis.position = com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM
             xAxis.setDrawGridLines(false)
-            xAxis.granularity = 1f // only intervals of 1 day
+            xAxis.granularity = 1f
             xAxis.textColor = Color.BLACK
 
             val leftAxis = axisLeft
             leftAxis.setDrawGridLines(false)
             leftAxis.setDrawAxisLine(false)
-            leftAxis.setDrawLabels(true) // Show Y-axis labels (spending amount)
-            leftAxis.axisMinimum = 0f // start at zero
+            leftAxis.setDrawLabels(true)
+            leftAxis.axisMinimum = 0f
             leftAxis.textColor = Color.BLACK
          }
     }
@@ -121,7 +121,6 @@ class ReportsFragment : Fragment() {
             downloadReport()
         }
          binding.moreOptionsButton.setOnClickListener {
-              // Toggle category display mode
               viewModel.toggleCategoryDisplayMode()
          }
     }
@@ -136,7 +135,7 @@ class ReportsFragment : Fragment() {
                     // TODO: Update spending change icon based on text/value
 
                     updatePieChart(state.pieChartData, state.pieChartColors, state.totalSpending)
-                    updatePieLegend(state.pieChartLegend, state.pieChartColors) // Pass colors for legend dots
+                    updatePieLegend(state.pieChartLegend, state.pieChartColors)
                      state.barChartData?.let { (entries, labels) ->
                         updateBarChart(entries, labels)
                     } ?: binding.dailySpendingBarChart.clear()
@@ -165,17 +164,17 @@ class ReportsFragment : Fragment() {
         val dataSet = PieDataSet(entries, "Spending Categories")
         dataSet.sliceSpace = 3f
         dataSet.selectionShift = 5f
-        dataSet.colors = colors // Use colors from state
+        dataSet.colors = colors
 
         val data = PieData(dataSet)
-        data.setValueFormatter(PercentFormatter(binding.categoryPieChart)) // Use PieChart context here
+        data.setValueFormatter(PercentFormatter(binding.categoryPieChart))
         data.setValueTextSize(11f)
         data.setValueTextColor(Color.BLACK)
-        data.setDrawValues(false) // Disable drawing values on slices
+        data.setDrawValues(false)
 
         binding.categoryPieChart.data = data
-        binding.categoryPieChart.highlightValues(null) // Unhighlight everything
-        binding.categoryPieChart.invalidate() // Refresh chart
+        binding.categoryPieChart.highlightValues(null)
+        binding.categoryPieChart.invalidate()
     }
 
      private fun updateBarChart(entries: List<BarEntry>, labels: List<String>) {
@@ -186,30 +185,28 @@ class ReportsFragment : Fragment() {
         }
 
         val dataSet = BarDataSet(entries, "Daily Spending")
-        // Use a single color or a color template
-        dataSet.color = Color.BLACK // Use standard black for now
-        dataSet.setDrawValues(false) // Don't draw values on top of bars
+        dataSet.color = Color.BLACK
+        dataSet.setDrawValues(false)
 
         val barData = BarData(dataSet)
-        barData.barWidth = 0.5f // Adjust bar width
+        barData.barWidth = 0.5f
 
         binding.dailySpendingBarChart.xAxis.valueFormatter = IndexAxisValueFormatter(labels)
-        binding.dailySpendingBarChart.xAxis.labelCount = labels.size // Ensure all labels are considered
+        binding.dailySpendingBarChart.xAxis.labelCount = labels.size
         binding.dailySpendingBarChart.data = barData
-        binding.dailySpendingBarChart.invalidate() // Refresh chart
+        binding.dailySpendingBarChart.invalidate()
     }
 
 
     private fun updatePieLegend(legendItems: List<Pair<String, String>>, colors: List<Int>) {
-        binding.categoryLegendLayout.removeAllViews() // Clear previous legend items
+        binding.categoryLegendLayout.removeAllViews()
         val inflater = LayoutInflater.from(context)
 
         legendItems.forEachIndexed { index, item ->
-            // Inflate the legend item layout (NEED TO CREATE item_report_legend.xml)
             val legendBinding = ItemReportLegendBinding.inflate(inflater, binding.categoryLegendLayout, false)
 
             val (categoryName, percentage) = item
-            legendBinding.legendColorDot.background.setTint(colors.getOrElse(index) { Color.GRAY }) // Set dot color
+            legendBinding.legendColorDot.background.setTint(colors.getOrElse(index) { Color.GRAY })
             legendBinding.legendCategoryName.text = categoryName
             legendBinding.legendPercentage.text = percentage
 
@@ -224,43 +221,18 @@ class ReportsFragment : Fragment() {
             return
         }
 
-        val state = viewModel.uiState.value // Get current state for filename
+        val state = viewModel.uiState.value
         val filename = "BudgetReport_${state.selectedMonthYearText.replace(" ", "_")}.txt"
         val resolver = requireContext().contentResolver
 
-        // Saving to MediaStore Downloads collection is only reliably supported on API 29+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             saveReportApi29(resolver, filename, reportContent)
         } else {
-            // Fallback for API < 29
             Log.w("ReportsFragment", "Download report feature requires Android 10 (API 29) or higher.")
             Toast.makeText(context, "Download report requires Android 10+", Toast.LENGTH_LONG).show()
-
-            // Option 2: Implement legacy storage approach (More complex, requires permissions
-            // and potentially requestLegacyExternalStorage=true in Manifest for easier implementation,
-            // or using Storage Access Framework for best practice)
-            /*
-            // Example using legacy Downloads directory (Requires WRITE_EXTERNAL_STORAGE and maybe legacy flag)
-            try {
-                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                val budgetBuddyDir = File(downloadsDir, "BudgetBuddy")
-                if (!budgetBuddyDir.exists()) {
-                    budgetBuddyDir.mkdirs()
-                }
-                val file = File(budgetBuddyDir, filename)
-                FileOutputStream(file).use {
-                    it.write(reportContent.toByteArray())
-                }
-                 Toast.makeText(context, "Report saved to Downloads/BudgetBuddy (Legacy)", Toast.LENGTH_LONG).show()
-            } catch (e: Exception) {
-                Log.e("ReportsFragment", "Failed to save report using legacy method", e)
-                Toast.makeText(context, "Failed to save report.", Toast.LENGTH_SHORT).show()
-            }
-            */
         }
     }
 
-    // Separate function annotated for clarity and Lint
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun saveReportApi29(resolver: ContentResolver, filename: String, reportContent: String) {
         val contentValues = ContentValues().apply {
