@@ -27,4 +27,5 @@ Version Control
 
 General
 
-- W3Schools: <https://www.w3schools.com/> 
+- W3Schools: <https://www.w3schools.com/>
+- Google Codelabs: <https://codelabs.developers.google.com/>
