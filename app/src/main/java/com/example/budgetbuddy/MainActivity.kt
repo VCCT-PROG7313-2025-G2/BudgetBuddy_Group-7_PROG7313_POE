@@ -1,3 +1,4 @@
+// Minor change to trigger Actions
 package com.example.budgetbuddy
 
 import android.os.Bundle
