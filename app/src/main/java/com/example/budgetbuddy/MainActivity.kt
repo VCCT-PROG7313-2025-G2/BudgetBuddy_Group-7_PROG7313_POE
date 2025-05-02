@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity() {
             setOf(
                 R.id.homeFragment,
                 R.id.reportsFragment,
-                // R.id.rewardsFragment, // Add other top-level destinations here if needed
+                R.id.rewardsFragment,
                 R.id.profileFragment
             )
         )
