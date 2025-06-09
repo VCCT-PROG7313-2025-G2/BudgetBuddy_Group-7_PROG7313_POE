@@ -8,6 +8,7 @@ import com.example.budgetbuddy.data.firebase.model.FirebaseBudget
 import com.example.budgetbuddy.data.firebase.model.FirebaseCategoryBudget
 import com.example.budgetbuddy.util.Constants
 import com.example.budgetbuddy.util.FirebaseSessionManager
+import com.example.budgetbuddy.util.UserPreferencesManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -44,7 +45,8 @@ data class CategoryBudgetInputUiState(
 class FirebaseBudgetSetupViewModel @Inject constructor(
     private val budgetRepository: FirebaseBudgetRepository,
     private val rewardsRepository: FirebaseRewardsRepository,
-    private val sessionManager: FirebaseSessionManager
+    private val sessionManager: FirebaseSessionManager,
+    private val userPreferencesManager: UserPreferencesManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<FirebaseBudgetSetupUiState>(FirebaseBudgetSetupUiState.Idle)
@@ -63,6 +65,10 @@ class FirebaseBudgetSetupViewModel @Inject constructor(
     // Validation state
     private val _validationErrors = MutableStateFlow<List<String>>(emptyList())
     val validationErrors: StateFlow<List<String>> = _validationErrors.asStateFlow()
+
+    // User's custom minimum budget
+    private val _userMinimumBudget = MutableStateFlow(userPreferencesManager.getUserMinimumBudget())
+    val userMinimumBudget: StateFlow<BigDecimal> = _userMinimumBudget.asStateFlow()
 
     /**
      * Public method to get current user ID for fragment access.
@@ -210,6 +216,22 @@ class FirebaseBudgetSetupViewModel @Inject constructor(
     }
 
     /**
+     * Sets the user's custom minimum budget amount.
+     */
+    fun setUserMinimumBudget(amount: BigDecimal) {
+        userPreferencesManager.setUserMinimumBudget(amount)
+        _userMinimumBudget.value = amount
+        validateBudgetSetup()
+    }
+
+    /**
+     * Gets the current user minimum budget amount.
+     */
+    fun getUserMinimumBudget(): BigDecimal {
+        return _userMinimumBudget.value
+    }
+
+    /**
      * Saves the budget setup to Firebase.
      */
     fun saveBudget() {
@@ -242,7 +264,9 @@ class FirebaseBudgetSetupViewModel @Inject constructor(
             
             try {
                 // Prepare category budgets data - include ALL categories with their amounts (even if zero)
-                val categoryBudgets = _categories.value.map { it.categoryName to it.allocatedAmount }
+                // Create a safe copy to avoid concurrent modification
+                val currentCategories = _categories.value.toList()
+                val categoryBudgets = currentCategories.map { it.categoryName to it.allocatedAmount }
                 
                 android.util.Log.d("BudgetSetupViewModel", "ALL category budgets (including zeros): ${categoryBudgets.size}")
                 categoryBudgets.forEachIndexed { index, (name, amount) ->
@@ -404,24 +428,25 @@ class FirebaseBudgetSetupViewModel @Inject constructor(
         // Validate total budget
         if (_totalBudget.value <= BigDecimal.ZERO) {
             errors.add("Total budget must be greater than zero")
-        } else if (_totalBudget.value < Constants.Budget.MINIMUM_BUDGET_AMOUNT) {
-            errors.add("Budget must be at least $${Constants.Budget.MINIMUM_BUDGET_AMOUNT}")
+        } else if (_totalBudget.value < _userMinimumBudget.value) {
+            errors.add("Budget must be at least $${_userMinimumBudget.value}")
         }
 
-        // Validate categories
-        if (_categories.value.isEmpty()) {
+        // Validate categories - use safe copy
+        val currentCategories = _categories.value.toList()
+        if (currentCategories.isEmpty()) {
             errors.add("At least one category is required")
         }
 
         // Validate category amounts
-        _categories.value.forEach { category ->
+        currentCategories.forEach { category ->
             if (category.allocatedAmount < BigDecimal.ZERO) {
                 errors.add("${category.categoryName}: Amount cannot be negative")
             }
         }
 
         // Check if total allocations exceed budget
-        val totalAllocated = _categories.value.sumOf { it.allocatedAmount }
+        val totalAllocated = currentCategories.sumOf { it.allocatedAmount }
         if (totalAllocated > _totalBudget.value) {
             errors.add("Total allocated (${totalAllocated}) exceeds budget (${_totalBudget.value})")
         }
@@ -453,13 +478,14 @@ class FirebaseBudgetSetupViewModel @Inject constructor(
      * Distributes remaining budget equally among categories.
      */
     fun distributeRemainingBudget() {
-        val totalAllocated = _categories.value.sumOf { it.allocatedAmount }
+        val currentCategories = _categories.value.toList()
+        val totalAllocated = currentCategories.sumOf { it.allocatedAmount }
         val remaining = _totalBudget.value - totalAllocated
         
-        if (remaining > BigDecimal.ZERO && _categories.value.isNotEmpty()) {
-            val perCategory = remaining.divide(BigDecimal(_categories.value.size), 2, RoundingMode.DOWN)
+        if (remaining > BigDecimal.ZERO && currentCategories.isNotEmpty()) {
+            val perCategory = remaining.divide(BigDecimal(currentCategories.size), 2, RoundingMode.DOWN)
             
-            val updatedCategories = _categories.value.map { category ->
+            val updatedCategories = currentCategories.map { category ->
                 category.copy(allocatedAmount = category.allocatedAmount + perCategory)
             }
             _categories.value = updatedCategories
@@ -471,7 +497,8 @@ class FirebaseBudgetSetupViewModel @Inject constructor(
      * Resets all category allocations to zero.
      */
     fun resetCategoryAllocations() {
-        val updatedCategories = _categories.value.map { category ->
+        val currentCategories = _categories.value.toList()
+        val updatedCategories = currentCategories.map { category ->
             category.copy(allocatedAmount = BigDecimal.ZERO)
         }
         _categories.value = updatedCategories
@@ -502,7 +529,8 @@ class FirebaseBudgetSetupViewModel @Inject constructor(
      * Gets the remaining budget amount.
      */
     fun getRemainingBudget(): BigDecimal {
-        val totalAllocated = _categories.value.sumOf { it.allocatedAmount }
+        val currentCategories = _categories.value.toList()
+        val totalAllocated = currentCategories.sumOf { it.allocatedAmount }
         return _totalBudget.value - totalAllocated
     }
 

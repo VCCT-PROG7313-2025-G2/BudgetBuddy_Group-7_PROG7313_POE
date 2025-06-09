@@ -14,10 +14,13 @@ data class AchievementSeedData(
 // Add Constants object if it doesn't exist
 object Constants {
     object Budget {
-        // Minimum budget amount required for budget setup
-        val MINIMUM_BUDGET_AMOUNT: BigDecimal = BigDecimal("50.00")
+        // Default minimum budget amount (system fallback)
+        val DEFAULT_MINIMUM_BUDGET_AMOUNT: BigDecimal = BigDecimal("50.00")
         // Minimum amount for individual category budgets
         val MINIMUM_CATEGORY_AMOUNT: BigDecimal = BigDecimal("5.00")
+        
+        // SharedPreferences key for user's custom minimum budget
+        const val USER_MINIMUM_BUDGET_KEY = "user_minimum_budget"
     }
     
     object Achievements {

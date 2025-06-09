@@ -64,7 +64,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 app:prefixText="$"
-                app:helperText="Minimum budget: $50.00"
+                app:helperText="Your minimum budget will appear here"
                 app:helperTextEnabled="true"
                 app:layout_constraintTop_toBottomOf="@id/monthlyBudgetLabel"
                 app:layout_constraintStart_toStartOf="parent"

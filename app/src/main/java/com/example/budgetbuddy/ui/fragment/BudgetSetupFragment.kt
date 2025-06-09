@@ -59,6 +59,7 @@ class BudgetSetupFragment : Fragment() {
         observeViewModel()
         setupRecyclerView()
         setupBudgetValidation()
+        setupMinimumBudgetValidation()
         loadBudgetData() // Load existing or default budgets
         
         // Try to load existing budget for current month
@@ -87,20 +88,20 @@ class BudgetSetupFragment : Fragment() {
                 if (budgetText.isNotBlank()) {
                     try {
                         val budgetAmount = BigDecimal(budgetText)
-                        val minimumBudget = com.example.budgetbuddy.util.Constants.Budget.MINIMUM_BUDGET_AMOUNT
+                        val userMinimumBudget = viewModel.getUserMinimumBudget()
                         
                         when {
                             budgetAmount <= BigDecimal.ZERO -> {
                                 binding.monthlyBudgetInputLayout.error = "Budget must be greater than zero"
                                 binding.monthlyBudgetInputLayout.helperText = null
                             }
-                            budgetAmount < minimumBudget -> {
-                                binding.monthlyBudgetInputLayout.error = "Budget must be at least $$minimumBudget"
+                            budgetAmount < userMinimumBudget -> {
+                                binding.monthlyBudgetInputLayout.error = "Budget must be at least $$userMinimumBudget"
                                 binding.monthlyBudgetInputLayout.helperText = null
                             }
                             else -> {
                                 binding.monthlyBudgetInputLayout.error = null
-                                binding.monthlyBudgetInputLayout.helperText = "Minimum budget: $$minimumBudget"
+                                binding.monthlyBudgetInputLayout.helperText = "Your minimum budget: $$userMinimumBudget"
                             }
                         }
                     } catch (e: NumberFormatException) {
@@ -109,8 +110,47 @@ class BudgetSetupFragment : Fragment() {
                     }
                 } else {
                     binding.monthlyBudgetInputLayout.error = null
-                    val minimumBudget = com.example.budgetbuddy.util.Constants.Budget.MINIMUM_BUDGET_AMOUNT
-                    binding.monthlyBudgetInputLayout.helperText = "Minimum budget: $$minimumBudget"
+                    val userMinimumBudget = viewModel.getUserMinimumBudget()
+                    binding.monthlyBudgetInputLayout.helperText = "Your minimum budget: $$userMinimumBudget"
+                }
+            }
+        })
+    }
+
+    private fun setupMinimumBudgetValidation() {
+        // Load current user minimum budget
+        binding.minimumBudgetEditText.setText(viewModel.getUserMinimumBudget().toString())
+        
+        binding.minimumBudgetEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            
+            override fun afterTextChanged(s: Editable?) {
+                val minimumBudgetText = s?.toString() ?: ""
+                
+                if (minimumBudgetText.isNotBlank()) {
+                    try {
+                        val minimumBudgetAmount = BigDecimal(minimumBudgetText)
+                        
+                        when {
+                            minimumBudgetAmount <= BigDecimal.ZERO -> {
+                                binding.minimumBudgetInputLayout.error = "Minimum budget must be greater than zero"
+                            }
+                            minimumBudgetAmount > BigDecimal("10000") -> {
+                                binding.minimumBudgetInputLayout.error = "Minimum budget seems too high"
+                            }
+                            else -> {
+                                binding.minimumBudgetInputLayout.error = null
+                                // Save the user's minimum budget setting
+                                viewModel.setUserMinimumBudget(minimumBudgetAmount)
+                            }
+                        }
+                    } catch (e: NumberFormatException) {
+                        binding.minimumBudgetInputLayout.error = "Please enter a valid amount"
+                    }
+                } else {
+                    binding.minimumBudgetInputLayout.error = null
                 }
             }
         })
@@ -154,10 +194,12 @@ class BudgetSetupFragment : Fragment() {
             // Update the ViewModel - this will trigger observers to update the UI
             viewModel.updateCategoryAllocation(categoryBudget.categoryName, amount)
             
-            // Also update our local list for consistency
-            val index = categoryBudgets.indexOfFirst { it.categoryId == categoryBudget.categoryId }
-            if (index != -1) {
-                categoryBudgets[index].budgetLimit = newLimit
+            // Also update our local list for consistency - using synchronized access
+            synchronized(categoryBudgets) {
+                val index = categoryBudgets.indexOfFirst { it.categoryId == categoryBudget.categoryId }
+                if (index != -1) {
+                    categoryBudgets[index].budgetLimit = newLimit
+                }
             }
         }
         binding.categoryBudgetsRecyclerView.apply {
@@ -201,9 +243,9 @@ class BudgetSetupFragment : Fragment() {
                 Toast.makeText(context, "Please enter a valid budget amount", Toast.LENGTH_SHORT).show()
                 binding.saveBudgetButton.isEnabled = true
                 return
-            } else if (totalBudget < com.example.budgetbuddy.util.Constants.Budget.MINIMUM_BUDGET_AMOUNT) {
-                android.util.Log.w("BudgetSetupFragment", "Budget is below minimum threshold")
-                Toast.makeText(context, "Budget must be at least $${com.example.budgetbuddy.util.Constants.Budget.MINIMUM_BUDGET_AMOUNT}", Toast.LENGTH_LONG).show()
+            } else if (totalBudget < viewModel.getUserMinimumBudget()) {
+                android.util.Log.w("BudgetSetupFragment", "Budget is below user's minimum threshold")
+                Toast.makeText(context, "Budget must be at least $${viewModel.getUserMinimumBudget()}", Toast.LENGTH_LONG).show()
                 binding.saveBudgetButton.isEnabled = true
                 return
             }
@@ -212,9 +254,12 @@ class BudgetSetupFragment : Fragment() {
             // First set the total budget
             viewModel.setTotalBudget(totalBudget)
             
-            android.util.Log.d("BudgetSetupFragment", "Processing ${categoryBudgets.size} categories")
+            // Create a safe copy of the list to avoid ConcurrentModificationException
+            val categoryBudgetsCopy = categoryBudgets.toList()
+            android.util.Log.d("BudgetSetupFragment", "Processing ${categoryBudgetsCopy.size} categories")
+            
             // Add each category to the ViewModel
-            categoryBudgets.forEachIndexed { index, categoryBudget ->
+            categoryBudgetsCopy.forEachIndexed { index, categoryBudget ->
                 try {
                     android.util.Log.d("BudgetSetupFragment", "Processing category $index: '${categoryBudget.categoryName}', budgetLimit: '${categoryBudget.budgetLimit}'")
                     
@@ -239,12 +284,12 @@ class BudgetSetupFragment : Fragment() {
                         }
                     }
                     
-                                android.util.Log.d("BudgetSetupFragment", "========== SETTING CATEGORY ==========")
-            android.util.Log.d("BudgetSetupFragment", "Category: ${categoryBudget.categoryName}")
-            android.util.Log.d("BudgetSetupFragment", "Raw budgetLimit: ${categoryBudget.budgetLimit}")
-            android.util.Log.d("BudgetSetupFragment", "Converted amount: $amount")
-            android.util.Log.d("BudgetSetupFragment", "========================================")
-            viewModel.updateCategoryAllocation(categoryBudget.categoryName, amount)
+                    android.util.Log.d("BudgetSetupFragment", "========== SETTING CATEGORY ==========")
+                    android.util.Log.d("BudgetSetupFragment", "Category: ${categoryBudget.categoryName}")
+                    android.util.Log.d("BudgetSetupFragment", "Raw budgetLimit: ${categoryBudget.budgetLimit}")
+                    android.util.Log.d("BudgetSetupFragment", "Converted amount: $amount")
+                    android.util.Log.d("BudgetSetupFragment", "========================================")
+                    viewModel.updateCategoryAllocation(categoryBudget.categoryName, amount)
                 } catch (e: Exception) {
                     android.util.Log.e("BudgetSetupFragment", "Error processing category ${categoryBudget.categoryName}", e)
                     // Continue with other categories even if one fails
@@ -391,6 +436,24 @@ class BudgetSetupFragment : Fragment() {
                     }
                 } catch (e: Exception) {
                     android.util.Log.e("BudgetSetupFragment", "Error observing total budget", e)
+                }
+            }
+        }
+
+        // Observe user minimum budget changes
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                try {
+                    viewModel.userMinimumBudget.collect { userMinimumBudget ->
+                        if (!isAdded || _binding == null) {
+                            return@collect
+                        }
+                        
+                        // Update helper text to show current user minimum budget
+                        binding.monthlyBudgetInputLayout.helperText = "Your minimum budget: $$userMinimumBudget"
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("BudgetSetupFragment", "Error observing user minimum budget", e)
                 }
             }
         }
