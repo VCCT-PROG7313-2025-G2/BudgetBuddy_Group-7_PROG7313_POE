@@ -140,6 +140,12 @@ class SettingsFragment : Fragment() {
                         navigateToLogin()
                     }
 
+                    // Handle currency change success
+                    if (state.currencyChangeSuccess) {
+                        Toast.makeText(context, "Currency changed to ${state.selectedCurrency}", Toast.LENGTH_SHORT).show()
+                        viewModel.clearCurrencyChangeSuccess()
+                    }
+
                     // Handle errors
                     state.error?.let { error ->
                         Toast.makeText(context, error, Toast.LENGTH_LONG).show()
@@ -200,16 +206,19 @@ class SettingsFragment : Fragment() {
     }
 
     private fun showCurrencyDialog() {
-        val currencies = arrayOf("USD", "EUR", "GBP", "CAD", "AUD", "JPY", "CNY", "INR")
+        val availableCurrencies = viewModel.getAvailableCurrencies()
+        val currencyDisplayNames = availableCurrencies.map { currency ->
+            viewModel.getCurrencyDisplayName(currency)
+        }.toTypedArray()
+        
         val currentCurrency = viewModel.uiState.value.selectedCurrency
-        val selectedIndex = currencies.indexOf(currentCurrency)
+        val selectedIndex = availableCurrencies.indexOf(currentCurrency)
 
         AlertDialog.Builder(requireContext())
             .setTitle("Select Currency")
-            .setSingleChoiceItems(currencies, selectedIndex) { dialog, which ->
-                val selectedCurrency = currencies[which]
+            .setSingleChoiceItems(currencyDisplayNames, selectedIndex) { dialog, which ->
+                val selectedCurrency = availableCurrencies[which]
                 viewModel.setCurrency(selectedCurrency)
-                Toast.makeText(context, "Currency changed to $selectedCurrency", Toast.LENGTH_SHORT).show()
                 dialog.dismiss()
             }
             .setNegativeButton("Cancel", null)

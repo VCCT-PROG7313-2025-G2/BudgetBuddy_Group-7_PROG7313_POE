@@ -52,9 +52,25 @@ fun Date.toMonthYearString(): String {
 }
 
 /**
- * Formats BigDecimal as currency string.
+ * Formats BigDecimal as currency string using the user's selected currency.
+ * Note: This requires a CurrencyConverter instance. For contexts where 
+ * CurrencyConverter is not available, use the formatAmount method directly.
  */
-fun BigDecimal.toCurrencyString(): String {
+fun BigDecimal.toCurrencyString(currencyConverter: CurrencyConverter? = null): String {
+    return if (currencyConverter != null) {
+        currencyConverter.formatAmount(this)
+    } else {
+        // Fallback to USD formatting if converter is not available
+        "$${String.format("%.2f", this)}"
+    }
+}
+
+/**
+ * Legacy method for backward compatibility - formats with hardcoded "R" symbol.
+ * This will be deprecated once all usages are migrated to use CurrencyConverter.
+ */
+@Deprecated("Use CurrencyConverter.formatAmount() instead for proper currency support")
+fun BigDecimal.toCurrencyStringLegacy(): String {
     return "R${String.format("%.2f", this)}"
 }
 

@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.budgetbuddy.data.firebase.repository.FirebaseAuthRepository
 import com.example.budgetbuddy.data.firebase.model.FirebaseUser
 import com.example.budgetbuddy.util.FirebaseSessionManager
+import com.example.budgetbuddy.util.UserPreferencesManager
+import com.example.budgetbuddy.util.CurrencyConverter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,13 +23,16 @@ data class SettingsUiState(
     val selectedCurrency: String = "USD",
     val signOutComplete: Boolean = false,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val currencyChangeSuccess: Boolean = false
 )
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val authRepository: FirebaseAuthRepository,
-    private val sessionManager: FirebaseSessionManager
+    private val sessionManager: FirebaseSessionManager,
+    private val userPreferencesManager: UserPreferencesManager,
+    private val currencyConverter: CurrencyConverter
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -66,14 +71,13 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun loadUserPreferences() {
-        // In a real app, these would be loaded from SharedPreferences or Firestore
-        // For now, using default values
+        // Load preferences from UserPreferencesManager
         _uiState.value = _uiState.value.copy(
-            budgetAlertsEnabled = true,
-            dailyRemindersEnabled = true,
-            autoSyncEnabled = true,
-            syncFrequency = "Every 2 hours",
-            selectedCurrency = "USD"
+            budgetAlertsEnabled = true, // TODO: Load from preferences
+            dailyRemindersEnabled = true, // TODO: Load from preferences
+            autoSyncEnabled = true, // TODO: Load from preferences
+            syncFrequency = "Every 2 hours", // TODO: Load from preferences
+            selectedCurrency = userPreferencesManager.getSelectedCurrency()
         )
     }
 
@@ -98,8 +102,26 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun setCurrency(currency: String) {
-        _uiState.value = _uiState.value.copy(selectedCurrency = currency)
-        savePreference("selected_currency", currency)
+        viewModelScope.launch {
+            try {
+                // Update preferences
+                userPreferencesManager.setSelectedCurrency(currency)
+                
+                // Update UI state
+                _uiState.value = _uiState.value.copy(
+                    selectedCurrency = currency,
+                    currencyChangeSuccess = true
+                )
+                
+                android.util.Log.d("SettingsViewModel", "Currency changed to: $currency")
+                
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = "Failed to change currency: ${e.message}"
+                )
+                android.util.Log.e("SettingsViewModel", "Error changing currency", e)
+            }
+        }
     }
 
     private fun savePreference(key: String, value: Any) {
@@ -140,7 +162,25 @@ class SettingsViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(error = null)
     }
 
+    fun clearCurrencyChangeSuccess() {
+        _uiState.value = _uiState.value.copy(currencyChangeSuccess = false)
+    }
+
     fun refreshUserData() {
         loadUserData()
+    }
+
+    /**
+     * Get available currencies from the converter
+     */
+    fun getAvailableCurrencies(): List<String> {
+        return currencyConverter.getAvailableCurrencies()
+    }
+
+    /**
+     * Get display name for a currency (includes symbol)
+     */
+    fun getCurrencyDisplayName(currency: String): String {
+        return currencyConverter.getCurrencyDisplayName(currency)
     }
 } 

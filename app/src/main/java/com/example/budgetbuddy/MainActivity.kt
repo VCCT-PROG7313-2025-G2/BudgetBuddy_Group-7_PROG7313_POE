@@ -11,6 +11,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.navigation.ui.navigateUp
 import com.example.budgetbuddy.databinding.ActivityMainBinding
+import com.example.budgetbuddy.util.CurrencyConverter
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
 import com.google.firebase.auth.FirebaseAuth
@@ -27,6 +28,9 @@ class MainActivity : AppCompatActivity() {
     
     @Inject
     lateinit var firebaseAuth: FirebaseAuth
+    
+    @Inject
+    lateinit var currencyConverter: CurrencyConverter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -109,7 +109,7 @@
     <string name="budget_alerts_setting">Budget Alerts</string>
     <string name="goal_reminders_setting">Goal Reminders</string>
     <string name="general_settings_label">General</string>
-    <string name="currency_setting">Currency (USD)</string> 
+    <string name="currency_setting">Currency</string>
     <string name="data_management_label">Data Management</string>
     <string name="export_data_setting">Export Data</string>
     <string name="import_data_setting">Import Data</string>

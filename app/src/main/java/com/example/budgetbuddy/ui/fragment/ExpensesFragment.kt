@@ -11,8 +11,10 @@ import com.example.budgetbuddy.R
 import com.example.budgetbuddy.adapter.ExpenseAdapter // Import adapter (will be created)
 import com.example.budgetbuddy.databinding.FragmentExpensesBinding
 import com.example.budgetbuddy.model.ExpenseListItem // Import model (will be created)
+import com.example.budgetbuddy.util.CurrencyConverter
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Date
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class ExpensesFragment : Fragment() {
@@ -21,6 +23,10 @@ class ExpensesFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var expenseAdapter: ExpenseAdapter
+
+    // Inject CurrencyConverter for proper currency formatting
+    @Inject
+    lateinit var currencyConverter: CurrencyConverter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -42,10 +48,13 @@ class ExpensesFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        expenseAdapter = ExpenseAdapter { expense ->
-            // TODO: Handle expense item click (e.g., navigate to details)
-            Toast.makeText(context, "Clicked on: ${expense.categoryName}", Toast.LENGTH_SHORT).show()
-        }
+        expenseAdapter = ExpenseAdapter(
+            onItemClicked = { expense ->
+                // TODO: Handle expense item click (e.g., navigate to details)
+                Toast.makeText(context, "Clicked on: ${expense.categoryName}", Toast.LENGTH_SHORT).show()
+            },
+            currencyConverter = currencyConverter
+        )
         binding.expensesRecyclerView.apply {
             adapter = expenseAdapter
             layoutManager = LinearLayoutManager(context)

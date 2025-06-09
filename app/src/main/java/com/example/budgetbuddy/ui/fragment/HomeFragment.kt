@@ -21,6 +21,7 @@ import com.example.budgetbuddy.databinding.ItemHomeCategoryBinding // Import ite
 import com.example.budgetbuddy.ui.viewmodel.HomeCategoryItemUiState
 import com.example.budgetbuddy.ui.viewmodel.FirebaseHomeUiState
 import com.example.budgetbuddy.ui.viewmodel.FirebaseHomeViewModel
+import com.example.budgetbuddy.util.CurrencyConverter
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
@@ -34,6 +35,7 @@ import java.text.NumberFormat // For currency formatting
 import java.util.Locale
 import java.math.BigDecimal
 import com.example.budgetbuddy.util.toIntSafe
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class HomeFragment : Fragment() {
@@ -43,6 +45,10 @@ class HomeFragment : Fragment() {
 
     private val viewModel: FirebaseHomeViewModel by viewModels()
     private lateinit var categoryAdapter: HomeCategoryAdapter
+
+    // Inject CurrencyConverter for proper currency formatting
+    @Inject
+    lateinit var currencyConverter: CurrencyConverter
 
     // --- RecyclerView Adapter (Manages how category data is shown in the list) ---
     class HomeCategoryAdapter(private var categories: List<HomeCategoryItemUiState>) :
@@ -155,9 +161,12 @@ class HomeFragment : Fragment() {
                 viewModel.uiState.collect { state ->
                     // Update the greeting text.
                     binding.greetingTextView.text = state.greeting
-                    // Format and display budget numbers.
-                    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.US) // Use appropriate locale
-                    binding.balanceAmountTextView.text = "R${String.format("%.2f", state.budgetSpent)} / R${String.format("%.2f", state.budgetTotal)}"
+                    
+                    // Format and display budget numbers using CurrencyConverter
+                    val spentAmount = currencyConverter.formatAmount(state.budgetSpent)
+                    val totalAmount = currencyConverter.formatAmount(state.budgetTotal)
+                    binding.balanceAmountTextView.text = "$spentAmount / $totalAmount"
+                    
                     binding.budgetProgressBar.max = state.budgetTotal.toIntSafe() // Use safe conversion
                     binding.budgetProgressBar.progress = state.budgetSpent.toIntSafe()
                     // Show/hide rewards section based on data.

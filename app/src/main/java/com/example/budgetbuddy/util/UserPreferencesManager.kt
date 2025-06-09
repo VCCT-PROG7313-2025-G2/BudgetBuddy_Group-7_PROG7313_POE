@@ -16,6 +16,11 @@ class UserPreferencesManager @Inject constructor(
         Context.MODE_PRIVATE
     )
 
+    companion object {
+        private const val SELECTED_CURRENCY_KEY = "selected_currency"
+        private const val DEFAULT_CURRENCY = "USD"
+    }
+
     /**
      * Saves the user's custom minimum budget amount.
      */
@@ -59,6 +64,33 @@ class UserPreferencesManager @Inject constructor(
     fun clearUserMinimumBudget() {
         sharedPreferences.edit()
             .remove(Constants.Budget.USER_MINIMUM_BUDGET_KEY)
+            .apply()
+    }
+
+    // Currency-related methods
+
+    /**
+     * Sets the user's selected currency.
+     */
+    fun setSelectedCurrency(currency: String) {
+        sharedPreferences.edit()
+            .putString(SELECTED_CURRENCY_KEY, currency)
+            .apply()
+    }
+
+    /**
+     * Gets the user's selected currency.
+     */
+    fun getSelectedCurrency(): String {
+        return sharedPreferences.getString(SELECTED_CURRENCY_KEY, DEFAULT_CURRENCY) ?: DEFAULT_CURRENCY
+    }
+
+    /**
+     * Clears currency preferences.
+     */
+    fun clearCurrencyPreferences() {
+        sharedPreferences.edit()
+            .remove(SELECTED_CURRENCY_KEY)
             .apply()
     }
 } 

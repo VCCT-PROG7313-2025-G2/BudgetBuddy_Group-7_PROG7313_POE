@@ -10,13 +10,17 @@ import com.example.budgetbuddy.R
 import com.example.budgetbuddy.databinding.ItemExpenseBinding
 import com.example.budgetbuddy.databinding.ItemExpenseDateHeaderBinding
 import com.example.budgetbuddy.model.ExpenseListItem
+import com.example.budgetbuddy.util.CurrencyConverter
 import java.text.NumberFormat
 import java.util.Locale
 
 private const val ITEM_VIEW_TYPE_HEADER = 0
 private const val ITEM_VIEW_TYPE_ITEM = 1
 
-class ExpenseAdapter(private val onItemClicked: (ExpenseListItem.Expense) -> Unit) :
+class ExpenseAdapter(
+    private val onItemClicked: (ExpenseListItem.Expense) -> Unit,
+    private val currencyConverter: CurrencyConverter
+) :
     ListAdapter<ExpenseListItem, RecyclerView.ViewHolder>(ExpenseDiffCallback()) {
 
     override fun getItemViewType(position: Int): Int {
@@ -42,7 +46,7 @@ class ExpenseAdapter(private val onItemClicked: (ExpenseListItem.Expense) -> Uni
             }
             is ExpenseViewHolder -> {
                 val item = getItem(position) as ExpenseListItem.Expense
-                holder.bind(item, onItemClicked)
+                holder.bind(item, onItemClicked, currencyConverter)
             }
         }
     }
@@ -50,14 +54,18 @@ class ExpenseAdapter(private val onItemClicked: (ExpenseListItem.Expense) -> Uni
     class ExpenseViewHolder private constructor(private val binding: ItemExpenseBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: ExpenseListItem.Expense, onItemClicked: (ExpenseListItem.Expense) -> Unit) {
+        fun bind(
+            item: ExpenseListItem.Expense, 
+            onItemClicked: (ExpenseListItem.Expense) -> Unit,
+            currencyConverter: CurrencyConverter
+        ) {
             binding.categoryIconImageView.setImageResource(item.categoryIconRes)
             binding.categoryNameTextView.text = item.categoryName
             binding.notesTextView.text = item.notes
             binding.notesTextView.visibility = if (item.notes.isNullOrBlank()) View.GONE else View.VISIBLE
             
-            // Format currency
-            binding.amountTextView.text = "R${String.format("%.2f", item.amount)}"
+            // Format currency using user's selected currency symbol
+            binding.amountTextView.text = currencyConverter.formatAmount(item.amount)
 
             binding.receiptIndicatorImageView.visibility = if (item.hasReceipt) View.VISIBLE else View.GONE
 
