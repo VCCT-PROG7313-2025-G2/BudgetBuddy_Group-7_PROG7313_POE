@@ -104,7 +104,7 @@ It offers **expense tracking**, **budget planning**, **reports**, **rewards**, a
 ## 🆕 New & Lecturer-Requested Features
 
 ### 📉 Personal Minimum Budget (Lecturer-Driven Enhancement)
-A custom budgeting floor that ensures users don’t budget below their essential needs.
+A custom budgeting floor that ensures users don't budget below their essential needs.
 
 - Users input a personal minimum monthly budget (e.g., $1500).
 - Integrated with **Auto Budget**, influencing algorithmic recommendations.
@@ -116,7 +116,7 @@ A custom budgeting floor that ensures users don’t budget below their essential
 A smart budgeting assistant that automatically distributes user budgets across categories based on selected strategies:
 
 - **Balanced**, **Essentials First**, **Savings Focus**, **Lifestyle-Heavy** options
-- Respects the user’s Personal Minimum Budget
+- Respects the user's Personal Minimum Budget
 
 ![🤖 Auto Budget](image4.jpg)
 
@@ -124,7 +124,7 @@ A smart budgeting assistant that automatically distributes user budgets across c
 Helps users track how well they stick to their budget with easy-to-understand grades (A–F):
 
 - Displays in the *Rewards & Achievements* section
-- Includes progress bars and summary descriptions like “Excellent budget management this month”
+- Includes progress bars and summary descriptions like "Excellent budget management this month"
 
 ![🅰️ Visual Grading Scale](image5.jpg)
 
@@ -150,7 +150,7 @@ Powerful analytics tool to study financial trends:
 
 - Choose timeframes: 7 days, 30 days, 3 months, 12 months
 - Category filtering and summary (e.g., R350 total, R11.29 daily avg)
-- Line graph + trend indicators (e.g., “Rising”)
+- Line graph + trend indicators (e.g., "Rising")
 - Export functionality included
 
 ![📈 Spending Analysis Over Time](image8.jpg)
@@ -244,11 +244,6 @@ git clone https://github.com/ST10359034/BudgetBuddy.git
 - Press **Run** ▶️ button
 
 ---
-## Video Demonstration Link
-
-https://youtu.be/QN1Gl3wHmoY
-
----
 
 ## 🧑‍🤝‍🧑 Team Members
 
@@ -282,7 +277,6 @@ https://youtu.be/QN1Gl3wHmoY
 - [MPAndroidChart Documentation](https://github.com/PhilJay/MPAndroidChart)
 - [Room Persistence Library](https://developer.android.com/jetpack/androidx/releases/room)
 - [OpenAI](https://chatgpt.com)
-- [Firebase](https://firebase.google.com)
 
 ---
 
