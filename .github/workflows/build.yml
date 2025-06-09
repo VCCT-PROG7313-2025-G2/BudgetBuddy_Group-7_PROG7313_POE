@@ -2,9 +2,9 @@ name: Android CI Build & Test
 
 on:
   push:
-    branches: [ "main", "develop" ] # Trigger on pushes to main and develop branches
+    branches: [ "main", "develop" ]
   pull_request:
-    branches: [ "main", "develop" ] # Trigger on pull requests targeting main and develop branches
+    branches: [ "main", "develop" ]
 
 jobs:
   test:
@@ -22,18 +22,8 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v2
-      with:
-        api-level: 35
-        build-tools: 35.0.0
-
-    - name: Accept Android SDK licenses
-      run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-
     - name: Create mock google-services.json
       run: |
-        mkdir -p app/
         cat > app/google-services.json << 'EOF'
         {
           "project_info": {
@@ -93,18 +83,8 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v2
-      with:
-        api-level: 35
-        build-tools: 35.0.0
-
-    - name: Accept Android SDK licenses
-      run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-
     - name: Create mock google-services.json
       run: |
-        mkdir -p app/
         cat > app/google-services.json << 'EOF'
         {
           "project_info": {
@@ -165,18 +145,8 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v2
-      with:
-        api-level: 35
-        build-tools: 35.0.0
-
-    - name: Accept Android SDK licenses
-      run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-
     - name: Create mock google-services.json
       run: |
-        mkdir -p app/
         cat > app/google-services.json << 'EOF'
         {
           "project_info": {
@@ -216,9 +186,7 @@ jobs:
 
     - name: Upload Debug APK
       uses: actions/upload-artifact@v4
-      if: failure() == false
+      if: success()
       with:
         name: budgetbuddy-debug-apk
-        path: app/build/outputs/apk/debug/app-debug.apk
-
-  # Simplified workflow - focusing on core functionality for now 
+        path: app/build/outputs/apk/debug/app-debug.apk 
