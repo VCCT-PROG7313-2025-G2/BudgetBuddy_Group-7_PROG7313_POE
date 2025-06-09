@@ -28,8 +28,6 @@
 **BudgetBuddy** is a modern Android application built to help users manage their finances easily and effectively.  
 It offers **expense tracking**, **budget planning**, **reports**, **rewards**, and **insights** — all wrapped in a beautiful, user-friendly experience.
 
-![🚀 About the Project](image1.jpg)
-
 ---
 
 ## 🎯 Purpose & Design Philosophy
@@ -166,6 +164,8 @@ Navigation Structure
 
 This comprehensive design approach ensures BudgetBuddy not only solves real financial problems but does so in a way that users actually **want** to engage with regularly, building lasting positive financial habits.
 
+![🎯 Purpose & Design Philosophy](image1.jpg)
+
 ---
 
 ## 🛠️ Features
@@ -180,11 +180,11 @@ This comprehensive design approach ensures BudgetBuddy not only solves real fina
 - ☁️ **Cloud Sync** — Backup your financial data securely
 - ⚙️ **Profile & Settings** — Manage personal details and app preferences
 
-![🛠️ Features](image2.jpg)
-
 ---
 
 ## 🆕 New & Lecturer-Requested Features
+
+![🆕 New Features](image2.jpg)
 
 ### 📉 Personal Minimum Budget (Lecturer-Driven Enhancement)
 A custom budgeting floor that ensures users don't budget below their essential needs.
@@ -380,6 +380,8 @@ We've implemented a robust **CI/CD pipeline** using GitHub Actions to ensure cod
 
 This comprehensive GitHub Actions setup ensures that our BudgetBuddy app maintains high code quality, reliability, and security throughout the development lifecycle.
 
+![⚙️ GitHub Actions](image15.jpeg)
+
 ---
 
 ## 🧰 How to Run the Project
@@ -417,8 +419,6 @@ https://youtu.be/QN1Gl3wHmoY
 | EMIL FABEL | ST10359034 | Budget Setup, Categories and Report Lead |
 | LISHA NAIDOO | ST10404816 | Gamification, UI Polish and GitHub/Testing Lead |
 
-![🧑‍🤝‍🧑 Team Members](image15.jpeg)
-
 ---
 
 ## 📈 Future Improvements
@@ -452,6 +452,7 @@ This project is licensed under the **MIT License**.
 
 # 🎉 Thank you for using BudgetBuddy!
 > Helping you save smart, live smarter.
+
 
 
 
