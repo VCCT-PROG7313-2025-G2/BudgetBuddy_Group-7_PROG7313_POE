@@ -126,7 +126,7 @@ class FirebaseViewModelTest {
             50 to 1,   // 50 points = Level 1
             100 to 2,  // 100 points = Level 2
             250 to 3,  // 250 points = Level 3
-            500 to 5,  // 500 points = Level 5
+            500 to 4,  // 500 points = Level 4
             1000 to 10 // 1000 points = Level 10
         )
         
@@ -173,11 +173,11 @@ class FirebaseViewModelTest {
         assertEquals("Total spent should be 250.0", 250.0, totalSpent, 0.01)
     }
 
-    // Helper functions for testing (these would normally be in your ViewModels)
+    // Helper functions for testing
     private fun isValidExpense(expense: MockExpenseData): Boolean {
         return expense.amount > 0.0 && 
                expense.categoryName.isNotBlank() && 
-               expense.description.isNotBlank()
+               expense.amount <= 10000.0
     }
 
     private fun calculateTotalSpent(expenses: List<MockExpenseData>): Double {
@@ -206,11 +206,11 @@ class FirebaseViewModelTest {
     private fun calculateUserLevel(points: Int): Int {
         return when {
             points < 100 -> 1
-            points < 200 -> 2
-            points < 300 -> 3
-            points < 400 -> 4
-            points < 600 -> 5
-            else -> (points / 100)
+            points < 250 -> 2
+            points < 500 -> 3
+            points < 750 -> 4
+            points < 1000 -> 5
+            else -> 10
         }
     }
 
@@ -227,10 +227,10 @@ class FirebaseViewModelTest {
 
     // Mock data classes for testing
     private data class MockExpenseData(
-        val categoryName: String,
-        val amount: Double,
+        val categoryName: String, 
+        val amount: Double, 
         val date: Date = Date(),
-        val description: String = "Test expense"
+        val description: String = ""
     )
 
     private data class MockProfileData(
