@@ -3,6 +3,61 @@
 > **Smart Budgeting & Expense Tracking Mobile App**  
 > Empower your financial habits — track expenses, set goals, and achieve rewards!
 
+## 🎯 Purpose of the App
+
+BudgetBuddy was created to address the growing need for accessible, intuitive financial management tools. In today's economic climate, effective expense tracking and budget planning are essential life skills. This app serves as a comprehensive solution for:
+
+- **Personal Financial Literacy**: Helping users understand their spending patterns and develop healthier financial habits
+- **Goal-Oriented Budgeting**: Enabling users to set realistic financial targets and track progress toward achieving them
+- **Expense Awareness**: Providing clear insights into where money goes, empowering informed financial decisions
+- **Behavioral Change**: Using gamification elements (rewards, achievements) to encourage consistent financial tracking
+- **Accessibility**: Making sophisticated budgeting tools available to users regardless of their financial background or expertise
+
+The app bridges the gap between complex financial software and simple expense trackers, offering professional-grade features in an approachable, user-friendly interface.
+
+## 🔧 GitHub & GitHub Actions Integration
+
+BudgetBuddy leverages GitHub's powerful development ecosystem and automated workflows to maintain code quality and streamline development:
+
+### **Version Control & Collaboration**
+- **Repository Management**: All source code is hosted on GitHub, enabling collaborative development across team members
+- **Branch Strategy**: Feature branches for individual development, with pull requests for code review and integration
+- **Issue Tracking**: GitHub Issues used for bug reports, feature requests, and project planning
+- **Code Reviews**: Pull request system ensures all code changes are reviewed before merging
+
+### **Automated CI/CD with GitHub Actions**
+Our project implements comprehensive GitHub Actions workflows for:
+
+- **🏗️ Continuous Integration**:
+  - Automated builds on every push and pull request
+  - Unit test execution to catch regressions early
+  - Code quality checks and linting
+  - Dependency vulnerability scanning
+
+- **📱 APK Generation**:
+  - Automated debug APK builds for testing
+  - Release APK builds for deployment
+  - Artifact storage for easy download and distribution
+
+- **🧪 Testing Automation**:
+  - Unit tests for business logic validation
+  - Instrumented tests for UI functionality
+  - Performance tests to ensure app responsiveness
+  - Test reports generation and sharing
+
+- **📋 Code Quality Assurance**:
+  - Lint checks for code style and potential issues
+  - Security scanning for vulnerable dependencies
+  - Build validation across different Android API levels
+
+### **Workflow Files**
+Located in `.github/workflows/`, our automated processes include:
+- `android-ci.yml`: Main CI pipeline for builds and tests
+- `release.yml`: Release automation and APK generation
+- `code-quality.yml`: Linting and security checks
+
+This integration ensures consistent code quality, reduces manual errors, and accelerates the development cycle while maintaining high standards for the BudgetBuddy application.
+
 ---
 
 ## 📑 Table of Contents
@@ -26,7 +81,7 @@
 **BudgetBuddy** is a modern Android application built to help users manage their finances easily and effectively.  
 It offers **expense tracking**, **budget planning**, **reports**, **rewards**, and **insights** — all wrapped in a beautiful, user-friendly experience.
 
-![🚀 About the Project](image1.jpg)
+![🚀 About the Project]
 
 ---
 
@@ -42,36 +97,36 @@ It offers **expense tracking**, **budget planning**, **reports**, **rewards**, a
 - ☁️ **Cloud Sync** — Backup your financial data securely
 - ⚙️ **Profile & Settings** — Manage personal details and app preferences
 
-![🛠️ Features](image2.jpg)
+![🛠️ Features]
 
 ---
 
 ## 🆕 New & Lecturer-Requested Features
 
 ### 📉 Personal Minimum Budget (Lecturer-Driven Enhancement)
-A custom budgeting floor that ensures users don’t budget below their essential needs.
+A custom budgeting floor that ensures users don't budget below their essential needs.
 
 - Users input a personal minimum monthly budget (e.g., $1500).
 - Integrated with **Auto Budget**, influencing algorithmic recommendations.
 - Ensures realistic, goal-driven planning and serves as a safeguard against under-budgeting.
 
-![📉 Personal Minimum Budget](image3.jpg)
+![📉 Personal Minimum Budget](image1.jpg)
 
 ### 🤖 Auto Budget
 A smart budgeting assistant that automatically distributes user budgets across categories based on selected strategies:
 
 - **Balanced**, **Essentials First**, **Savings Focus**, **Lifestyle-Heavy** options
-- Respects the user’s Personal Minimum Budget
+- Respects the user's Personal Minimum Budget
 
-![🤖 Auto Budget](image4.jpg)
+![🤖 Auto Budget](image1.jpg)
 
 ### 🅰️ Visual Grading Scale
 Helps users track how well they stick to their budget with easy-to-understand grades (A–F):
 
 - Displays in the *Rewards & Achievements* section
-- Includes progress bars and summary descriptions like “Excellent budget management this month”
+- Includes progress bars and summary descriptions like "Excellent budget management this month"
 
-![🅰️ Visual Grading Scale](image5.jpg)
+![🅰️ Visual Grading Scale](image2.jpg)
 
 ### 🌐 Currency Selector
 Makes BudgetBuddy more inclusive for international users:
@@ -79,7 +134,7 @@ Makes BudgetBuddy more inclusive for international users:
 - Choose from multiple global currencies
 - Affects all screens, including summaries, history, goals, and rewards
 
-![🌐 Currency Selector](image6.jpg)
+![🌐 Currency Selector](image4.jpg)
 
 ### 🧁 Visual Spending by Category
 A combination of charts and detailed breakdowns:
@@ -88,14 +143,14 @@ A combination of charts and detailed breakdowns:
 - **Custom time filtering** (e.g., June 2025)
 - **Export report** to PDF/shareable formats
 
-![🧁 Visual Spending by Category](image7.jpg)
+![🧁 Visual Spending by Category](image5.jpg)
 
 ### 📈 Spending Analysis Over Time
 Powerful analytics tool to study financial trends:
 
 - Choose timeframes: 7 days, 30 days, 3 months, 12 months
 - Category filtering and summary (e.g., R350 total, R11.29 daily avg)
-- Line graph + trend indicators (e.g., “Rising”)
+- Line graph + trend indicators (e.g., "Rising")
 - Export functionality included
 
 ![📈 Spending Analysis Over Time](image8.jpg)
@@ -189,6 +244,7 @@ git clone https://github.com/ST10359034/BudgetBuddy.git
 - Press **Run** ▶️ button
 
 ---
+
 ## Video Demonstration Link
 
 https://youtu.be/QN1Gl3wHmoY
@@ -227,7 +283,6 @@ https://youtu.be/QN1Gl3wHmoY
 - [MPAndroidChart Documentation](https://github.com/PhilJay/MPAndroidChart)
 - [Room Persistence Library](https://developer.android.com/jetpack/androidx/releases/room)
 - [OpenAI](https://chatgpt.com)
-- [Firebase](https://firebase.google.com)
 
 ---
 
