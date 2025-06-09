@@ -26,6 +26,9 @@ import java.math.BigDecimal
 import androidx.core.view.isVisible
 import android.text.TextWatcher
 import android.text.Editable
+import com.example.budgetbuddy.ui.viewmodel.BudgetStrategy
+import androidx.appcompat.app.AlertDialog
+import com.google.android.material.chip.Chip
 
 @AndroidEntryPoint
 class BudgetSetupFragment : Fragment() {
@@ -56,6 +59,7 @@ class BudgetSetupFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupClickListeners()
+        setupAutoRecommendations()
         observeViewModel()
         setupRecyclerView()
         setupBudgetValidation()
@@ -173,6 +177,139 @@ class BudgetSetupFragment : Fragment() {
         binding.inlineAddButton.setOnClickListener {
             addNewCategoryBudget()
         }
+
+        // Auto Recommendations Click Listeners
+        binding.previewRecommendationButton.setOnClickListener {
+            previewSelectedStrategy()
+        }
+
+        binding.applyRecommendationButton.setOnClickListener {
+            applySelectedStrategy()
+        }
+    }
+
+    private fun setupAutoRecommendations() {
+        // Setup strategy chip group selection
+        binding.strategyChipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
+            if (checkedIds.isNotEmpty()) {
+                val selectedStrategy = when (checkedIds.first()) {
+                    R.id.balancedChip -> BudgetStrategy.BALANCED
+                    R.id.savingsChip -> BudgetStrategy.SAVINGS_FOCUS
+                    R.id.essentialsChip -> BudgetStrategy.ESSENTIALS_FIRST
+                    R.id.lifestyleChip -> BudgetStrategy.LIFESTYLE_HEAVY
+                    else -> BudgetStrategy.BALANCED
+                }
+                
+                // Update strategy description
+                val description = viewModel.getStrategyDescription(selectedStrategy)
+                binding.strategyDescriptionTextView.text = description
+            }
+        }
+        
+        // Set initial description for balanced strategy
+        binding.strategyDescriptionTextView.text = viewModel.getStrategyDescription(BudgetStrategy.BALANCED)
+    }
+
+    private fun getSelectedStrategy(): BudgetStrategy {
+        return when (binding.strategyChipGroup.checkedChipId) {
+            R.id.balancedChip -> BudgetStrategy.BALANCED
+            R.id.savingsChip -> BudgetStrategy.SAVINGS_FOCUS
+            R.id.essentialsChip -> BudgetStrategy.ESSENTIALS_FIRST
+            R.id.lifestyleChip -> BudgetStrategy.LIFESTYLE_HEAVY
+            else -> BudgetStrategy.BALANCED
+        }
+    }
+
+    private fun previewSelectedStrategy() {
+        val totalBudgetText = binding.monthlyBudgetEditText.text.toString()
+        if (totalBudgetText.isBlank()) {
+            Toast.makeText(context, "Please set your monthly budget first", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        try {
+            val totalBudget = BigDecimal(totalBudgetText)
+            if (totalBudget <= BigDecimal.ZERO) {
+                Toast.makeText(context, "Please enter a valid budget amount", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            // Set the budget in ViewModel for preview calculation
+            viewModel.setTotalBudget(totalBudget)
+            
+            val selectedStrategy = getSelectedStrategy()
+            val preview = viewModel.previewBudgetRecommendation(selectedStrategy)
+            
+            if (preview.isEmpty()) {
+                Toast.makeText(context, "Unable to generate preview", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            // Show preview dialog
+            showPreviewDialog(selectedStrategy, preview)
+            
+        } catch (e: NumberFormatException) {
+            Toast.makeText(context, "Please enter a valid budget amount", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun applySelectedStrategy() {
+        val totalBudgetText = binding.monthlyBudgetEditText.text.toString()
+        if (totalBudgetText.isBlank()) {
+            Toast.makeText(context, "Please set your monthly budget first", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        try {
+            val totalBudget = BigDecimal(totalBudgetText)
+            if (totalBudget <= BigDecimal.ZERO) {
+                Toast.makeText(context, "Please enter a valid budget amount", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            // Set the budget in ViewModel
+            viewModel.setTotalBudget(totalBudget)
+            
+            val selectedStrategy = getSelectedStrategy()
+            val strategyName = viewModel.getBudgetRecommendations().find { it.strategy == selectedStrategy }?.title ?: "Selected Strategy"
+            
+            // Show confirmation dialog
+            AlertDialog.Builder(requireContext())
+                .setTitle("Apply $strategyName Strategy?")
+                .setMessage("This will replace your current category allocations with the recommended amounts. Are you sure?")
+                .setPositiveButton("Apply") { _, _ ->
+                    viewModel.applyBudgetRecommendation(selectedStrategy)
+                    Toast.makeText(context, "$strategyName strategy applied successfully!", Toast.LENGTH_SHORT).show()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+                
+        } catch (e: NumberFormatException) {
+            Toast.makeText(context, "Please enter a valid budget amount", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showPreviewDialog(strategy: BudgetStrategy, preview: List<com.example.budgetbuddy.ui.viewmodel.CategoryAllocation>) {
+        val strategyName = viewModel.getBudgetRecommendations().find { it.strategy == strategy }?.title ?: "Strategy Preview"
+        
+        val previewText = StringBuilder().apply {
+            append("$strategyName Allocation Preview:\n\n")
+            preview.forEach { allocation ->
+                append("${allocation.categoryName}\n")
+                append("${allocation.percentage}% - R${allocation.amount}\n\n")
+            }
+            append("Total: R${preview.sumOf { it.amount }}")
+        }
+
+        AlertDialog.Builder(requireContext())
+            .setTitle(strategyName)
+            .setMessage(previewText.toString())
+            .setPositiveButton("Apply This Strategy") { _, _ ->
+                viewModel.applyBudgetRecommendation(strategy)
+                Toast.makeText(context, "$strategyName strategy applied!", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun setupRecyclerView() {

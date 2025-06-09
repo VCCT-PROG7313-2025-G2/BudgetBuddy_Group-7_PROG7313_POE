@@ -305,6 +305,37 @@
 
                     </com.google.android.material.chip.ChipGroup>
 
+                    <!-- Category Selector -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="Filter by Category"
+                        android:textAppearance="?attr/textAppearanceBody2"
+                        android:textStyle="bold"
+                        android:textColor="?android:attr/textColorPrimary" />
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/categoryFilterChipGroup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        app:singleSelection="true"
+                        app:selectionRequired="false">
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipAllCategories"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="All Categories"
+                            android:checkable="true"
+                            android:checked="true" />
+
+                        <!-- Additional category chips will be added dynamically -->
+
+                    </com.google.android.material.chip.ChipGroup>
+
                     <!-- Custom Date Range (Initially Hidden) -->
                     <LinearLayout
                         android:id="@+id/customDateRangeLayout"

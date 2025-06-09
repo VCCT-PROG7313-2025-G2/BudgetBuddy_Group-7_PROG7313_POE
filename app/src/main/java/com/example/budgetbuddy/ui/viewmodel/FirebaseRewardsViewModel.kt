@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.budgetbuddy.data.firebase.repository.FirebaseRewardsRepository
 import com.example.budgetbuddy.data.firebase.repository.FirebaseAuthRepository
+import com.example.budgetbuddy.data.firebase.repository.FirebaseBudgetRepository
+import com.example.budgetbuddy.data.firebase.repository.FirebaseExpenseRepository
 import com.example.budgetbuddy.data.firebase.model.FirebaseRewardPoints
 import com.example.budgetbuddy.data.firebase.model.FirebaseAchievement
 import com.example.budgetbuddy.util.FirebaseSessionManager
@@ -16,6 +18,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.text.SimpleDateFormat
+import java.util.*
+import java.util.Calendar
 
 /**
  * Firebase-based RewardsViewModel that replaces the Room-based version.
@@ -23,11 +30,22 @@ import javax.inject.Inject
  */
 
 // UI State classes remain the same for compatibility
+data class PerformanceSummary(
+    val budgetPerformancePercentage: Int = 0,
+    val budgetScore: String = "N/A",
+    val pointsThisMonth: Int = 0,
+    val pointsTrend: String = "→",
+    val overallGrade: String = "N/A",
+    val overallScore: Int = 0,
+    val performanceMessage: String = "No data available"
+)
+
 data class FirebaseRewardsUiState(
     val currentPoints: Int = 0,
     val achievements: List<AchievementUiState> = emptyList(),
     val leaderboard: List<LeaderboardEntry> = emptyList(),
     val userRank: Int = 0,
+    val performanceSummary: PerformanceSummary = PerformanceSummary(),
     val isLoading: Boolean = true,
     val error: String? = null
 )
@@ -54,6 +72,8 @@ data class LeaderboardEntry(
 class FirebaseRewardsViewModel @Inject constructor(
     private val rewardsRepository: FirebaseRewardsRepository,
     private val authRepository: FirebaseAuthRepository,
+    private val budgetRepository: FirebaseBudgetRepository,
+    private val expenseRepository: FirebaseExpenseRepository,
     private val sessionManager: FirebaseSessionManager
 ) : ViewModel() {
 
@@ -124,6 +144,9 @@ class FirebaseRewardsViewModel @Inject constructor(
                 // Find user's rank in leaderboard
                 val userRank = leaderboardUiList.find { it.isCurrentUser }?.rank ?: 0
                 
+                // Calculate performance summary
+                val performanceSummary = calculatePerformanceSummary(points?.currentPoints ?: 0)
+                
                 android.util.Log.d("FirebaseRewardsViewModel", "Processed leaderboard: ${leaderboardUiList.size} entries")
                 android.util.Log.d("FirebaseRewardsViewModel", "User rank: $userRank")
 
@@ -132,6 +155,7 @@ class FirebaseRewardsViewModel @Inject constructor(
                     achievements = achievementUiList,
                     leaderboard = leaderboardUiList,
                     userRank = userRank,
+                    performanceSummary = performanceSummary,
                     isLoading = false,
                     error = null
                 )
@@ -476,6 +500,26 @@ class FirebaseRewardsViewModel @Inject constructor(
     }
 
     /**
+     * Gets current user's profile image URL.
+     */
+    fun getCurrentUserProfileImage(callback: (String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val userId = getCurrentUserId()
+                if (userId.isNotEmpty()) {
+                    val userProfile = authRepository.getUserProfile(userId)
+                    callback(userProfile?.profileImageUrl)
+                } else {
+                    callback(null)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("FirebaseRewardsViewModel", "Error loading user profile image", e)
+                callback(null)
+            }
+        }
+    }
+
+    /**
      * Gets user's current level based on points.
      */
     fun getUserLevel(): Int {
@@ -529,5 +573,144 @@ class FirebaseRewardsViewModel @Inject constructor(
         } else {
             100
         }
+    }
+
+    /**
+     * Calculates performance summary based on number of exceeded budget categories and points earned.
+     */
+    private suspend fun calculatePerformanceSummary(currentPoints: Int): PerformanceSummary {
+        val userId = getCurrentUserId()
+        val currentDate = Date()
+        val monthYear = SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(currentDate)
+        
+        return try {
+            // Get current month budget and category budgets
+            val budget = budgetRepository.getBudgetForMonthDirect(userId, monthYear)
+            
+            if (budget == null) {
+                // No budget set, give default performance
+                return PerformanceSummary(
+                    budgetPerformancePercentage = 50,
+                    budgetScore = "C",
+                    pointsThisMonth = currentPoints,
+                    pointsTrend = "→",
+                    overallGrade = "C",
+                    overallScore = 50,
+                    performanceMessage = "Set up a budget to track your performance"
+                )
+            }
+            
+            // Get category budgets and spending data
+            val categoryBudgets = budgetRepository.getCategoryBudgetsForBudgetDirect(budget.id)
+            val startDate = getStartOfMonth(monthYear)
+            val endDate = getEndOfMonth(monthYear)
+            val categorySpending = expenseRepository.getSpendingByCategoryBetween(userId, startDate, endDate)
+            
+            // Count exceeded budget categories
+            var exceededCategories = 0
+            categoryBudgets.forEach { categoryBudget ->
+                val spent = categorySpending[categoryBudget.categoryName] ?: BigDecimal.ZERO
+                val allocated = categoryBudget.getAllocatedAmountAsBigDecimal()
+                
+                if (allocated > BigDecimal.ZERO && spent > allocated) {
+                    exceededCategories++
+                    android.util.Log.d("RewardsViewModel", "Exceeded category: ${categoryBudget.categoryName} - Spent: $spent, Budget: $allocated")
+                }
+            }
+            
+            android.util.Log.d("RewardsViewModel", "Total exceeded categories: $exceededCategories out of ${categoryBudgets.size}")
+            
+            // Calculate budget score based on exceeded categories
+            val (budgetScore, budgetPerformancePercentage) = when (exceededCategories) {
+                0 -> Pair("A", 100)  // No budgets exceeded = A grade
+                1 -> Pair("B", 85)   // 1 budget exceeded = B grade
+                in 2..4 -> Pair("C", 70)  // 2-4 budgets exceeded = C grade
+                else -> Pair("F", 25)     // 4+ budgets exceeded = F grade
+            }
+            
+            // Estimate points earned this month (simplified - you might want to track this more precisely)
+            val pointsThisMonth = currentPoints // For now, use current points as monthly estimate
+            
+            // Determine points trend (simplified - comparing to a baseline)
+            val pointsTrend = when {
+                pointsThisMonth >= 200 -> "↗"  // Rising
+                pointsThisMonth >= 100 -> "→"  // Stable
+                else -> "↘"  // Falling
+            }
+            
+            // Calculate overall performance (average of budget performance and points factor)
+            val pointsFactor = when {
+                pointsThisMonth >= 300 -> 100
+                pointsThisMonth >= 200 -> 80
+                pointsThisMonth >= 100 -> 60
+                pointsThisMonth >= 50 -> 40
+                else -> 20
+            }
+            
+            val overallScore = ((budgetPerformancePercentage + pointsFactor) / 2)
+            
+            val overallGrade = when (overallScore) {
+                in 90..100 -> "A"
+                in 80..89 -> "B"
+                in 70..79 -> "C"
+                in 60..69 -> "D"
+                else -> "F"
+            }
+            
+            val performanceMessage = when (overallGrade) {
+                "A" -> "Excellent! You're managing your finances brilliantly"
+                "B" -> "Great job! You're on track with your financial goals"
+                "C" -> "Good progress, but there's room for improvement"
+                "D" -> "You're making progress, keep working on your budget"
+                "F" -> "Let's focus on getting back on track with your budget"
+                else -> "Keep up the good work!"
+            }
+            
+            PerformanceSummary(
+                budgetPerformancePercentage = budgetPerformancePercentage,
+                budgetScore = budgetScore,
+                pointsThisMonth = pointsThisMonth,
+                pointsTrend = pointsTrend,
+                overallGrade = overallGrade,
+                overallScore = overallScore,
+                performanceMessage = performanceMessage
+            )
+            
+        } catch (e: Exception) {
+            android.util.Log.e("FirebaseRewardsViewModel", "Error calculating performance summary", e)
+            PerformanceSummary(
+                performanceMessage = "Unable to calculate performance data"
+            )
+        }
+    }
+    
+    /**
+     * Helper to get start of month date.
+     */
+    private fun getStartOfMonth(monthYear: String): Date {
+        val parts = monthYear.split("-")
+        val year = parts[0].toInt()
+        val month = parts[1].toInt() - 1 // Calendar months are 0-based
+        
+        val calendar = Calendar.getInstance()
+        calendar.set(year, month, 1, 0, 0, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        return calendar.time
+    }
+
+    /**
+     * Helper to get end of month date.
+     */
+    private fun getEndOfMonth(monthYear: String): Date {
+        val parts = monthYear.split("-")
+        val year = parts[0].toInt()
+        val month = parts[1].toInt() - 1 // Calendar months are 0-based
+        
+        val calendar = Calendar.getInstance()
+        calendar.set(year, month, 1, 0, 0, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        calendar.add(Calendar.MONTH, 1)
+        calendar.add(Calendar.MILLISECOND, -1)
+        return calendar.time
     }
 } 

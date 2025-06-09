@@ -14,11 +14,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.example.budgetbuddy.R
 import com.example.budgetbuddy.adapter.BadgeAdapter
 import com.example.budgetbuddy.adapter.LeaderboardAdapter
 import com.example.budgetbuddy.databinding.FragmentRewardsBinding
 import com.example.budgetbuddy.ui.viewmodel.FirebaseRewardsViewModel
+import com.example.budgetbuddy.ui.viewmodel.PerformanceSummary
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import androidx.core.view.isVisible
@@ -112,19 +114,23 @@ class RewardsFragment : Fragment() {
 
                     // Update UI only when not loading
                     if (!state.isLoading) {
-                        // Update User Info - Get actual user name
+                        // Update User Info - Get actual user name and profile image
                         viewModel.getCurrentUserName { userName ->
                             binding.userNameTextView.text = userName ?: "User"
                         }
+                        
+                        viewModel.getCurrentUserProfileImage { profileImageUrl ->
+                            Glide.with(this@RewardsFragment)
+                                .load(profileImageUrl ?: R.drawable.ic_profile_placeholder)
+                                .transform(CircleCrop())
+                                .placeholder(R.drawable.ic_profile_placeholder)
+                                .error(R.drawable.ic_profile_placeholder)
+                                .into(binding.userProfileImageView)
+                        }
+                        
                         // Combine level number
                         val userLevel = viewModel.getUserLevel()
                         binding.userLevelTextView.text = "Level $userLevel"
-                        // Load profile image - Use placeholder
-                        Glide.with(this@RewardsFragment)
-                             .load(R.drawable.ic_profile_placeholder) // Use placeholder
-                             .circleCrop()
-                             .placeholder(R.drawable.ic_profile_placeholder)
-                             .into(binding.userProfileImageView)
 
                         // Update Next Reward section based on points/level
                         val pointsToNext = viewModel.getPointsForNextLevel()
@@ -184,6 +190,9 @@ class RewardsFragment : Fragment() {
                         leaderboardAdapter.updateData(leaderboardRanks)
                         
                         Log.d("RewardsFragment", "Leaderboard adapter updated with ${leaderboardRanks.size} entries")
+                        
+                        // Update Performance Summary
+                        updatePerformanceSummary(state.performanceSummary)
                     }
 
                     // Handle error state (can be shown even if loading fails)
@@ -195,6 +204,47 @@ class RewardsFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun updatePerformanceSummary(summary: PerformanceSummary) {
+        // Update budget performance
+        binding.budgetPerformanceTextView.text = when {
+            summary.budgetPerformancePercentage >= 90 -> "Excellent budget management this month"
+            summary.budgetPerformancePercentage >= 75 -> "Good budget control this month"
+            summary.budgetPerformancePercentage >= 50 -> "Fair budget management this month"
+            summary.budgetPerformancePercentage >= 25 -> "Budget needs attention this month"
+            else -> "Focus on budget management this month"
+        }
+        
+        binding.budgetScoreTextView.text = summary.budgetScore
+        binding.budgetPerformanceProgressBar.progress = summary.budgetPerformancePercentage
+        
+        // Update points this month
+        binding.pointsThisMonthTextView.text = "${summary.pointsThisMonth} points earned"
+        binding.pointsTrendTextView.text = summary.pointsTrend
+        
+        // Update overall performance
+        binding.overallPerformanceTextView.text = summary.performanceMessage
+        binding.overallGradeTextView.text = summary.overallGrade
+        binding.gradeScaleTextView.text = "${summary.overallScore}/100"
+        
+        // Set colors based on performance
+        val gradeColor = when (summary.overallGrade) {
+            "A" -> android.graphics.Color.parseColor("#4CAF50") // Green
+            "B" -> android.graphics.Color.parseColor("#8BC34A") // Light Green
+            "C" -> android.graphics.Color.parseColor("#FFC107") // Amber
+            "D" -> android.graphics.Color.parseColor("#FF9800") // Orange
+            "F" -> android.graphics.Color.parseColor("#F44336") // Red
+            else -> android.graphics.Color.GRAY
+        }
+        
+        // Create circular background with the grade color
+        val circleDrawable = android.graphics.drawable.GradientDrawable()
+        circleDrawable.shape = android.graphics.drawable.GradientDrawable.OVAL
+        circleDrawable.setColor(gradeColor)
+        binding.overallGradeTextView.background = circleDrawable
+        
+        Log.d("RewardsFragment", "Updated performance summary: Grade ${summary.overallGrade}, Score ${summary.overallScore}")
     }
 
     override fun onDestroyView() {

@@ -56,6 +56,7 @@ class ReportsFragment : Fragment() {
         fun format(value: Double): String = "R${String.format("%.2f", value)}"
     }
     private var selectedTimePeriod = FirebaseReportsViewModel.TimePeriod.MONTH
+    private var selectedCategory: String? = null // For category filtering
     private var customStartDate: Date? = null
     private var customEndDate: Date? = null
 
@@ -157,7 +158,7 @@ class ReportsFragment : Fragment() {
                 axisMinimum = 0f
                 valueFormatter = object : ValueFormatter() {
                     override fun getAxisLabel(value: Float, axis: com.github.mikephil.charting.components.AxisBase?): String {
-                        return currencyFormatter.format(value.toFloat())
+                        return currencyFormatter.format(value.toDouble())
                     }
                 }
             }
@@ -172,8 +173,11 @@ class ReportsFragment : Fragment() {
             setExtraOffsets(10f, 10f, 10f, 10f)
         }
 
+        // Setup category chips
+        setupCategoryChips()
+
         // Load default period (Last 30 Days)
-        viewModel.loadTimePeriodAnalysis(selectedTimePeriod)
+        loadTimePeriodAnalysisWithFilters()
     }
 
     private fun setupTimePeriodClickListeners() {
@@ -184,22 +188,22 @@ class ReportsFragment : Fragment() {
                     R.id.chipWeek -> {
                         selectedTimePeriod = FirebaseReportsViewModel.TimePeriod.WEEK
                         binding.customDateRangeLayout.visibility = View.GONE
-                        viewModel.loadTimePeriodAnalysis(selectedTimePeriod)
+                        loadTimePeriodAnalysisWithFilters()
                     }
                     R.id.chipMonth -> {
                         selectedTimePeriod = FirebaseReportsViewModel.TimePeriod.MONTH
                         binding.customDateRangeLayout.visibility = View.GONE
-                        viewModel.loadTimePeriodAnalysis(selectedTimePeriod)
+                        loadTimePeriodAnalysisWithFilters()
                     }
                     R.id.chipQuarter -> {
                         selectedTimePeriod = FirebaseReportsViewModel.TimePeriod.QUARTER
                         binding.customDateRangeLayout.visibility = View.GONE
-                        viewModel.loadTimePeriodAnalysis(selectedTimePeriod)
+                        loadTimePeriodAnalysisWithFilters()
                     }
                     R.id.chipYear -> {
                         selectedTimePeriod = FirebaseReportsViewModel.TimePeriod.YEAR
                         binding.customDateRangeLayout.visibility = View.GONE
-                        viewModel.loadTimePeriodAnalysis(selectedTimePeriod)
+                        loadTimePeriodAnalysisWithFilters()
                     }
                 }
             }
@@ -242,7 +246,7 @@ class ReportsFragment : Fragment() {
         if (customStartDate != null && customEndDate != null) {
             if (customStartDate!!.before(customEndDate) || customStartDate!!.equals(customEndDate)) {
                 selectedTimePeriod = FirebaseReportsViewModel.TimePeriod.CUSTOM
-                viewModel.loadTimePeriodAnalysis(selectedTimePeriod, customStartDate, customEndDate)
+                loadTimePeriodAnalysisWithFilters()
             }
         }
     }
@@ -745,6 +749,58 @@ class ReportsFragment : Fragment() {
         
         // In a real app, you'd export to PDF or share via email
         viewModel.exportReport()
+    }
+
+    private fun setupCategoryChips() {
+        // Load categories and create chips
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val categories = viewModel.getAvailableCategories()
+                
+                // Clear existing chips except "All Categories"
+                val allCategoriesChip = binding.categoryFilterChipGroup.findViewById<com.google.android.material.chip.Chip>(R.id.chipAllCategories)
+                binding.categoryFilterChipGroup.removeAllViews()
+                binding.categoryFilterChipGroup.addView(allCategoriesChip)
+                
+                // Add category chips
+                categories.forEach { category ->
+                    val chip = com.google.android.material.chip.Chip(requireContext()).apply {
+                        text = category
+                        isCheckable = true
+                        setChipBackgroundColorResource(android.R.color.transparent)
+                        setTextAppearanceResource(com.google.android.material.R.style.TextAppearance_Material3_BodyMedium)
+                        chipStrokeWidth = 2f
+                    }
+                    binding.categoryFilterChipGroup.addView(chip)
+                }
+                
+                // Set up category filter listener
+                binding.categoryFilterChipGroup.setOnCheckedStateChangeListener { _, checkedIds ->
+                    selectedCategory = if (checkedIds.isNotEmpty()) {
+                        val selectedChip = binding.categoryFilterChipGroup.findViewById<com.google.android.material.chip.Chip>(checkedIds[0])
+                        val categoryName = selectedChip.text.toString()
+                        if (categoryName == "All Categories") null else categoryName
+                    } else {
+                        null
+                    }
+                    
+                    // Reload data with new category filter
+                    loadTimePeriodAnalysisWithFilters()
+                }
+                
+            } catch (e: Exception) {
+                android.util.Log.e("ReportsFragment", "Error setting up category chips", e)
+            }
+        }
+    }
+
+    private fun loadTimePeriodAnalysisWithFilters() {
+        viewModel.loadTimePeriodAnalysis(
+            period = selectedTimePeriod,
+            startDate = customStartDate,
+            endDate = customEndDate,
+            categoryFilter = selectedCategory
+        )
     }
 
     override fun onDestroyView() {

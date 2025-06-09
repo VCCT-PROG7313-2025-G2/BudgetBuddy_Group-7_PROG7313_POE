@@ -151,7 +151,6 @@ class FirebaseProfileViewModel @Inject constructor(
             
             try {
                 val result = authRepository.updateUserProfile(
-                    userId = userId,
                     name = name,
                     email = email ?: ""
                 )

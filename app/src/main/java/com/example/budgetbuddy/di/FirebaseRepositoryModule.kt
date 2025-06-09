@@ -50,8 +50,9 @@ object FirebaseRepositoryModule {
     @Singleton
     fun provideFirebaseAuthRepository(
         firebaseAuth: FirebaseAuth,
-        firestore: FirebaseFirestore
+        firestore: FirebaseFirestore,
+        firebaseStorage: FirebaseStorage
     ): FirebaseAuthRepository {
-        return FirebaseAuthRepository(firebaseAuth, firestore)
+        return FirebaseAuthRepository(firebaseAuth, firestore, firebaseStorage)
     }
 } 

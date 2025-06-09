@@ -41,6 +41,24 @@ data class CategoryBudgetInputUiState(
     val errorMessage: String? = null
 )
 
+// Auto Budget Recommendation Data Classes
+enum class BudgetStrategy {
+    BALANCED, SAVINGS_FOCUS, ESSENTIALS_FIRST, LIFESTYLE_HEAVY
+}
+
+data class BudgetRecommendation(
+    val strategy: BudgetStrategy,
+    val title: String,
+    val description: String,
+    val allocations: Map<String, Double> // Category name to percentage allocation
+)
+
+data class CategoryAllocation(
+    val categoryName: String,
+    val percentage: Double,
+    val amount: BigDecimal
+)
+
 @HiltViewModel
 class FirebaseBudgetSetupViewModel @Inject constructor(
     private val budgetRepository: FirebaseBudgetRepository,
@@ -219,8 +237,8 @@ class FirebaseBudgetSetupViewModel @Inject constructor(
      * Sets the user's custom minimum budget amount.
      */
     fun setUserMinimumBudget(amount: BigDecimal) {
-        userPreferencesManager.setUserMinimumBudget(amount)
         _userMinimumBudget.value = amount
+        userPreferencesManager.setUserMinimumBudget(amount)
         validateBudgetSetup()
     }
 
@@ -578,5 +596,154 @@ class FirebaseBudgetSetupViewModel @Inject constructor(
         }
         
         return monthYears
+    }
+
+    // ================== AUTO BUDGET RECOMMENDATIONS ==================
+
+    /**
+     * Gets all available budget recommendation strategies.
+     */
+    fun getBudgetRecommendations(): List<BudgetRecommendation> {
+        return listOf(
+            BudgetRecommendation(
+                strategy = BudgetStrategy.BALANCED,
+                title = "Balanced",
+                description = "Balanced approach with equal focus on essentials, savings, and lifestyle",
+                allocations = mapOf(
+                    "Food & Dining" to 25.0,
+                    "Transportation" to 15.0,
+                    "Bills & Utilities" to 20.0,
+                    "Shopping" to 10.0,
+                    "Entertainment" to 10.0,
+                    "Healthcare" to 8.0,
+                    "Education" to 7.0,
+                    "Travel" to 5.0
+                )
+            ),
+            BudgetRecommendation(
+                strategy = BudgetStrategy.SAVINGS_FOCUS,
+                title = "Savings Focus",
+                description = "Prioritizes savings and essential expenses with minimal lifestyle spending",
+                allocations = mapOf(
+                    "Food & Dining" to 20.0,
+                    "Transportation" to 12.0,
+                    "Bills & Utilities" to 25.0,
+                    "Shopping" to 8.0,
+                    "Entertainment" to 5.0,
+                    "Healthcare" to 12.0,
+                    "Education" to 15.0,
+                    "Travel" to 3.0
+                )
+            ),
+            BudgetRecommendation(
+                strategy = BudgetStrategy.ESSENTIALS_FIRST,
+                title = "Essentials First",
+                description = "Covers all basic needs before allocating to discretionary spending",
+                allocations = mapOf(
+                    "Food & Dining" to 30.0,
+                    "Transportation" to 20.0,
+                    "Bills & Utilities" to 30.0,
+                    "Shopping" to 5.0,
+                    "Entertainment" to 3.0,
+                    "Healthcare" to 10.0,
+                    "Education" to 2.0,
+                    "Travel" to 0.0
+                )
+            ),
+            BudgetRecommendation(
+                strategy = BudgetStrategy.LIFESTYLE_HEAVY,
+                title = "Lifestyle Heavy",
+                description = "Allocates more budget to entertainment, dining, and lifestyle activities",
+                allocations = mapOf(
+                    "Food & Dining" to 30.0,
+                    "Transportation" to 15.0,
+                    "Bills & Utilities" to 18.0,
+                    "Shopping" to 15.0,
+                    "Entertainment" to 15.0,
+                    "Healthcare" to 5.0,
+                    "Education" to 2.0,
+                    "Travel" to 0.0
+                )
+            )
+        )
+    }
+
+    /**
+     * Gets the description for a specific strategy.
+     */
+    fun getStrategyDescription(strategy: BudgetStrategy): String {
+        return getBudgetRecommendations().find { it.strategy == strategy }?.description
+            ?: "Unknown strategy"
+    }
+
+    /**
+     * Applies a budget recommendation strategy to the current categories.
+     */
+    fun applyBudgetRecommendation(strategy: BudgetStrategy) {
+        val totalBudgetAmount = _totalBudget.value
+        if (totalBudgetAmount <= BigDecimal.ZERO) {
+            android.util.Log.w("BudgetSetupViewModel", "Cannot apply recommendation: total budget is zero")
+            return
+        }
+
+        val recommendation = getBudgetRecommendations().find { it.strategy == strategy }
+        if (recommendation == null) {
+            android.util.Log.w("BudgetSetupViewModel", "No recommendation found for strategy: $strategy")
+            return
+        }
+
+        android.util.Log.d("BudgetSetupViewModel", "Applying ${recommendation.title} strategy to budget of $totalBudgetAmount")
+
+        // Apply allocations to categories
+        val updatedCategories = _categories.value.map { category ->
+            val percentage = recommendation.allocations[category.categoryName] ?: 0.0
+            val allocation = totalBudgetAmount.multiply(BigDecimal(percentage / 100.0))
+                .setScale(2, RoundingMode.HALF_UP)
+            
+            android.util.Log.d("BudgetSetupViewModel", "${category.categoryName}: ${percentage}% = $allocation")
+            
+            category.copy(allocatedAmount = allocation)
+        }
+
+        _categories.value = updatedCategories
+        validateBudgetSetup()
+        
+        android.util.Log.d("BudgetSetupViewModel", "Applied ${recommendation.title} strategy successfully")
+    }
+
+    /**
+     * Generates a preview of what the budget would look like with a given strategy.
+     */
+    fun previewBudgetRecommendation(strategy: BudgetStrategy): List<CategoryAllocation> {
+        val totalBudgetAmount = _totalBudget.value
+        if (totalBudgetAmount <= BigDecimal.ZERO) {
+            return emptyList()
+        }
+
+        val recommendation = getBudgetRecommendations().find { it.strategy == strategy }
+            ?: return emptyList()
+
+        return _categories.value.map { category ->
+            val percentage = recommendation.allocations[category.categoryName] ?: 0.0
+            val allocation = totalBudgetAmount.multiply(BigDecimal(percentage / 100.0))
+                .setScale(2, RoundingMode.HALF_UP)
+            
+            CategoryAllocation(
+                categoryName = category.categoryName,
+                percentage = percentage,
+                amount = allocation
+            )
+        }.sortedByDescending { it.amount }
+    }
+
+    /**
+     * Applies a random budget recommendation strategy.
+     */
+    fun applyRandomRecommendation() {
+        val strategies = BudgetStrategy.values()
+        val randomStrategy = strategies.random()
+        
+        android.util.Log.d("BudgetSetupViewModel", "Applying random strategy: $randomStrategy")
+        applyBudgetRecommendation(randomStrategy)
     }
 } 

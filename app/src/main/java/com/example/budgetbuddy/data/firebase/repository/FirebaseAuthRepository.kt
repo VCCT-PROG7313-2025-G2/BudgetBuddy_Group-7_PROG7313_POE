@@ -1,12 +1,15 @@
 package com.example.budgetbuddy.data.firebase.repository
 
+import android.net.Uri
 import com.example.budgetbuddy.data.firebase.model.FirebaseUser
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser as FirebaseAuthUser
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -18,10 +21,12 @@ import javax.inject.Singleton
 @Singleton
 class FirebaseAuthRepository @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val firebaseStorage: FirebaseStorage
 ) {
     companion object {
         private const val USERS_COLLECTION = "users"
+        private const val PROFILE_IMAGES_PATH = "profile_images"
     }
 
     /**
@@ -87,18 +92,23 @@ class FirebaseAuthRepository @Inject constructor(
     /**
      * Updates user profile information in Firestore.
      */
-    suspend fun updateUserProfile(name: String, email: String): Result<Unit> {
+    suspend fun updateUserProfile(name: String, email: String, profileImageUrl: String? = null): Result<Unit> {
         return try {
             val user = getCurrentUser()
             if (user == null) {
                 return Result.failure(Exception("No user logged in"))
             }
             
-            val updates = mapOf(
+            val updates = mutableMapOf<String, Any>(
                 "name" to name,
                 "email" to email,
                 "updatedAt" to com.google.firebase.Timestamp.now()
             )
+            
+            // Add profile image URL if provided
+            profileImageUrl?.let { url ->
+                updates["profileImageUrl"] = url
+            }
             
             firestore.collection(USERS_COLLECTION)
                 .document(user.uid)
@@ -108,6 +118,33 @@ class FirebaseAuthRepository @Inject constructor(
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    /**
+     * Uploads a profile image to Firebase Storage and returns the download URL.
+     */
+    suspend fun uploadProfileImage(imageUri: Uri): String {
+        return try {
+            val user = getCurrentUser()
+                ?: throw Exception("No user logged in")
+            
+            // Create a unique filename for the image
+            val fileName = "${user.uid}_${UUID.randomUUID()}.jpg"
+            val storageRef = firebaseStorage.reference
+                .child("$PROFILE_IMAGES_PATH/$fileName")
+            
+            // Upload the image
+            val uploadTask = storageRef.putFile(imageUri).await()
+            
+            // Get the download URL
+            val downloadUrl = storageRef.downloadUrl.await()
+            
+            android.util.Log.d("FirebaseAuthRepository", "Profile image uploaded successfully: $downloadUrl")
+            downloadUrl.toString()
+        } catch (e: Exception) {
+            android.util.Log.e("FirebaseAuthRepository", "Failed to upload profile image", e)
+            throw e
         }
     }
 
@@ -188,9 +225,9 @@ class FirebaseAuthRepository @Inject constructor(
     }
 
     /**
-     * Updates user profile with userId parameter.
+     * Updates user profile with userId parameter (for admin/internal use).
      */
-    suspend fun updateUserProfile(userId: String, name: String, email: String): Result<Unit> {
+    suspend fun updateUserProfileById(userId: String, name: String, email: String): Result<Unit> {
         return try {
             val updates = mapOf(
                 "name" to name,

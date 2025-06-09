@@ -343,9 +343,9 @@ class FirebaseReportsViewModel @Inject constructor(
     }
 
     /**
-     * Load spending analysis data for a specific time period
+     * Load spending analysis data for a specific time period and category
      */
-    fun loadTimePeriodAnalysis(period: TimePeriod, startDate: Date? = null, endDate: Date? = null) {
+    fun loadTimePeriodAnalysis(period: TimePeriod, startDate: Date? = null, endDate: Date? = null, categoryFilter: String? = null) {
         if (!sessionManager.isLoggedIn()) return
         
         val userId = sessionManager.getUserId()
@@ -398,7 +398,17 @@ class FirebaseReportsViewModel @Inject constructor(
                 Log.d("ReportsViewModel", "Start: $analysisStartDate, End: $analysisEndDate")
 
                 // Get expenses for the period
-                val expenses = expenseRepository.getExpensesBetweenDates(userId, analysisStartDate, analysisEndDate)
+                val allExpenses = expenseRepository.getExpensesBetweenDates(userId, analysisStartDate, analysisEndDate)
+                
+                // Filter by category if specified
+                val expenses = if (categoryFilter != null && categoryFilter != "All Categories") {
+                    allExpenses.filter { it.categoryName == categoryFilter }
+                } else {
+                    allExpenses
+                }
+                
+                Log.d("ReportsViewModel", "Category filter: $categoryFilter")
+                Log.d("ReportsViewModel", "Total expenses: ${allExpenses.size}, Filtered: ${expenses.size}")
                 
                 // Calculate total spent
                 val totalSpent = expenses.sumOf { it.getAmountAsBigDecimal() }
@@ -474,6 +484,30 @@ class FirebaseReportsViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e("ReportsViewModel", "Error loading time period analysis", e)
             }
+        }
+    }
+
+    /**
+     * Get available expense categories for filtering
+     */
+    suspend fun getAvailableCategories(): List<String> {
+        if (!sessionManager.isLoggedIn()) return emptyList()
+        
+        val userId = sessionManager.getUserId()
+        return try {
+            // Get categories used in the last year to have a comprehensive list
+            val endDate = Date()
+            val startDate = Calendar.getInstance().apply {
+                time = endDate
+                add(Calendar.YEAR, -1)
+            }.time
+            
+            val categories = expenseRepository.getUsedCategoriesInPeriod(userId, startDate, endDate)
+            Log.d("ReportsViewModel", "Available categories: $categories")
+            categories.sorted()
+        } catch (e: Exception) {
+            Log.e("ReportsViewModel", "Error getting categories", e)
+            emptyList()
         }
     }
 } 

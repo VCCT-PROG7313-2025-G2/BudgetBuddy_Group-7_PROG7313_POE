@@ -12,6 +12,7 @@ data class FirebaseUser(
     val id: String = "", // Firebase Auth UID
     val name: String = "",
     val email: String = "",
+    val profileImageUrl: String? = null, // URL for profile picture in Firebase Storage
     val biometricEnabled: Boolean = false,
     val createdAt: Timestamp = Timestamp.now(),
     val updatedAt: Timestamp = Timestamp.now()
