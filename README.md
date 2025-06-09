@@ -134,7 +134,7 @@ Makes BudgetBuddy more inclusive for international users:
 - Choose from multiple global currencies
 - Affects all screens, including summaries, history, goals, and rewards
 
-![🌐 Currency Selector](image5.jpg)
+![🌐 Currency Selector](image6.jpg)
 
 ### 🧁 Visual Spending by Category
 A combination of charts and detailed breakdowns:
@@ -143,7 +143,7 @@ A combination of charts and detailed breakdowns:
 - **Custom time filtering** (e.g., June 2025)
 - **Export report** to PDF/shareable formats
 
-![🧁 Visual Spending by Category](image7.jpg)
+![🧁 Visual Spending by Category](image5.jpg)
 
 ### 📈 Spending Analysis Over Time
 Powerful analytics tool to study financial trends:
