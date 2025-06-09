@@ -42,8 +42,8 @@ class PerformanceTest {
             // Wait for the main content to load
             try {
                 onView(withId(R.id.bottom_navigation)).check { view, _ ->
-                    assertNotNull("Bottom navigation should be visible", view)
-                }
+                assertNotNull("Bottom navigation should be visible", view)
+            }
             } catch (e: Exception) {
                 // If bottom navigation is not found, try greeting text
                 try {
@@ -74,19 +74,19 @@ class PerformanceTest {
                 // Navigate to different screens
                 onView(withId(R.id.reportsFragment)).perform(click())
                 Thread.sleep(200)
-                
+            
                 onView(withId(R.id.rewardsFragment)).perform(click())
                 Thread.sleep(200)
-                
+            
                 onView(withId(R.id.profileFragment)).perform(click())
                 Thread.sleep(200)
-                
+            
                 onView(withId(R.id.homeFragment)).perform(click())
                 Thread.sleep(200)
                 
             } catch (e: Exception) {
                 println("Navigation performance test skipped - UI elements not available")
-            }
+    }
         }
 
         // Navigation should complete within 3 seconds
@@ -97,33 +97,33 @@ class PerformanceTest {
     @Test
     fun testMemoryUsage() {
         try {
-            // Get memory info before test
-            val runtime = Runtime.getRuntime()
-            val initialMemory = runtime.totalMemory() - runtime.freeMemory()
+        // Get memory info before test
+        val runtime = Runtime.getRuntime()
+        val initialMemory = runtime.totalMemory() - runtime.freeMemory()
 
-            // Perform memory-intensive operations
+        // Perform memory-intensive operations
             repeat(5) { // Reduced from 10 to 5 for more reliable testing
                 try {
                     onView(withId(R.id.reportsFragment)).perform(click())
-                    Thread.sleep(100)
+            Thread.sleep(100)
                     onView(withId(R.id.homeFragment)).perform(click())
-                    Thread.sleep(100)
+            Thread.sleep(100)
                 } catch (e: Exception) {
                     // Skip this iteration if navigation fails
                 }
-            }
+        }
 
-            // Force garbage collection
-            runtime.gc()
-            Thread.sleep(100)
+        // Force garbage collection
+        runtime.gc()
+        Thread.sleep(100)
 
-            val finalMemory = runtime.totalMemory() - runtime.freeMemory()
-            val memoryIncrease = finalMemory - initialMemory
+        val finalMemory = runtime.totalMemory() - runtime.freeMemory()
+        val memoryIncrease = finalMemory - initialMemory
 
             // Memory increase should be reasonable (under 100MB) - increased from 50MB
             val maxMemoryIncrease = 100 * 1024 * 1024 // 100MB in bytes
             assertTrue("Memory increase should be under 100MB, was ${memoryIncrease / (1024 * 1024)}MB", 
-                      memoryIncrease < maxMemoryIncrease)
+                  memoryIncrease < maxMemoryIncrease)
         } catch (e: Exception) {
             println("Memory usage test failed: ${e.message}")
             // Don't fail the test if memory measurement fails

@@ -54,9 +54,9 @@ class SignUpFlowTest {
             onView(withId(R.id.confirmPasswordEditText)).check(matches(isDisplayed()))
             onView(withId(R.id.termsCheckBox)).check(matches(isDisplayed()))
             
-        } catch (e: Exception) {
+         } catch (e: Exception) {
             println("Login screen not available - skipping sign up navigation test")
-        }
+         }
     }
 
     @Test
@@ -68,8 +68,8 @@ class SignUpFlowTest {
             try { Thread.sleep(1000) } catch (e: InterruptedException) { }
             
             // Test empty form submission
-            onView(withId(R.id.signUpButton)).perform(click())
-            
+        onView(withId(R.id.signUpButton)).perform(click())
+
             // App should handle empty form validation gracefully
             // This test verifies the app doesn't crash with empty inputs
             
@@ -91,13 +91,13 @@ class SignUpFlowTest {
             onView(withId(R.id.emailEditText)).perform(typeText("test@example.com"), closeSoftKeyboard())
             onView(withId(R.id.passwordEditText)).perform(typeText("password123"), closeSoftKeyboard())
             onView(withId(R.id.confirmPasswordEditText)).perform(typeText("password456"), closeSoftKeyboard())
-            
+
             // Accept terms
-            onView(withId(R.id.termsCheckBox)).perform(click())
-            
+        onView(withId(R.id.termsCheckBox)).perform(click())
+
             // Try to submit
-            onView(withId(R.id.signUpButton)).perform(click())
-            
+        onView(withId(R.id.signUpButton)).perform(click())
+
             // App should show validation error for password mismatch
             // This test verifies the validation works
             

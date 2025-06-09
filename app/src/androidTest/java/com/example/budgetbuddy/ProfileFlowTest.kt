@@ -60,24 +60,24 @@ class ProfileFlowTest {
         try {
             // Navigate to Profile Screen
             onView(withId(R.id.bottom_navigation)).check(matches(isDisplayed()))
-            onView(withId(R.id.profileFragment)).perform(click())
+        onView(withId(R.id.profileFragment)).perform(click())
             try { Thread.sleep(1000) } catch (e: InterruptedException) { }
-            
+
             // Check for profile screen elements (these may or may not exist depending on implementation)
             try {
-                onView(withId(R.id.profileImageView)).check(matches(isDisplayed()))
+        onView(withId(R.id.profileImageView)).check(matches(isDisplayed()))
             } catch (e: Exception) {
                 println("Profile image view not found")
             }
             
             try {
-                onView(withId(R.id.profileNameTextView)).check(matches(isDisplayed()))
+        onView(withId(R.id.profileNameTextView)).check(matches(isDisplayed()))
             } catch (e: Exception) {
                 println("Profile name text view not found")
             }
             
             try {
-                onView(withId(R.id.profileEmailTextView)).check(matches(isDisplayed()))
+        onView(withId(R.id.profileEmailTextView)).check(matches(isDisplayed()))
             } catch (e: Exception) {
                 println("Profile email text view not found")
             }

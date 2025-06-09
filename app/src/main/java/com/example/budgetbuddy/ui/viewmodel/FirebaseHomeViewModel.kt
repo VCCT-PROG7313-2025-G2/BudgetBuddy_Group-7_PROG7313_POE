@@ -86,7 +86,7 @@ class FirebaseHomeViewModel @Inject constructor(
         }
 
         Log.d("FirebaseHomeViewModel", "Loading home screen for user: $userId")
-        
+
         viewModelScope.launch {
             try {
                 // Let's figure out what month we're dealing with and set up our date ranges
@@ -104,7 +104,7 @@ class FirebaseHomeViewModel @Inject constructor(
                 val budgetFlow = budgetRepository.getBudgetForMonth(userId, currentMonthYear)
                 val monthlySpendingFlow = getMonthlySpendingFlow(userId, startOfMonthDate, endOfMonthDate)
                 val categorySpendingFlow = expenseRepository.getSpendingByCategoryBetweenFlow(userId, startOfMonthDate, endOfMonthDate)
-                
+
                 Log.d("FirebaseHomeViewModel", "Set up data streams, now watching for changes...")
 
                 // Combine all our data sources and react to any changes
@@ -200,12 +200,12 @@ class FirebaseHomeViewModel @Inject constructor(
             return getDefaultCategoryNames().map { categoryName ->
                 val spent = categorySpending[categoryName] ?: BigDecimal.ZERO
                             Log.d("FirebaseHomeViewModel", "Default category $categoryName: ${currencyConverter.formatAmount(spent)} spent (no budget)")
-            HomeCategoryItemUiState(
-                name = categoryName,
-                progress = 0, // No budget set
-                percentageText = "No budget set",
-                iconResId = getCategoryIconRes(categoryName)
-            )
+                HomeCategoryItemUiState(
+                    name = categoryName,
+                    progress = 0, // No budget set
+                    percentageText = "No budget set",
+                    iconResId = getCategoryIconRes(categoryName)
+                )
             }
         }
 

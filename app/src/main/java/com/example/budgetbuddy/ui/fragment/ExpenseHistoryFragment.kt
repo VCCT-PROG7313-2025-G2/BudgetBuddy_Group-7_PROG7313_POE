@@ -232,23 +232,23 @@ class ExpenseHistoryFragment : Fragment() {
             Log.e("ExpenseHistoryFragment", "Error viewing receipt", e)
             // Fallback to external intent if dialog fails
             try {
-                val intent = if (uri.scheme == "http" || uri.scheme == "https") {
-                    Intent(Intent.ACTION_VIEW, uri)
-                } else {
-                    Intent(Intent.ACTION_VIEW).apply {
-                        setDataAndType(uri, "image/*")
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    }
+            val intent = if (uri.scheme == "http" || uri.scheme == "https") {
+                Intent(Intent.ACTION_VIEW, uri)
+            } else {
+                Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, "image/*")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
-                
-                if (intent.resolveActivity(requireContext().packageManager) != null) {
-                    startActivity(intent)
-                } else {
-                    Toast.makeText(context, "No app found to view images", Toast.LENGTH_SHORT).show()
-                }
+            }
+            
+            if (intent.resolveActivity(requireContext().packageManager) != null) {
+                startActivity(intent)
+            } else {
+                Toast.makeText(context, "No app found to view images", Toast.LENGTH_SHORT).show()
+            }
             } catch (e2: Exception) {
                 Log.e("ExpenseHistoryFragment", "Error with fallback intent", e2)
-                Toast.makeText(context, "Error opening receipt", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Error opening receipt", Toast.LENGTH_SHORT).show()
             }
         }
     }

@@ -43,7 +43,7 @@ class AddExpenseFlowTest {
         // Inject dependencies
         hiltRule.inject()
         // Wait for app to initialize
-        try {
+         try {
             Thread.sleep(2000)
         } catch (e: InterruptedException) { }
     }
@@ -52,7 +52,7 @@ class AddExpenseFlowTest {
     fun testNavigateToAddExpenseScreen() {
         try {
             // Check if we can see the Add Expense button on home screen
-            onView(withId(R.id.addExpenseButton)).check(matches(isDisplayed()))
+             onView(withId(R.id.addExpenseButton)).check(matches(isDisplayed()))
             
             // Navigate to Add Expense screen
             onView(withId(R.id.addExpenseButton)).perform(click())
@@ -66,9 +66,9 @@ class AddExpenseFlowTest {
             onView(withId(R.id.categoryAutoCompleteTextView)).check(matches(isDisplayed()))
             onView(withId(R.id.descriptionEditText)).check(matches(isDisplayed()))
             
-        } catch (e: Exception) {
+         } catch (e: Exception) {
             println("Add expense navigation test failed - home screen or navigation not available")
-        }
+         }
     }
 
     @Test
@@ -76,7 +76,7 @@ class AddExpenseFlowTest {
         try {
             // Navigate to Add Expense screen
             onView(withId(R.id.addExpenseButton)).check(matches(isDisplayed()))
-            onView(withId(R.id.addExpenseButton)).perform(click())
+        onView(withId(R.id.addExpenseButton)).perform(click())
             try { Thread.sleep(1000) } catch (e: InterruptedException) { }
             
             // Try to save with empty form
@@ -101,10 +101,10 @@ class AddExpenseFlowTest {
             // Fill in expense details
             onView(withId(R.id.amountEditText)).perform(typeText("25.50"), closeSoftKeyboard())
             onView(withId(R.id.descriptionEditText)).perform(typeText("Test expense"), closeSoftKeyboard())
-            
+
             // Try to fill category - this might depend on available categories
             try {
-                onView(withId(R.id.categoryAutoCompleteTextView)).perform(click())
+        onView(withId(R.id.categoryAutoCompleteTextView)).perform(click())
                 // Small delay for any dropdown
                 try { Thread.sleep(500) } catch (e: InterruptedException) { }
                 // Try to type a category instead of selecting from dropdown
@@ -137,7 +137,7 @@ class AddExpenseFlowTest {
             try { Thread.sleep(1000) } catch (e: InterruptedException) { }
             
             // Verify we're back on home screen
-            onView(withId(R.id.addExpenseButton)).check(matches(isDisplayed()))
+        onView(withId(R.id.addExpenseButton)).check(matches(isDisplayed()))
             
         } catch (e: Exception) {
             println("Skipping back navigation test - navigation not available")

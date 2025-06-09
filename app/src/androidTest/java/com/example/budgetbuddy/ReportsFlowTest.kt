@@ -79,9 +79,9 @@ class ReportsFlowTest {
         try {
             // Navigate to Reports Screen
             onView(withId(R.id.bottom_navigation)).check(matches(isDisplayed()))
-            onView(withId(R.id.reportsFragment)).perform(click())
+        onView(withId(R.id.reportsFragment)).perform(click())
             try { Thread.sleep(1000) } catch (e: InterruptedException) { }
-            
+
             // Navigate back to Home
             onView(withId(R.id.homeFragment)).perform(click())
             try { Thread.sleep(1000) } catch (e: InterruptedException) { }

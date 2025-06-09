@@ -227,8 +227,8 @@ class FirebaseViewModelTest {
 
     // Mock data classes for testing
     private data class MockExpenseData(
-        val categoryName: String, 
-        val amount: Double, 
+        val categoryName: String,
+        val amount: Double,
         val date: Date = Date(),
         val description: String = ""
     )

@@ -208,7 +208,7 @@ class NewExpenseFragment : Fragment() {
                 .setTitle("Remove Receipt")
                 .setMessage("Do you want to remove this receipt?")
                 .setPositiveButton("Remove") { _, _ ->
-                    clearReceiptPreview()
+            clearReceiptPreview()
                 }
                 .setNegativeButton("Cancel", null)
                 .show()

@@ -32,7 +32,7 @@ class LoginFlowTest {
         // Inject dependencies
         hiltRule.inject()
         // Wait for app to initialize
-        try {
+         try {
             Thread.sleep(2000) // Give time for app to load
         } catch (e: InterruptedException) { }
     }
@@ -45,8 +45,8 @@ class LoginFlowTest {
             onView(withId(R.id.loginButton)).check(matches(isDisplayed()))
             
             // Verify all login screen elements exist
-            onView(withId(R.id.emailEditText)).check(matches(isDisplayed()))
-            onView(withId(R.id.passwordEditText)).check(matches(isDisplayed()))
+        onView(withId(R.id.emailEditText)).check(matches(isDisplayed()))
+        onView(withId(R.id.passwordEditText)).check(matches(isDisplayed()))
             onView(withId(R.id.signUpButton)).check(matches(isDisplayed()))
             onView(withId(R.id.forgotPasswordButton)).check(matches(isDisplayed()))
             
@@ -61,11 +61,11 @@ class LoginFlowTest {
     fun testInvalidLoginAttempt() {
         try {
             // Check if we're on login screen
-            onView(withId(R.id.loginButton)).check(matches(isDisplayed()))
-            
+        onView(withId(R.id.loginButton)).check(matches(isDisplayed()))
+
             // Test empty fields validation
-            onView(withId(R.id.loginButton)).perform(click())
-            
+        onView(withId(R.id.loginButton)).perform(click())
+
             // App should show some indication that fields are required
             // This test just verifies the app doesn't crash with empty input
             
@@ -89,7 +89,7 @@ class LoginFlowTest {
             
             // Verify we're on account creation screen
             onView(withId(R.id.fullNameEditText)).check(matches(isDisplayed()))
-            
+
         } catch (e: Exception) {
             // Login screen not available - skip this test
             println("Skipping sign up navigation test - login screen not available")

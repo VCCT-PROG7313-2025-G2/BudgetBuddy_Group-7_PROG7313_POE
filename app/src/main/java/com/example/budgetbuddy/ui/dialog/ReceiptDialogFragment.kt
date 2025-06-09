@@ -76,7 +76,7 @@ class ReceiptDialogFragment : DialogFragment() {
 
         // Initialize scale detector
         scaleDetector = ScaleGestureDetector(requireContext(), ScaleListener())
-        
+
         receiptUri?.let { uri ->
             Glide.with(this)
                 .load(uri)
