@@ -40,6 +40,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.core.content.ContextCompat
 import java.io.IOException
+import com.example.budgetbuddy.util.CurrencyConverter
+import javax.inject.Inject
 
 // Marks this Fragment for Hilt injection.
 @AndroidEntryPoint
@@ -51,6 +53,10 @@ class NewExpenseFragment : Fragment() {
 
     // --- ViewModel --- 
     private val viewModel: FirebaseNewExpenseViewModel by viewModels()
+
+    // --- Currency Converter ---
+    @Inject
+    lateinit var currencyConverter: CurrencyConverter
 
     // --- Activity Result Launchers (Handle results from other Activities/System apps) --- 
     // For picking media (modern approach).
@@ -116,12 +122,19 @@ class NewExpenseFragment : Fragment() {
     // Called after the view is created.
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupCurrencyPrefix()   // Set up currency symbol prefix
         // setupCategoryDropdown() // Categories are now loaded dynamically.
         setupDatepicker()       // Configure the date picker dialog.
         setupClickListeners()   // Set up button actions.
         observeViewModel()      // Start observing ViewModel for success/error states.
         observeCategories()     // Start observing ViewModel for the category list.
         updateDateDisplay()     // Show the initial date in the text field.
+    }
+
+    // Sets up the currency symbol prefix for the amount input field.
+    private fun setupCurrencyPrefix() {
+        val currencySymbol = currencyConverter.getCurrencySymbol()
+        binding.amountInputLayout.prefixText = currencySymbol
     }
 
     // Observes the dynamic category list from the ViewModel.

@@ -29,6 +29,8 @@ import android.text.Editable
 import com.example.budgetbuddy.ui.viewmodel.BudgetStrategy
 import androidx.appcompat.app.AlertDialog
 import com.google.android.material.chip.Chip
+import com.example.budgetbuddy.util.CurrencyConverter
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class BudgetSetupFragment : Fragment() {
@@ -39,6 +41,10 @@ class BudgetSetupFragment : Fragment() {
     private val viewModel: FirebaseBudgetSetupViewModel by viewModels()
     private lateinit var categoryBudgetAdapter: CategoryBudgetAdapter
     private val categoryBudgets = mutableListOf<CategoryBudget>() // Store current category budget data
+
+    // Inject CurrencyConverter for proper currency formatting
+    @Inject
+    lateinit var currencyConverter: CurrencyConverter
 
     // Temporary map to hold placeholder icon resources based on a generated ID
     private val tempIconMap = mapOf(
@@ -58,6 +64,7 @@ class BudgetSetupFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupCurrencyPrefixes()
         setupClickListeners()
         setupAutoRecommendations()
         observeViewModel()
@@ -68,6 +75,17 @@ class BudgetSetupFragment : Fragment() {
         
         // Try to load existing budget for current month
         loadExistingBudgetIfExists()
+    }
+
+    private fun setupCurrencyPrefixes() {
+        // Set the currency symbol as prefix for all amount input fields
+        val currencySymbol = currencyConverter.getCurrencySymbol()
+        binding.monthlyBudgetInputLayout.prefixText = currencySymbol
+        binding.minimumBudgetInputLayout.prefixText = currencySymbol
+        binding.newCategoryAmountInputLayout.prefixText = currencySymbol
+        
+        // Update helper text with currency
+        binding.newCategoryAmountInputLayout.helperText = "Minimum: ${currencyConverter.formatAmount(5.0)}"
     }
 
     override fun onResume() {
@@ -100,12 +118,12 @@ class BudgetSetupFragment : Fragment() {
                                 binding.monthlyBudgetInputLayout.helperText = null
                             }
                             budgetAmount < userMinimumBudget -> {
-                                binding.monthlyBudgetInputLayout.error = "Budget must be at least R$userMinimumBudget"
+                                binding.monthlyBudgetInputLayout.error = "Budget must be at least ${currencyConverter.formatAmount(userMinimumBudget)}"
                                 binding.monthlyBudgetInputLayout.helperText = null
                             }
                             else -> {
                                 binding.monthlyBudgetInputLayout.error = null
-                                binding.monthlyBudgetInputLayout.helperText = "Your minimum budget: R$userMinimumBudget"
+                                binding.monthlyBudgetInputLayout.helperText = "Your minimum budget: ${currencyConverter.formatAmount(userMinimumBudget)}"
                             }
                         }
                     } catch (e: NumberFormatException) {
@@ -115,7 +133,7 @@ class BudgetSetupFragment : Fragment() {
                 } else {
                     binding.monthlyBudgetInputLayout.error = null
                     val userMinimumBudget = viewModel.getUserMinimumBudget()
-                    binding.monthlyBudgetInputLayout.helperText = "Your minimum budget: R$userMinimumBudget"
+                    binding.monthlyBudgetInputLayout.helperText = "Your minimum budget: ${currencyConverter.formatAmount(userMinimumBudget)}"
                 }
             }
         })
@@ -313,7 +331,7 @@ class BudgetSetupFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        categoryBudgetAdapter = CategoryBudgetAdapter { categoryBudget, newLimit ->
+        categoryBudgetAdapter = CategoryBudgetAdapter({ categoryBudget, newLimit ->
             // Update the ViewModel when user changes category amount
             android.util.Log.d("BudgetSetupFragment", "Category ${categoryBudget.categoryName} updated to: $newLimit")
             
@@ -338,7 +356,7 @@ class BudgetSetupFragment : Fragment() {
                 categoryBudgets[index].budgetLimit = newLimit
                 }
             }
-        }
+        }, currencyConverter)
         binding.categoryBudgetsRecyclerView.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = categoryBudgetAdapter

@@ -8,11 +8,14 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.budgetbuddy.databinding.ItemCategoryBudgetBinding
 import com.example.budgetbuddy.model.CategoryBudget
+import com.example.budgetbuddy.util.CurrencyConverter
 import java.text.NumberFormat
 import java.util.Locale
 
-class CategoryBudgetAdapter(private val onBudgetChanged: (CategoryBudget, Double?) -> Unit) :
-    ListAdapter<CategoryBudget, CategoryBudgetAdapter.CategoryBudgetViewHolder>(CategoryBudgetDiffCallback()) {
+class CategoryBudgetAdapter(
+    private val onBudgetChanged: (CategoryBudget, Double?) -> Unit,
+    private val currencyConverter: CurrencyConverter
+) : ListAdapter<CategoryBudget, CategoryBudgetAdapter.CategoryBudgetViewHolder>(CategoryBudgetDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryBudgetViewHolder {
         return CategoryBudgetViewHolder.from(parent)
@@ -20,7 +23,7 @@ class CategoryBudgetAdapter(private val onBudgetChanged: (CategoryBudget, Double
 
     override fun onBindViewHolder(holder: CategoryBudgetViewHolder, position: Int) {
         val item = getItem(position)
-        holder.bind(item, onBudgetChanged)
+        holder.bind(item, onBudgetChanged, currencyConverter)
     }
 
     // Function to get the current state of budgets from the adapter's list
@@ -35,10 +38,13 @@ class CategoryBudgetAdapter(private val onBudgetChanged: (CategoryBudget, Double
         // Keep track of the current item to update its limit
         private var currentItem: CategoryBudget? = null
 
-        fun bind(item: CategoryBudget, onBudgetChanged: (CategoryBudget, Double?) -> Unit) {
+        fun bind(item: CategoryBudget, onBudgetChanged: (CategoryBudget, Double?) -> Unit, currencyConverter: CurrencyConverter) {
             currentItem = item
             binding.categoryIconImageView.setImageResource(item.categoryIconRes)
             binding.categoryNameTextView.text = item.categoryName
+            
+            // Set currency symbol as prefix
+            binding.budgetAmountInputLayout.prefixText = currencyConverter.getCurrencySymbol()
             
             // Set initial value without triggering listener
             val initialLimit = item.budgetLimit?.let { String.format(Locale.US, "%.2f", it) } ?: ""

@@ -32,6 +32,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 import android.app.DatePickerDialog
 import java.text.NumberFormat
+import com.example.budgetbuddy.util.CurrencyConverter
+import javax.inject.Inject
 
 /**
  * Reports Fragment - Shows spending insights and analytics
@@ -44,6 +46,10 @@ class ReportsFragment : Fragment() {
 
     private val viewModel: FirebaseReportsViewModel by viewModels()
 
+    // Inject CurrencyConverter for proper currency formatting
+    @Inject
+    lateinit var currencyConverter: CurrencyConverter
+
     private val monthFormatter = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
     private val calendar = Calendar.getInstance()
 
@@ -52,9 +58,6 @@ class ReportsFragment : Fragment() {
 
     // Time period analysis variables
     private val dateFormatter = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
-    private val currencyFormatter = object {
-        fun format(value: Double): String = "R${String.format("%.2f", value)}"
-    }
     private var selectedTimePeriod = FirebaseReportsViewModel.TimePeriod.MONTH
     private var selectedCategory: String? = null // For category filtering
     private var customStartDate: Date? = null
@@ -158,7 +161,7 @@ class ReportsFragment : Fragment() {
                 axisMinimum = 0f
                 valueFormatter = object : ValueFormatter() {
                     override fun getAxisLabel(value: Float, axis: com.github.mikephil.charting.components.AxisBase?): String {
-                        return currencyFormatter.format(value.toDouble())
+                        return currencyConverter.formatAmount(value.toDouble())
                     }
                 }
             }
@@ -431,7 +434,7 @@ class ReportsFragment : Fragment() {
 
     private fun updateMonthlySummary(summary: FirebaseReportsViewModel.MonthlySummary) {
         // Display total spending prominently
-        binding.totalSpendingAmountTextView.text = currencyFormatter.format(summary.totalSpent)
+        binding.totalSpendingAmountTextView.text = currencyConverter.formatAmount(summary.totalSpent)
         
         // Create detailed spending change text with better formatting
         val changeText = when {
@@ -505,7 +508,7 @@ class ReportsFragment : Fragment() {
         
         // Update center text with total
         val totalSpent = categoryData.sumOf { it.amount }
-        binding.categoryPieChart.setCenterText("Total\n${currencyFormatter.format(totalSpent)}")
+        binding.categoryPieChart.setCenterText("Total\n${currencyConverter.formatAmount(totalSpent)}")
         
         binding.categoryPieChart.invalidate()
         
@@ -573,7 +576,7 @@ class ReportsFragment : Fragment() {
             // Amount or percentage based on current display mode
             val amountView = android.widget.TextView(requireContext()).apply {
                 text = if (showAmounts) {
-                    "${currencyFormatter.format(category.amount)}"
+                    currencyConverter.formatAmount(category.amount)
                 } else {
                     "${String.format("%.1f", category.percentage)}%"
                 }
@@ -650,8 +653,8 @@ class ReportsFragment : Fragment() {
     }
 
     private fun updateTimePeriodAnalysisSummary(analysis: FirebaseReportsViewModel.TimePeriodAnalysis) {
-        binding.periodTotalSpentTextView.text = currencyFormatter.format(analysis.totalSpent)
-        binding.periodDailyAverageTextView.text = currencyFormatter.format(analysis.dailyAverage)
+        binding.periodTotalSpentTextView.text = currencyConverter.formatAmount(analysis.totalSpent)
+        binding.periodDailyAverageTextView.text = currencyConverter.formatAmount(analysis.dailyAverage)
         binding.periodTrendTextView.text = analysis.trend
         
         // Set trend color

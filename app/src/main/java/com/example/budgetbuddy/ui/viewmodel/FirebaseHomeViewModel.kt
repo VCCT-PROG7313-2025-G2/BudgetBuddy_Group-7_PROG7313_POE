@@ -27,6 +27,7 @@ import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 import com.github.mikephil.charting.data.BarEntry
+import com.example.budgetbuddy.util.CurrencyConverter
 
 /**
  * Firebase-based HomeViewModel that replaces the Room-based version.
@@ -60,7 +61,8 @@ class FirebaseHomeViewModel @Inject constructor(
     private val budgetRepository: FirebaseBudgetRepository,
     private val expenseRepository: FirebaseExpenseRepository,
     private val rewardsRepository: FirebaseRewardsRepository,
-    private val sessionManager: FirebaseSessionManager
+    private val sessionManager: FirebaseSessionManager,
+    private val currencyConverter: CurrencyConverter
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FirebaseHomeUiState(isLoading = true))
@@ -197,13 +199,13 @@ class FirebaseHomeViewModel @Inject constructor(
             // If no budget exists, show default categories with 0 spending
             return getDefaultCategoryNames().map { categoryName ->
                 val spent = categorySpending[categoryName] ?: BigDecimal.ZERO
-                Log.d("FirebaseHomeViewModel", "Default category $categoryName: R$spent spent (no budget)")
-                HomeCategoryItemUiState(
-                    name = categoryName,
-                    progress = 0, // No budget set
-                    percentageText = "No budget set",
-                    iconResId = getCategoryIconRes(categoryName)
-                )
+                            Log.d("FirebaseHomeViewModel", "Default category $categoryName: ${currencyConverter.formatAmount(spent)} spent (no budget)")
+            HomeCategoryItemUiState(
+                name = categoryName,
+                progress = 0, // No budget set
+                percentageText = "No budget set",
+                iconResId = getCategoryIconRes(categoryName)
+            )
             }
         }
 
@@ -227,9 +229,9 @@ class FirebaseHomeViewModel @Inject constructor(
             
             // Create a nice display text showing spent vs allocated
             val percentageText = if (allocated > BigDecimal.ZERO) {
-                "R${spent.toInt()} / R${allocated.toInt()}"
+                "${currencyConverter.formatAmount(spent.toDouble())} / ${currencyConverter.formatAmount(allocated.toDouble())}"
             } else {
-                if (spent > BigDecimal.ZERO) "R${spent.toInt()} spent" else "No budget"
+                if (spent > BigDecimal.ZERO) "${currencyConverter.formatAmount(spent.toDouble())} spent" else "No budget"
             }
             
             Log.d("FirebaseHomeViewModel", "Category ${categoryBudget.categoryName}: $percentageText (${progress}%)")
@@ -281,7 +283,7 @@ class FirebaseHomeViewModel @Inject constructor(
             val dateKey = dateFormat.format(expense.getDateAsDate())
             val currentTotal = dailyTotals[dateKey] ?: BigDecimal.ZERO
             dailyTotals[dateKey] = currentTotal + expense.getAmountAsBigDecimal()
-            Log.d("FirebaseHomeViewModel", "Added R${expense.getAmountAsBigDecimal()} to $dateKey (running total: R${dailyTotals[dateKey]})")
+            Log.d("FirebaseHomeViewModel", "Added ${currencyConverter.formatAmount(expense.getAmountAsBigDecimal())} to $dateKey (running total: ${currencyConverter.formatAmount(dailyTotals[dateKey]!!)})")
         }
 
         // Now let's build the chart data for the past 7 days (including today)
@@ -301,7 +303,7 @@ class FirebaseHomeViewModel @Inject constructor(
             entries.add(BarEntry((6 - i).toFloat(), amount.toFloat()))
             labels.add(dayLabel)
             
-            Log.d("FirebaseHomeViewModel", "Chart day ${dayLabel}: R$amount ${if (amount == BigDecimal.ZERO) "(no spending)" else ""}")
+            Log.d("FirebaseHomeViewModel", "Chart day ${dayLabel}: ${currencyConverter.formatAmount(amount)} ${if (amount == BigDecimal.ZERO) "(no spending)" else ""}")
         }
 
         Log.d("FirebaseHomeViewModel", "Chart ready! Created ${entries.size} bars showing your spending pattern")

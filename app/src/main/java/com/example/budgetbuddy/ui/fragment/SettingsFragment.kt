@@ -143,6 +143,8 @@ class SettingsFragment : Fragment() {
                     if (state.currencyChangeSuccess) {
                         Toast.makeText(context, "Currency changed to ${state.selectedCurrency}", Toast.LENGTH_SHORT).show()
                         viewModel.clearCurrencyChangeSuccess()
+                        // Trigger a recreation of the activity to update all currency symbols
+                        requireActivity().recreate()
                     }
 
                     // Handle errors
