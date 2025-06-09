@@ -224,26 +224,32 @@ class ExpenseHistoryFragment : Fragment() {
 
     private fun viewReceipt(uri: Uri) {
         try {
-            // Handle both local files and URLs
-            val intent = if (uri.scheme == "http" || uri.scheme == "https") {
-                // For URLs, open in browser or image viewer
-                Intent(Intent.ACTION_VIEW, uri)
-            } else {
-                // For local files
-                Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(uri, "image/*")
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                }
-            }
+            // Show receipt in a custom dialog fragment for better in-app experience
+            val receiptDialog = com.example.budgetbuddy.ui.dialog.ReceiptDialogFragment.newInstance(uri)
+            receiptDialog.show(childFragmentManager, "ReceiptDialog")
             
-            if (intent.resolveActivity(requireContext().packageManager) != null) {
-                startActivity(intent)
-            } else {
-                Toast.makeText(context, "No app found to view images", Toast.LENGTH_SHORT).show()
-            }
         } catch (e: Exception) {
             Log.e("ExpenseHistoryFragment", "Error viewing receipt", e)
-            Toast.makeText(context, "Error opening receipt", Toast.LENGTH_SHORT).show()
+            // Fallback to external intent if dialog fails
+            try {
+                val intent = if (uri.scheme == "http" || uri.scheme == "https") {
+                    Intent(Intent.ACTION_VIEW, uri)
+                } else {
+                    Intent(Intent.ACTION_VIEW).apply {
+                        setDataAndType(uri, "image/*")
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                }
+                
+                if (intent.resolveActivity(requireContext().packageManager) != null) {
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(context, "No app found to view images", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e2: Exception) {
+                Log.e("ExpenseHistoryFragment", "Error with fallback intent", e2)
+                Toast.makeText(context, "Error opening receipt", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -251,7 +257,6 @@ class ExpenseHistoryFragment : Fragment() {
         super.onDestroyView()
         _binding = null
         
-        // Restore action bar when leaving
-        (activity as? androidx.appcompat.app.AppCompatActivity)?.supportActionBar?.show()
+        // Don't manually show action bar - let MainActivity handle it
     }
 } 

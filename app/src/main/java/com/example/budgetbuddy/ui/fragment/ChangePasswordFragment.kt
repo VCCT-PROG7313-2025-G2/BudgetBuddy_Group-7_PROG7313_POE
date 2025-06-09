@@ -43,17 +43,10 @@ class ChangePasswordFragment : Fragment() {
     }
 
     private fun setupStatusBar() {
-        // Force white status bar and hide MainActivity action bar
+        // Force white status bar (action bar hiding handled by MainActivity)
         activity?.window?.statusBarColor = Color.WHITE
         @Suppress("DEPRECATION")
         activity?.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-        
-        // Set action bar color to black before hiding to prevent purple flash
-        (activity as? AppCompatActivity)?.supportActionBar?.let { actionBar ->
-            // Set the action bar background to black before hiding
-            actionBar.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.BLACK))
-            actionBar.hide()
-        }
     }
 
     private fun setupClickListeners() {
@@ -148,13 +141,7 @@ class ChangePasswordFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         
-        // Restore action bar when leaving change password with correct black color
-        (activity as? AppCompatActivity)?.supportActionBar?.let { actionBar ->
-            // Set the action bar background to black before showing
-            actionBar.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.BLACK))
-            actionBar.show()
-        }
-        
+        // Don't manually show/hide action bar - let MainActivity handle it
         _binding = null
     }
 } 

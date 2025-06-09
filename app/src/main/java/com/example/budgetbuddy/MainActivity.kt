@@ -83,6 +83,8 @@ class MainActivity : AppCompatActivity() {
                     // Set white background and black text for action bar
                     binding.toolbar.setBackgroundColor(android.graphics.Color.WHITE)
                     binding.toolbar.setTitleTextColor(android.graphics.Color.BLACK)
+                    // Clear the action bar background drawable to prevent theme conflicts
+                    supportActionBar?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.WHITE))
                     // Center the title by using a custom title
                     binding.toolbar.title = ""
                     binding.toolbar.setNavigationIcon(null)
@@ -111,20 +113,30 @@ class MainActivity : AppCompatActivity() {
                     bottomNavigationView.visibility = View.VISIBLE
                     supportActionBar?.show() // Make sure action bar is visible
                     supportActionBar?.setDisplayHomeAsUpEnabled(false) // Hide back arrow on main screens
-                    // Reset toolbar to normal configuration
+                    // Reset toolbar to normal configuration with explicit black background
                     binding.toolbar.removeAllViews()
                     binding.toolbar.setBackgroundColor(android.graphics.Color.BLACK)
                     binding.toolbar.setTitleTextColor(android.graphics.Color.WHITE)
+                    supportActionBar?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.BLACK))
+                }
+                // For fragments that hide the action bar (Settings, EditProfile, ExpenseHistory etc.)
+                R.id.settingsFragment,
+                R.id.editProfileFragment,
+                R.id.changePasswordFragment,
+                R.id.expenseHistoryFragment -> {
+                    bottomNavigationView.visibility = View.GONE
+                    supportActionBar?.hide() // Hide action bar for these custom toolbar fragments
                 }
                 // Otherwise (on secondary screens like Add Expense), hide bottom nav but show action bar.
                 else -> {
                     bottomNavigationView.visibility = View.GONE
                     supportActionBar?.show() // Make sure action bar is visible
                     supportActionBar?.setDisplayHomeAsUpEnabled(true) // Show back arrow on other screens
-                    // Reset toolbar to normal configuration
+                    // Reset toolbar to normal configuration with explicit black background
                     binding.toolbar.removeAllViews()
                     binding.toolbar.setBackgroundColor(android.graphics.Color.BLACK)
                     binding.toolbar.setTitleTextColor(android.graphics.Color.WHITE)
+                    supportActionBar?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.BLACK))
                 }
             }
         }

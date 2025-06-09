@@ -56,11 +56,10 @@ class SettingsFragment : Fragment() {
     }
 
     private fun setupStatusBar() {
-        // Force white status bar and hide MainActivity action bar
+        // Force white status bar (action bar hiding handled by MainActivity)
         activity?.window?.statusBarColor = Color.WHITE
         @Suppress("DEPRECATION")
         activity?.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-        (activity as? AppCompatActivity)?.supportActionBar?.hide()
     }
 
     private fun setupClickListeners() {
@@ -236,8 +235,7 @@ class SettingsFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Restore action bar when leaving settings
-        (activity as? AppCompatActivity)?.supportActionBar?.show()
+        // Don't manually show/hide action bar - let MainActivity handle it
         _binding = null
     }
 } 
