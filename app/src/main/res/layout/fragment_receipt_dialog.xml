@@ -9,10 +9,9 @@
 
     <ImageView
         android:id="@+id/receiptImageView"
-        android:layout_width="match_parent" 
-        android:layout_height="match_parent" 
+        android:layout_width="0dp" 
+        android:layout_height="0dp" 
         android:scaleType="matrix"
-        android:adjustViewBounds="true"
         android:contentDescription="@string/receipt_image_desc"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -20,17 +19,17 @@
         app:layout_constraintBottom_toBottomOf="parent"
         tools:srcCompat="@tools:sample/backgrounds/scenic" /> 
 
-    <ImageButton
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/closeButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@android:drawable/ic_menu_close_clear_cancel" 
-        android:background="?attr/selectableItemBackgroundBorderless"
-        app:tint="@color/white" 
-        android:layout_margin="8dp"
-        android:elevation="4dp" 
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_close"
+        app:backgroundTint="@color/black"
+        app:tint="@color/white"
+        app:fabSize="mini"
         android:contentDescription="@string/close_dialog_desc"
-        app:layout_constraintTop_toTopOf="@id/receiptImageView"
-        app:layout_constraintEnd_toEndOf="@id/receiptImageView"/>
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout> 

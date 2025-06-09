@@ -192,9 +192,27 @@ class NewExpenseFragment : Fragment() {
         binding.backButton.setOnClickListener {
             findNavController().navigateUp()
         }
-        // Receipt preview: Clear the selected receipt.
+        // Receipt preview: Show full view or clear the selected receipt.
         binding.receiptPreviewImageView.setOnClickListener {
-            clearReceiptPreview()
+            copiedReceiptPath?.let { path ->
+                // Show full-screen receipt view
+                val receiptUri = Uri.fromFile(File(path))
+                val receiptDialog = com.example.budgetbuddy.ui.dialog.ReceiptDialogFragment.newInstance(receiptUri)
+                receiptDialog.show(childFragmentManager, "ReceiptDialog")
+            }
+        }
+        
+        // Long press to clear receipt
+        binding.receiptPreviewImageView.setOnLongClickListener {
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Remove Receipt")
+                .setMessage("Do you want to remove this receipt?")
+                .setPositiveButton("Remove") { _, _ ->
+                    clearReceiptPreview()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+            true
         }
         // Date text field: Show the date picker dialog.
         binding.dateEditText.setOnClickListener {

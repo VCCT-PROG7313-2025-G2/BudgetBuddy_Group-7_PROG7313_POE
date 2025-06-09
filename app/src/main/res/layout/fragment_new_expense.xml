@@ -123,11 +123,16 @@
     <!-- Attached Receipt Preview -->
     <ImageView
         android:id="@+id/receiptPreviewImageView"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
         android:layout_marginStart="16dp"
         android:scaleType="centerCrop"
+        android:background="@drawable/bg_circle_gray"
+        android:padding="2dp"
         android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
         tools:visibility="visible"
         tools:src="@tools:sample/backgrounds/scenic"
         android:contentDescription="@string/receipt_preview_desc"

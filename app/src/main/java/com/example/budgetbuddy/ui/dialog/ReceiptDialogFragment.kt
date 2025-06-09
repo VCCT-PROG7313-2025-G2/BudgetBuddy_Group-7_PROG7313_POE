@@ -4,6 +4,7 @@ import android.graphics.Matrix
 import android.graphics.PointF
 import android.net.Uri
 import android.os.Bundle
+import android.view.GestureDetector
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
@@ -31,9 +32,10 @@ class ReceiptDialogFragment : DialogFragment() {
     private var start = PointF()
     private var mid = PointF()
     private var mode = NONE
-    private var minScale = 1f
+    private var minScale = 0.5f
     private var maxScale = 4f
     private var scaleDetector: ScaleGestureDetector? = null
+    private var imageLoaded = false
 
     companion object {
         const val TAG = "ReceiptDialog"
@@ -78,15 +80,81 @@ class ReceiptDialogFragment : DialogFragment() {
         receiptUri?.let { uri ->
             Glide.with(this)
                 .load(uri)
-                .error(R.drawable.ic_broken_image) // Placeholder for error
+                .error(R.drawable.ic_broken_image)
                 .into(binding.receiptImageView)
+                
+            // Wait for image to load and fit to screen
+            binding.receiptImageView.post {
+                binding.receiptImageView.drawable?.let { drawable ->
+                    fitImageToScreen(drawable.intrinsicWidth, drawable.intrinsicHeight)
+                }
+            }
         } ?: run {
             // Handle case where URI is null (optional)
             binding.receiptImageView.setImageResource(R.drawable.ic_broken_image)
         }
 
+        setupTouchListeners()
+
+        binding.closeButton.setOnClickListener {
+            dismiss() // Close the dialog
+        }
+    }
+
+    private fun fitImageToScreen(imageWidth: Int, imageHeight: Int) {
+        if (imageWidth <= 0 || imageHeight <= 0) return
+
+        val viewWidth = binding.receiptImageView.width.toFloat()
+        val viewHeight = binding.receiptImageView.height.toFloat()
+        
+        if (viewWidth <= 0 || viewHeight <= 0) {
+            // Wait for view to be measured
+            binding.receiptImageView.post {
+                fitImageToScreen(imageWidth, imageHeight)
+            }
+            return
+        }
+
+        // Calculate scale to fit image inside view bounds
+        val scaleX = viewWidth / imageWidth
+        val scaleY = viewHeight / imageHeight
+        val scale = min(scaleX, scaleY)
+
+        // Center the image
+        val scaledWidth = imageWidth * scale
+        val scaledHeight = imageHeight * scale
+        val dx = (viewWidth - scaledWidth) * 0.5f
+        val dy = (viewHeight - scaledHeight) * 0.5f
+
+        // Reset and setup matrix
+        matrix.reset()
+        matrix.postScale(scale, scale)
+        matrix.postTranslate(dx, dy)
+        
+        binding.receiptImageView.imageMatrix = matrix
+        imageLoaded = true
+    }
+
+    private fun setupTouchListeners() {
+        // Set up double-tap detector
+        val gestureDetector = android.view.GestureDetector(requireContext(), object : android.view.GestureDetector.SimpleOnGestureListener() {
+            override fun onDoubleTap(e: MotionEvent): Boolean {
+                if (!imageLoaded) return false
+                
+                val currentScale = getMatrixScale(matrix)
+                val targetScale = if (currentScale < 2f) 3f else 1f
+                
+                // Animate to target scale
+                zoomToScale(targetScale, e.x, e.y)
+                return true
+            }
+        })
+        
         // Set up touch listeners for zooming and panning
         binding.receiptImageView.setOnTouchListener { _, event ->
+            if (!imageLoaded) return@setOnTouchListener false
+            
+            gestureDetector.onTouchEvent(event)
             scaleDetector?.onTouchEvent(event)
             
             when (event.action and MotionEvent.ACTION_MASK) {
@@ -103,6 +171,7 @@ class ReceiptDialogFragment : DialogFragment() {
                     if (mode == DRAG) {
                         matrix.set(savedMatrix)
                         matrix.postTranslate(event.x - start.x, event.y - start.y)
+                        binding.receiptImageView.imageMatrix = matrix
                     }
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> {
@@ -110,13 +179,16 @@ class ReceiptDialogFragment : DialogFragment() {
                 }
             }
             
-            binding.receiptImageView.imageMatrix = matrix
             true
         }
+    }
 
-        binding.closeButton.setOnClickListener {
-            dismiss() // Close the dialog
-        }
+    private fun zoomToScale(targetScale: Float, focusX: Float, focusY: Float) {
+        val currentScale = getMatrixScale(matrix)
+        val scaleFactor = targetScale / currentScale
+        
+        matrix.postScale(scaleFactor, scaleFactor, focusX, focusY)
+        binding.receiptImageView.imageMatrix = matrix
     }
 
     private inner class ScaleListener : ScaleGestureDetector.SimpleOnScaleGestureListener() {
@@ -144,7 +216,6 @@ class ReceiptDialogFragment : DialogFragment() {
         // Set dialog to match parent for fullscreen viewing
         dialog?.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
     }
-
 
     override fun onDestroyView() {
         super.onDestroyView()
