@@ -245,6 +245,12 @@ git clone https://github.com/ST10359034/BudgetBuddy.git
 
 ---
 
+## Video Demonstration Link
+
+https://youtu.be/QN1Gl3wHmoY
+
+---
+
 ## 🧑‍🤝‍🧑 Team Members
 
 | Name | Student Number | Contribution |
