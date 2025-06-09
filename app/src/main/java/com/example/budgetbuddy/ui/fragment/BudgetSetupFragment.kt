@@ -17,13 +17,15 @@ import com.example.budgetbuddy.R
 import com.example.budgetbuddy.adapter.CategoryBudgetAdapter
 import com.example.budgetbuddy.databinding.FragmentBudgetSetupBinding
 import com.example.budgetbuddy.model.CategoryBudget
-import com.example.budgetbuddy.ui.viewmodel.BudgetSetupUiState
-import com.example.budgetbuddy.ui.viewmodel.BudgetSetupViewModel
-import com.example.budgetbuddy.ui.viewmodel.CategoryBudgetInput
+import com.example.budgetbuddy.ui.viewmodel.FirebaseBudgetSetupUiState
+import com.example.budgetbuddy.ui.viewmodel.FirebaseBudgetSetupViewModel
+import com.example.budgetbuddy.ui.viewmodel.CategoryBudgetInputUiState
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import androidx.core.view.isVisible
+import android.text.TextWatcher
+import android.text.Editable
 
 @AndroidEntryPoint
 class BudgetSetupFragment : Fragment() {
@@ -31,7 +33,7 @@ class BudgetSetupFragment : Fragment() {
     private var _binding: FragmentBudgetSetupBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: BudgetSetupViewModel by viewModels()
+    private val viewModel: FirebaseBudgetSetupViewModel by viewModels()
     private lateinit var categoryBudgetAdapter: CategoryBudgetAdapter
     private val categoryBudgets = mutableListOf<CategoryBudget>() // Store current category budget data
 
@@ -56,7 +58,11 @@ class BudgetSetupFragment : Fragment() {
         setupClickListeners()
         observeViewModel()
         setupRecyclerView()
+        setupBudgetValidation()
         loadBudgetData() // Load existing or default budgets
+        
+        // Try to load existing budget for current month
+        loadExistingBudgetIfExists()
     }
 
     override fun onResume() {
@@ -67,6 +73,47 @@ class BudgetSetupFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         // Don't show the action bar on pause to prevent it from flashing
+    }
+
+    private fun setupBudgetValidation() {
+        binding.monthlyBudgetEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            
+            override fun afterTextChanged(s: Editable?) {
+                val budgetText = s?.toString() ?: ""
+                
+                if (budgetText.isNotBlank()) {
+                    try {
+                        val budgetAmount = BigDecimal(budgetText)
+                        val minimumBudget = com.example.budgetbuddy.util.Constants.Budget.MINIMUM_BUDGET_AMOUNT
+                        
+                        when {
+                            budgetAmount <= BigDecimal.ZERO -> {
+                                binding.monthlyBudgetInputLayout.error = "Budget must be greater than zero"
+                                binding.monthlyBudgetInputLayout.helperText = null
+                            }
+                            budgetAmount < minimumBudget -> {
+                                binding.monthlyBudgetInputLayout.error = "Budget must be at least $$minimumBudget"
+                                binding.monthlyBudgetInputLayout.helperText = null
+                            }
+                            else -> {
+                                binding.monthlyBudgetInputLayout.error = null
+                                binding.monthlyBudgetInputLayout.helperText = "Minimum budget: $$minimumBudget"
+                            }
+                        }
+                    } catch (e: NumberFormatException) {
+                        binding.monthlyBudgetInputLayout.error = "Please enter a valid amount"
+                        binding.monthlyBudgetInputLayout.helperText = null
+                    }
+                } else {
+                    binding.monthlyBudgetInputLayout.error = null
+                    val minimumBudget = com.example.budgetbuddy.util.Constants.Budget.MINIMUM_BUDGET_AMOUNT
+                    binding.monthlyBudgetInputLayout.helperText = "Minimum budget: $$minimumBudget"
+                }
+            }
+        })
     }
 
     private fun setupClickListeners() {
@@ -90,15 +137,28 @@ class BudgetSetupFragment : Fragment() {
 
     private fun setupRecyclerView() {
         categoryBudgetAdapter = CategoryBudgetAdapter { categoryBudget, newLimit ->
-            // TODO: Handle the updated limit for a specific category
-            // Find the item in our local list and update it
+            // Update the ViewModel when user changes category amount
+            android.util.Log.d("BudgetSetupFragment", "Category ${categoryBudget.categoryName} updated to: $newLimit")
+            
+            val amount = when {
+                newLimit == null -> BigDecimal.ZERO
+                newLimit <= 0.0 -> BigDecimal.ZERO
+                else -> try {
+                    BigDecimal(newLimit.toString())
+                } catch (e: NumberFormatException) {
+                    android.util.Log.e("BudgetSetupFragment", "Invalid amount format: $newLimit", e)
+                    BigDecimal.ZERO
+                }
+            }
+            
+            // Update the ViewModel - this will trigger observers to update the UI
+            viewModel.updateCategoryAllocation(categoryBudget.categoryName, amount)
+            
+            // Also update our local list for consistency
             val index = categoryBudgets.indexOfFirst { it.categoryId == categoryBudget.categoryId }
             if (index != -1) {
                 categoryBudgets[index].budgetLimit = newLimit
-                // Note: Adapter's internal list is handled by submitList.
-                // This update is for our local copy if needed for saving.
             }
-            println("Updated budget for ${categoryBudget.categoryName}: $newLimit") // Placeholder
         }
         binding.categoryBudgetsRecyclerView.apply {
             layoutManager = LinearLayoutManager(context)
@@ -108,58 +168,251 @@ class BudgetSetupFragment : Fragment() {
     }
 
     private fun loadBudgetData() {
-        // TODO: Load existing budget data from ViewModel/Repository
-        // For now, load placeholder categories
-        val placeholderMonthlyBudget = 2000.0 // Example
-        binding.monthlyBudgetEditText.setText(String.format("%.2f", placeholderMonthlyBudget))
-
+        // Load data from ViewModel instead of placeholder data
+        // The actual data will come from observeViewModel() observers
+        // Just initialize empty state - data will be populated by observers
         categoryBudgets.clear()
-        categoryBudgets.addAll(getPlaceholderCategoryBudgets())
-        categoryBudgetAdapter.submitList(categoryBudgets.toList()) // Submit a copy to ListAdapter
+        categoryBudgetAdapter.submitList(emptyList())
     }
 
     private fun saveBudgetData() {
-        val monthlyBudgetText = binding.monthlyBudgetEditText.text.toString()
-        val totalBudget = try {
-            if (monthlyBudgetText.isNotBlank()) BigDecimal(monthlyBudgetText) else BigDecimal.ZERO
-        } catch (e: NumberFormatException) {
-            Toast.makeText(context, "Invalid monthly budget amount", Toast.LENGTH_SHORT).show()
-            return
-        }
+        android.util.Log.d("BudgetSetupFragment", "=== Starting saveBudgetData ===")
+        
+        // Disable button to prevent multiple clicks
+        binding.saveBudgetButton.isEnabled = false
+        
+        try {
+            val monthlyBudgetText = binding.monthlyBudgetEditText.text.toString()
+            android.util.Log.d("BudgetSetupFragment", "Monthly budget text: '$monthlyBudgetText'")
+            
+            val totalBudget = try {
+                if (monthlyBudgetText.isNotBlank()) BigDecimal(monthlyBudgetText) else BigDecimal.ZERO
+            } catch (e: NumberFormatException) {
+                android.util.Log.e("BudgetSetupFragment", "Invalid budget format", e)
+                Toast.makeText(context, "Invalid monthly budget amount", Toast.LENGTH_SHORT).show()
+                binding.saveBudgetButton.isEnabled = true
+                return
+            }
+            android.util.Log.d("BudgetSetupFragment", "Parsed total budget: $totalBudget")
 
-        // Map the current CategoryBudget list (from fragment state) to CategoryBudgetInput for ViewModel
-        val categoryBudgetInputs = categoryBudgets.map {
-            CategoryBudgetInput(
-                categoryName = it.categoryName,
-                // Ensure limit is not null, default to ZERO if it is (or handle appropriately)
-                limit = it.budgetLimit?.toBigDecimal() ?: BigDecimal.ZERO
-            )
-        }
+            // Validate minimum budget
+            if (totalBudget <= BigDecimal.ZERO) {
+                android.util.Log.w("BudgetSetupFragment", "Budget is zero or negative")
+                Toast.makeText(context, "Please enter a valid budget amount", Toast.LENGTH_SHORT).show()
+                binding.saveBudgetButton.isEnabled = true
+                return
+            } else if (totalBudget < com.example.budgetbuddy.util.Constants.Budget.MINIMUM_BUDGET_AMOUNT) {
+                android.util.Log.w("BudgetSetupFragment", "Budget is below minimum threshold")
+                Toast.makeText(context, "Budget must be at least $${com.example.budgetbuddy.util.Constants.Budget.MINIMUM_BUDGET_AMOUNT}", Toast.LENGTH_LONG).show()
+                binding.saveBudgetButton.isEnabled = true
+                return
+            }
 
-        viewModel.saveBudget(totalBudget, categoryBudgetInputs)
+            android.util.Log.d("BudgetSetupFragment", "Setting total budget in ViewModel: $totalBudget")
+            // First set the total budget
+            viewModel.setTotalBudget(totalBudget)
+            
+            android.util.Log.d("BudgetSetupFragment", "Processing ${categoryBudgets.size} categories")
+            // Add each category to the ViewModel
+            categoryBudgets.forEachIndexed { index, categoryBudget ->
+                try {
+                    android.util.Log.d("BudgetSetupFragment", "Processing category $index: '${categoryBudget.categoryName}', budgetLimit: '${categoryBudget.budgetLimit}'")
+                    
+                    val amount = when {
+                        categoryBudget.budgetLimit == null -> {
+                            android.util.Log.d("BudgetSetupFragment", "Category ${categoryBudget.categoryName} has null budgetLimit, using ZERO")
+                            BigDecimal.ZERO
+                        }
+                        categoryBudget.budgetLimit!! <= 0.0 -> {
+                            android.util.Log.d("BudgetSetupFragment", "Category ${categoryBudget.categoryName} has zero/negative budgetLimit, using ZERO")
+                            BigDecimal.ZERO
+                        }
+                        else -> {
+                            try {
+                                val bdAmount = BigDecimal(categoryBudget.budgetLimit!!.toString())
+                                android.util.Log.d("BudgetSetupFragment", "Category ${categoryBudget.categoryName} converted to BigDecimal: $bdAmount")
+                                bdAmount
+                            } catch (nfe: NumberFormatException) {
+                                android.util.Log.e("BudgetSetupFragment", "Failed to convert budgetLimit '${categoryBudget.budgetLimit}' to BigDecimal", nfe)
+                                BigDecimal.ZERO
+                            }
+                        }
+                    }
+                    
+                                android.util.Log.d("BudgetSetupFragment", "========== SETTING CATEGORY ==========")
+            android.util.Log.d("BudgetSetupFragment", "Category: ${categoryBudget.categoryName}")
+            android.util.Log.d("BudgetSetupFragment", "Raw budgetLimit: ${categoryBudget.budgetLimit}")
+            android.util.Log.d("BudgetSetupFragment", "Converted amount: $amount")
+            android.util.Log.d("BudgetSetupFragment", "========================================")
+            viewModel.updateCategoryAllocation(categoryBudget.categoryName, amount)
+                } catch (e: Exception) {
+                    android.util.Log.e("BudgetSetupFragment", "Error processing category ${categoryBudget.categoryName}", e)
+                    // Continue with other categories even if one fails
+                }
+            }
+
+            android.util.Log.d("BudgetSetupFragment", "Calling viewModel.saveBudget()")
+            // Save the budget
+            viewModel.saveBudget()
+            
+        } catch (e: Exception) {
+            android.util.Log.e("BudgetSetupFragment", "Error in saveBudgetData", e)
+            android.util.Log.e("BudgetSetupFragment", "Exception type: ${e.javaClass.simpleName}")
+            android.util.Log.e("BudgetSetupFragment", "Exception message: '${e.message}'")
+            android.util.Log.e("BudgetSetupFragment", "Exception cause: '${e.cause}'")
+            
+            val errorMessage = when {
+                e.message != null -> "Save error: ${e.message}"
+                e.cause?.message != null -> "Save error: ${e.cause?.message}"
+                else -> "Save error: ${e.javaClass.simpleName} - Unknown error occurred"
+            }
+            
+            Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+            binding.saveBudgetButton.isEnabled = true
+        }
     }
 
     private fun observeViewModel() {
+        // Use repeatOnLifecycle to properly handle lifecycle changes
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { state ->
-                    // TODO: Handle loading state (e.g., show progress bar)
-                    binding.saveBudgetButton.isEnabled = state !is BudgetSetupUiState.Loading
+                // Observe UI state for loading/success/error
+                launch {
+                    try {
+                        viewModel.uiState.collect { state ->
+                            if (!isAdded || _binding == null) {
+                                android.util.Log.w("BudgetSetupFragment", "Fragment not active during UI state update")
+                                return@collect
+                            }
+                            
+                            binding.saveBudgetButton.isEnabled = state !is FirebaseBudgetSetupUiState.Loading
 
-                    when (state) {
-                        is BudgetSetupUiState.Success -> {
-                            Toast.makeText(context, "Budget saved successfully!", Toast.LENGTH_SHORT).show()
-                            findNavController().navigateUp() // Navigate back after success
-                            viewModel.resetState() // Reset state in ViewModel
+                            when (state) {
+                                is FirebaseBudgetSetupUiState.Success -> {
+                                    android.util.Log.d("BudgetSetupFragment", "Budget save success received")
+                                    Toast.makeText(context, "Budget saved successfully!", Toast.LENGTH_SHORT).show()
+                                    
+                                    // Add a small delay before navigation to ensure UI updates complete
+                                    kotlinx.coroutines.delay(500)
+                                    
+                                    if (isAdded && _binding != null) {
+                                        try {
+                                            findNavController().navigateUp()
+                                        } catch (e: Exception) {
+                                            android.util.Log.e("BudgetSetupFragment", "Navigation error", e)
+                                        }
+                                    }
+                                }
+                                is FirebaseBudgetSetupUiState.Error -> {
+                                    android.util.Log.e("BudgetSetupFragment", "ViewModel error: '${state.message}'")
+                                    
+                                    val errorMessage = when {
+                                        state.message.isNotBlank() -> "Error: ${state.message}"
+                                        else -> "Error: Unknown error from ViewModel"
+                                    }
+                                    
+                                    Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                                    binding.saveBudgetButton.isEnabled = true
+                                }
+                                is FirebaseBudgetSetupUiState.Loading -> {
+                                    android.util.Log.d("BudgetSetupFragment", "Budget save in progress...")
+                                    // Keep button disabled during loading
+                                }
+                                is FirebaseBudgetSetupUiState.Idle -> {
+                                    binding.saveBudgetButton.isEnabled = true
+                                }
+                            }
                         }
-                        is BudgetSetupUiState.Error -> {
-                            Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_LONG).show()
-                            viewModel.resetState()
-                        }
-                        else -> Unit // Idle or Loading
+                    } catch (e: Exception) {
+                        android.util.Log.e("BudgetSetupFragment", "Error in UI state observer", e)
                     }
                 }
             }
+        }
+
+        // Observe categories in a separate coroutine to prevent interference
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                try {
+                    viewModel.categories.collect { categoryInputStates ->
+                        if (!isAdded || _binding == null) {
+                            android.util.Log.w("BudgetSetupFragment", "Fragment not active during category update")
+                            return@collect
+                        }
+                        
+                        android.util.Log.d("BudgetSetupFragment", "Received ${categoryInputStates.size} categories from ViewModel")
+                        
+                        // Convert ViewModel states to UI models
+                        val uiCategories = categoryInputStates.mapIndexed { index, categoryState ->
+                            CategoryBudget(
+                                categoryId = "category_$index",
+                                categoryName = categoryState.categoryName,
+                                categoryIconRes = getCategoryIcon(categoryState.categoryName),
+                                budgetLimit = if (categoryState.allocatedAmount > BigDecimal.ZERO) 
+                                    categoryState.allocatedAmount.toDouble() else null
+                            )
+                        }
+                        
+                        // Update the list
+                        categoryBudgets.clear()
+                        categoryBudgets.addAll(uiCategories)
+                        
+                        // Notify adapter of changes
+                        try {
+                            categoryBudgetAdapter.submitList(categoryBudgets.toList()) {
+                                android.util.Log.d("BudgetSetupFragment", "Category list submitted to adapter")
+                            }
+                        } catch (e: Exception) {
+                            android.util.Log.e("BudgetSetupFragment", "Error updating adapter", e)
+                        }
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("BudgetSetupFragment", "Error in category observer", e)
+                }
+            }
+        }
+
+        // Observe total budget in a separate coroutine
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                try {
+                    viewModel.totalBudget.collect { totalBudget ->
+                        if (!isAdded || _binding == null) {
+                            android.util.Log.w("BudgetSetupFragment", "Fragment not active during budget update")
+                            return@collect
+                        }
+                        
+                        android.util.Log.d("BudgetSetupFragment", "Total budget updated: $totalBudget")
+                        
+                        // Update the budget input field
+                        if (totalBudget > BigDecimal.ZERO) {
+                            binding.monthlyBudgetEditText.setText(totalBudget.toString())
+                        }
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("BudgetSetupFragment", "Error observing total budget", e)
+                }
+            }
+        }
+    }
+    
+    // Helper method to get category icon
+    private fun getCategoryIcon(categoryName: String?): Int {
+        return try {
+            when (categoryName?.lowercase()?.trim()) {
+                "food & dining", "food" -> R.drawable.ic_category_food
+                "transportation", "transport" -> R.drawable.ic_category_transport
+                "shopping" -> R.drawable.ic_category_shopping
+                "bills & utilities", "utilities" -> R.drawable.ic_category_utilities
+                "entertainment" -> R.drawable.ic_category_other
+                "healthcare", "health" -> R.drawable.ic_category_other
+                "education" -> R.drawable.ic_category_other
+                "travel" -> R.drawable.ic_category_other
+                else -> R.drawable.ic_category_other
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("BudgetSetupFragment", "Error getting category icon for: $categoryName", e)
+            R.drawable.ic_category_other
         }
     }
 
@@ -176,6 +429,12 @@ class BudgetSetupFragment : Fragment() {
             if (amountText.isNotBlank()) BigDecimal(amountText) else BigDecimal.ZERO
         } catch (e: NumberFormatException) {
             Toast.makeText(context, "Invalid budget amount", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Optional: Validate category amount against a reasonable minimum
+        if (amount > BigDecimal.ZERO && amount < com.example.budgetbuddy.util.Constants.Budget.MINIMUM_CATEGORY_AMOUNT) {
+            Toast.makeText(context, "Category budget should be at least $${com.example.budgetbuddy.util.Constants.Budget.MINIMUM_CATEGORY_AMOUNT}", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -215,8 +474,35 @@ class BudgetSetupFragment : Fragment() {
     }
     // --- End Placeholder Data ---
 
+    private fun loadExistingBudgetIfExists() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val currentUserId = viewModel.getCurrentUserId()
+                val currentMonthYear = viewModel.getCurrentMonthYear()
+                
+                android.util.Log.d("BudgetSetupFragment", "Loading existing budget for $currentUserId, month: $currentMonthYear")
+                
+                // This will trigger the ViewModel to load existing data if it exists
+                viewModel.checkAndLoadExistingBudget(currentMonthYear)
+            } catch (e: Exception) {
+                android.util.Log.e("BudgetSetupFragment", "Error loading existing budget", e)
+            }
+        }
+    }
+
     override fun onDestroyView() {
+        android.util.Log.d("BudgetSetupFragment", "onDestroyView called")
         super.onDestroyView()
         _binding = null
+    }
+    
+    override fun onDetach() {
+        android.util.Log.d("BudgetSetupFragment", "onDetach called")
+        super.onDetach()
+    }
+    
+    override fun onStop() {
+        android.util.Log.d("BudgetSetupFragment", "onStop called")
+        super.onStop()
     }
 } 

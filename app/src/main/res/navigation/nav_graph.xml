@@ -76,10 +76,11 @@
             app:destination="@id/settingsFragment" />
     </fragment>
 
-    <!-- Placeholder for Reports Fragment -->
+    <!-- Reports Fragment -->
     <fragment
         android:id="@+id/reportsFragment"
         android:name="com.example.budgetbuddy.ui.fragment.ReportsFragment"
+        android:label="@string/reports_title"
         tools:layout="@layout/fragment_reports"> 
         <!-- Add actions FROM reports fragment if needed -->
     </fragment>

@@ -103,10 +103,20 @@ class ExpenseHistoryAdapter(
             if (expense.receiptPath != null) {
                 binding.viewReceiptButton.isVisible = true
                 binding.viewReceiptButton.setOnClickListener {
-                    val file = File(expense.receiptPath)
-                    if(file.exists()){
-                        onViewReceiptClicked(Uri.fromFile(file))
+                    val receiptUri = if (expense.receiptPath.startsWith("http")) {
+                        // URL from Firebase Storage
+                        Uri.parse(expense.receiptPath)
+                    } else {
+                        // Local file path
+                        val file = File(expense.receiptPath)
+                        if (file.exists()) {
+                            Uri.fromFile(file)
+                        } else {
+                            null
+                        }
                     }
+                    
+                    receiptUri?.let { onViewReceiptClicked(it) }
                 }
             } else {
                 binding.viewReceiptButton.isVisible = false

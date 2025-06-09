@@ -64,6 +64,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 app:prefixText="$"
+                app:helperText="Minimum budget: $50.00"
+                app:helperTextEnabled="true"
                 app:layout_constraintTop_toBottomOf="@id/monthlyBudgetLabel"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
@@ -79,9 +81,9 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Auto-recommendations Card -->
+    <!-- Minimum Budget Setting Card -->
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/autoRecommendCard"
+        android:id="@+id/minimumBudgetCard"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:cardBackgroundColor="@android:color/white"
@@ -98,34 +100,46 @@
             android:padding="16dp">
 
             <TextView
-                android:id="@+id/autoRecommendLabel"
-                android:layout_width="0dp"
+                android:id="@+id/minimumBudgetLabel"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Auto-Budget Recommendations"
+                android:text="Personal Minimum Budget"
                 android:textAppearance="?attr/textAppearanceSubtitle1"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/autoRecommendSwitch"/>
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/autoRecommendDescription"
+                android:id="@+id/minimumBudgetDescription"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Let AI optimize your budget"
+                android:text="Set your personal minimum budget target"
                 android:textAppearance="?attr/textAppearanceBody2"
                 android:layout_marginTop="4dp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/autoRecommendLabel"
-                app:layout_constraintEnd_toStartOf="@+id/autoRecommendSwitch"/>
+                app:layout_constraintTop_toBottomOf="@id/minimumBudgetLabel"
+                app:layout_constraintEnd_toEndOf="parent"/>
 
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/autoRecommendSwitch"
-                android:layout_width="wrap_content"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/minimumBudgetInputLayout"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:checked="false"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent" />
+                android:layout_marginTop="12dp"
+                android:hint="Minimum Budget Amount"
+                app:prefixText="$"
+                app:helperText="Your personal budget goal"
+                app:helperTextEnabled="true"
+                app:layout_constraintTop_toBottomOf="@id/minimumBudgetDescription"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/minimumBudgetEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal" />
+
+            </com.google.android.material.textfield.TextInputLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.card.MaterialCardView>
@@ -139,7 +153,7 @@
         android:text="@string/category_budgets_label"
         android:textAppearance="?attr/textAppearanceSubtitle1"
         android:textStyle="bold"
-        app:layout_constraintTop_toBottomOf="@id/autoRecommendCard"
+        app:layout_constraintTop_toBottomOf="@id/minimumBudgetCard"
         app:layout_constraintStart_toStartOf="parent" />
 
     <com.google.android.material.button.MaterialButton
@@ -199,6 +213,8 @@
                 android:layout_marginEnd="8dp"
                 android:hint="Budget Amount"
                 app:prefixText="$"
+                app:helperText="Minimum: $5.00"
+                app:helperTextEnabled="true"
                 app:layout_constraintTop_toBottomOf="@id/newCategoryNameInputLayout"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/inlineAddButton">

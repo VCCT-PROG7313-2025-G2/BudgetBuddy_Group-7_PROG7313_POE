@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1064210349525",
+    "project_id": "budgetbuddy-ea85b",
+    "storage_bucket": "budgetbuddy-ea85b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1064210349525:android:16cd1b47c3954f62c6d15c",
+        "android_client_info": {
+          "package_name": "com.example.budgetbuddy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyANJDHOpsKstGsQqg8MkPBIYYH0FjeMjac"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+} 

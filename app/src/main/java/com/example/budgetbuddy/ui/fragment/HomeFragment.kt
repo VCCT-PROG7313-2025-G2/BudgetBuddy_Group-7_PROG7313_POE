@@ -19,8 +19,8 @@ import com.example.budgetbuddy.R
 import com.example.budgetbuddy.databinding.FragmentHomeBinding
 import com.example.budgetbuddy.databinding.ItemHomeCategoryBinding // Import item binding
 import com.example.budgetbuddy.ui.viewmodel.HomeCategoryItemUiState
-import com.example.budgetbuddy.ui.viewmodel.HomeUiState
-import com.example.budgetbuddy.ui.viewmodel.HomeViewModel
+import com.example.budgetbuddy.ui.viewmodel.FirebaseHomeUiState
+import com.example.budgetbuddy.ui.viewmodel.FirebaseHomeViewModel
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit
 import java.text.NumberFormat // For currency formatting
 import java.util.Locale
 import java.math.BigDecimal
+import com.example.budgetbuddy.util.toIntSafe
 
 @AndroidEntryPoint
 class HomeFragment : Fragment() {
@@ -40,7 +41,7 @@ class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: HomeViewModel by viewModels()
+    private val viewModel: FirebaseHomeViewModel by viewModels()
     private lateinit var categoryAdapter: HomeCategoryAdapter
 
     // --- RecyclerView Adapter (Manages how category data is shown in the list) ---
@@ -131,9 +132,11 @@ class HomeFragment : Fragment() {
             findNavController().navigate(budgetSetupAction)
         }
 
-        // Go to the Rewards screen.
+        // Go to the Rewards screen using bottom navigation to maintain proper state.
         binding.rewardsContainer.setOnClickListener {
-            findNavController().navigate(R.id.action_homeFragment_to_rewardsFragment)
+            // Find the bottom navigation view and simulate clicking the rewards tab
+            val bottomNavigation = activity?.findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.bottom_navigation)
+            bottomNavigation?.selectedItemId = R.id.rewardsFragment
         }
 
         // Old temporary navigation clicks were removed.

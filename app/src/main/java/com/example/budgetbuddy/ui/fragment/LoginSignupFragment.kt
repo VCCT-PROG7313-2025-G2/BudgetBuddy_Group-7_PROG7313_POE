@@ -15,8 +15,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.budgetbuddy.R
 import com.example.budgetbuddy.databinding.FragmentLoginSignupBinding
-import com.example.budgetbuddy.ui.viewmodel.AuthUiState
-import com.example.budgetbuddy.ui.viewmodel.AuthViewModel
+import com.example.budgetbuddy.ui.viewmodel.FirebaseAuthUiState
+import com.example.budgetbuddy.ui.viewmodel.FirebaseAuthViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -29,7 +29,7 @@ class LoginSignupFragment : Fragment() {
     private val binding get() = _binding!!
 
     // Get the ViewModel associated with authentication.
-    private val viewModel: AuthViewModel by viewModels()
+    private val viewModel: FirebaseAuthViewModel by viewModels()
 
     // Called when the fragment's view is being created.
     override fun onCreateView(
@@ -93,13 +93,13 @@ class LoginSignupFragment : Fragment() {
                 // Collect the latest state updates.
                 viewModel.uiState.collect { state ->
                     // Enable/disable the login button based on whether loading is in progress.
-                    binding.loginButton.isEnabled = state !is AuthUiState.Loading
+                    binding.loginButton.isEnabled = state !is FirebaseAuthUiState.Loading
                     // TODO: Add a visual loading indicator (spinner).
-                    // binding.loadingIndicator.isVisible = state is AuthUiState.Loading
+                    // binding.loadingIndicator.isVisible = state is FirebaseAuthUiState.Loading
 
                     // Handle the different states (Success, Error, Loading, Idle).
                     when (state) {
-                        is AuthUiState.Success -> {
+                        is FirebaseAuthUiState.Success -> {
                             // Login was successful!
                             Toast.makeText(context, "Login Successful!", Toast.LENGTH_SHORT).show()
                             // Navigate to the main Home screen.
@@ -107,7 +107,7 @@ class LoginSignupFragment : Fragment() {
                             // Reset the ViewModel state to avoid re-navigating if the screen is revisited.
                             viewModel.resetState()
                         }
-                        is AuthUiState.Error -> {
+                        is FirebaseAuthUiState.Error -> {
                             // Show an error message if login failed.
                             Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
                         }

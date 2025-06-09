@@ -22,7 +22,7 @@ import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.example.budgetbuddy.R
 import com.example.budgetbuddy.databinding.FragmentProfileBinding
-import com.example.budgetbuddy.ui.viewmodel.ProfileViewModel
+import com.example.budgetbuddy.ui.viewmodel.FirebaseProfileViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -39,7 +39,7 @@ class ProfileFragment : Fragment() {
     // private val pickImageLauncher = ...
 
     // --- ViewModel --- 
-    private val viewModel: ProfileViewModel by viewModels()
+    private val viewModel: FirebaseProfileViewModel by viewModels()
 
     // --- Lifecycle Methods --- 
     override fun onCreateView(
@@ -66,17 +66,19 @@ class ProfileFragment : Fragment() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 // Collect the latest UI state.
                 viewModel.uiState.collect { state ->
-                    // Update name, email, and budget information text views.
-                    binding.profileNameTextView.text = state.userName
-                    binding.profileEmailTextView.text = state.userEmail
-                    binding.budgetAmountTextView.text = state.budgetLimitText
-                    binding.budgetRemainingTextView.text = state.budgetRemainingText
-                    binding.budgetProgressBar.progress = state.budgetProgress
+                    // Update name, email, and level information text views.
+                    binding.profileNameTextView.text = state.user?.name ?: "User"
+                    binding.profileEmailTextView.text = state.user?.email ?: "No email"
+                    
+                    // Update level and points information instead of budget
+                    binding.budgetAmountTextView.text = "Level ${state.userLevel} - ${state.totalPoints} points"
+                    binding.budgetRemainingTextView.text = viewModel.getLevelProgressText()
+                    binding.budgetProgressBar.progress = viewModel.getLevelProgressPercentage()
 
                     // Load the profile image using Glide.
                     // Uses the URL from the state, or a placeholder if no image is set.
                     Glide.with(this@ProfileFragment)
-                        .load(state.profileImageUrl ?: R.drawable.ic_profile_placeholder)
+                        .load(state.user?.profileImageUrl ?: R.drawable.ic_profile_placeholder)
                         .circleCrop() // Make the image circular.
                         .placeholder(R.drawable.ic_profile_placeholder) // Show placeholder while loading.
                         .into(binding.profileImageView)

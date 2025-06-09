@@ -15,8 +15,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.budgetbuddy.R
 import com.example.budgetbuddy.databinding.FragmentAccountCreationBinding
-import com.example.budgetbuddy.ui.viewmodel.AuthUiState
-import com.example.budgetbuddy.ui.viewmodel.AuthViewModel
+import com.example.budgetbuddy.ui.viewmodel.FirebaseAuthUiState
+import com.example.budgetbuddy.ui.viewmodel.FirebaseAuthViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -26,7 +26,7 @@ class AccountCreationFragment : Fragment() {
     private var _binding: FragmentAccountCreationBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: AuthViewModel by viewModels()
+    private val viewModel: FirebaseAuthViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -79,18 +79,18 @@ class AccountCreationFragment : Fragment() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
                     // Handle UI state changes
-                    binding.signUpButton.isEnabled = state !is AuthUiState.Loading
+                    binding.signUpButton.isEnabled = state !is FirebaseAuthUiState.Loading
                     // TODO: Add progress indicator visibility
-                    // binding.loadingIndicator.isVisible = state is AuthUiState.Loading
+                    // binding.loadingIndicator.isVisible = state is FirebaseAuthUiState.Loading
 
                     when (state) {
-                        is AuthUiState.Success -> {
+                        is FirebaseAuthUiState.Success -> {
                             Toast.makeText(context, "Signup Successful!", Toast.LENGTH_SHORT).show()
                             // Navigate to Home screen after successful signup
                             findNavController().navigate(R.id.action_accountCreationFragment_to_homeFragment)
                             viewModel.resetState() // Reset state after navigation
                         }
-                        is AuthUiState.Error -> {
+                        is FirebaseAuthUiState.Error -> {
                             Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
                         }
                         else -> Unit // Idle or Loading

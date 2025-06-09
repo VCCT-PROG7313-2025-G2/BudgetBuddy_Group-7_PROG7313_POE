@@ -1,12 +1,14 @@
 package com.example.budgetbuddy.ui.fragment
 
+import android.app.DatePickerDialog
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -15,13 +17,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.budgetbuddy.R
 import com.example.budgetbuddy.adapter.ExpenseHistoryAdapter
+import com.example.budgetbuddy.adapter.HistoryListItem
 import com.example.budgetbuddy.databinding.FragmentExpenseHistoryBinding
-import com.example.budgetbuddy.ui.dialog.ReceiptDialogFragment
-import com.example.budgetbuddy.ui.viewmodel.ExpenseHistoryUiState
-import com.example.budgetbuddy.ui.viewmodel.ExpenseHistoryViewModel
-import com.google.android.material.datepicker.MaterialDatePicker
+import com.example.budgetbuddy.model.ExpenseItemUi
+import com.example.budgetbuddy.ui.viewmodel.FirebaseExpenseHistoryViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -33,11 +33,10 @@ class ExpenseHistoryFragment : Fragment() {
     private var _binding: FragmentExpenseHistoryBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: ExpenseHistoryViewModel by viewModels()
+    private val viewModel: FirebaseExpenseHistoryViewModel by viewModels()
     private lateinit var expenseHistoryAdapter: ExpenseHistoryAdapter
 
-    // Date formatter for the chip
-    private val chipDateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+    private val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -48,25 +47,37 @@ class ExpenseHistoryFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         setupRecyclerView()
         setupClickListeners()
         observeViewModel()
-        // Set initial chip text (could be based on VM state if needed)
-        updateChipText(null, null) // Initially show default text
+        setupStatusBar()
+    }
+
+    private fun setupStatusBar() {
+        // Force status bar to be white/transparent
+        activity?.window?.apply {
+            statusBarColor = android.graphics.Color.WHITE
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                decorView.systemUiVisibility = android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            }
+        }
+        
+        // Also hide the action bar completely for this fragment
+        (activity as? androidx.appcompat.app.AppCompatActivity)?.supportActionBar?.hide()
     }
 
     private fun setupRecyclerView() {
         expenseHistoryAdapter = ExpenseHistoryAdapter(
             context = requireContext(),
-            onExpenseClicked = { expenseItem ->
-                // TODO: Handle item click - e.g., navigate to expense details
-                Toast.makeText(context, "Clicked on ${expenseItem.description}", Toast.LENGTH_SHORT).show()
+            onExpenseClicked = { expense ->
+                showExpenseDetails(expense)
             },
-            onViewReceiptClicked = { receiptUri ->
-                // Show the receipt dialog when the button is clicked
-                showReceiptDialog(receiptUri)
+            onViewReceiptClicked = { uri ->
+                viewReceipt(uri)
             }
         )
+
         binding.expensesRecyclerView.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = expenseHistoryAdapter
@@ -77,45 +88,9 @@ class ExpenseHistoryFragment : Fragment() {
         binding.backButton.setOnClickListener {
             findNavController().navigateUp()
         }
+
         binding.dateRangeChip.setOnClickListener {
-            showDateRangePicker()
-        }
-    }
-
-    private fun showDateRangePicker() {
-        // Build the date range picker
-        val dateRangePicker = MaterialDatePicker.Builder.dateRangePicker()
-            .setTitleText("Select Date Range")
-            // Optionally set initial selection
-            // .setSelection(Pair(MaterialDatePicker.thisMonthInUtcMilliseconds(), MaterialDatePicker.todayInUtcMilliseconds()))
-            .build()
-
-        dateRangePicker.addOnPositiveButtonClickListener { selection ->
-            // selection is Pair<Long, Long> representing UTC start and end milliseconds
-            val startDateMillis = selection.first
-            val endDateMillis = selection.second
-
-            // Convert UTC milliseconds to local Date objects
-            val startDate = Date(startDateMillis + TimeZone.getDefault().getOffset(startDateMillis))
-            val endDate = Date(endDateMillis + TimeZone.getDefault().getOffset(endDateMillis))
-
-            // Update the chip text
-            updateChipText(startDate, endDate)
-
-            // Update the ViewModel with the selected range
-            viewModel.setDateRange(startDate, endDate)
-        }
-
-        // Show the picker
-        dateRangePicker.show(parentFragmentManager, "DATE_RANGE_PICKER")
-    }
-
-    private fun updateChipText(startDate: Date?, endDate: Date?) {
-        if (startDate != null && endDate != null) {
-            binding.dateRangeChip.text = "${chipDateFormat.format(startDate)} - ${chipDateFormat.format(endDate)}"
-        } else {
-            // Reset to default text if dates are null
-            binding.dateRangeChip.text = getString(R.string.date_range_last_30_days) // Or "Select Date Range"
+            showDateRangeDialog()
         }
     }
 
@@ -123,43 +98,160 @@ class ExpenseHistoryFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
-                    binding.progressBar.isVisible = state is ExpenseHistoryUiState.Loading
-                    binding.expensesRecyclerView.isVisible = state is ExpenseHistoryUiState.Success
-                    binding.emptyStateTextView.isVisible = state is ExpenseHistoryUiState.Empty || state is ExpenseHistoryUiState.Error
+                    Log.d("ExpenseHistoryFragment", "UI State: isLoading=${state.isLoading}, expenses=${state.expenses.size}")
 
-                    when (state) {
-                        is ExpenseHistoryUiState.Success -> {
-                            expenseHistoryAdapter.submitList(state.items)
-                        }
-                        is ExpenseHistoryUiState.Error -> {
-                            binding.emptyStateTextView.text = state.message
-                             Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_LONG).show()
-                        }
-                        is ExpenseHistoryUiState.Loading -> {
-                            // Handled by progressBar visibility
-                        }
-                        is ExpenseHistoryUiState.Empty -> {
-                             binding.emptyStateTextView.text = "No expenses found."
-                        }
+                    // Update loading indicator
+                    binding.progressBar.isVisible = state.isLoading
+                    
+                    // Update empty state
+                    binding.emptyStateTextView.isVisible = !state.isLoading && state.expenses.isEmpty()
+                    
+                    // Update date range chip text
+                    val startDate = dateFormat.format(state.startDate)
+                    val endDate = dateFormat.format(state.endDate)
+                    binding.dateRangeChip.text = "$startDate - $endDate"
+
+                    // Update recycler view with grouped expenses
+                    if (!state.isLoading) {
+                        val groupedItems = groupExpensesByDate(state.expenses)
+                        expenseHistoryAdapter.submitList(groupedItems)
+                        Log.d("ExpenseHistoryFragment", "Submitted ${groupedItems.size} items to adapter")
+                    }
+
+                    // Handle errors
+                    state.error?.let { error ->
+                        Toast.makeText(context, "Error: $error", Toast.LENGTH_LONG).show()
+                        viewModel.clearError()
                     }
                 }
             }
         }
     }
 
-    // Function to show the receipt dialog
-    private fun showReceiptDialog(receiptUri: Uri) {
-        val dialogFragment = ReceiptDialogFragment.newInstance(receiptUri)
-        dialogFragment.show(parentFragmentManager, ReceiptDialogFragment.TAG)
+    private fun groupExpensesByDate(expenses: List<ExpenseItemUi>): List<HistoryListItem> {
+        val items = mutableListOf<HistoryListItem>()
+        var currentDate: String? = null
+
+        expenses.forEach { expense ->
+            val expenseDate = dateFormat.format(expense.date)
+            
+            // Add date header if this is a new date
+            if (currentDate != expenseDate) {
+                items.add(HistoryListItem.DateHeader(expenseDate))
+                currentDate = expenseDate
+            }
+            
+            // Add expense item
+            items.add(HistoryListItem.ExpenseEntry(expense))
+        }
+
+                return items
     }
 
-    override fun onResume() {
-        super.onResume()
-        (activity as? AppCompatActivity)?.supportActionBar?.hide()
+    private fun showDateRangeDialog() {
+        val calendar = Calendar.getInstance()
+        
+        // Start date picker
+        DatePickerDialog(
+            requireContext(),
+            { _, year, month, dayOfMonth ->
+                val startDate = Calendar.getInstance().apply {
+                    set(year, month, dayOfMonth, 0, 0, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }.time
+
+                // End date picker
+                DatePickerDialog(
+                    requireContext(),
+                    { _, endYear, endMonth, endDayOfMonth ->
+                        val endDate = Calendar.getInstance().apply {
+                            set(endYear, endMonth, endDayOfMonth, 23, 59, 59)
+                            set(Calendar.MILLISECOND, 999)
+                        }.time
+
+                        if (startDate.before(endDate) || startDate == endDate) {
+                            viewModel.setDateRange(startDate, endDate)
+                        } else {
+                            Toast.makeText(context, "Start date must be before end date", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
+                ).apply {
+                    setTitle("Select End Date")
+                    show()
+                }
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).apply {
+            setTitle("Select Start Date")
+            show()
+        }
+    }
+
+    private fun showExpenseDetails(expense: ExpenseItemUi) {
+        // Create a detailed view dialog or navigate to detail fragment
+        val details = buildString {
+            append("Category: ${expense.category}\n")
+            append("Amount: $${String.format("%.2f", expense.amount)}\n")
+            append("Date: ${dateFormat.format(expense.date)}\n")
+            if (expense.description.isNotEmpty()) {
+                append("Description: ${expense.description}\n")
+            }
+            if (expense.receiptPath != null) {
+                append("Receipt: Available")
+            } else {
+                append("Receipt: Not available")
+            }
+        }
+
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Expense Details")
+            .setMessage(details)
+            .setPositiveButton("OK", null)
+            .apply {
+                if (expense.receiptPath != null) {
+                    setNeutralButton("View Receipt") { _, _ ->
+                        viewReceipt(Uri.parse(expense.receiptPath))
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun viewReceipt(uri: Uri) {
+        try {
+            // Handle both local files and URLs
+            val intent = if (uri.scheme == "http" || uri.scheme == "https") {
+                // For URLs, open in browser or image viewer
+                Intent(Intent.ACTION_VIEW, uri)
+            } else {
+                // For local files
+                Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, "image/*")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+            }
+            
+            if (intent.resolveActivity(requireContext().packageManager) != null) {
+                startActivity(intent)
+            } else {
+                Toast.makeText(context, "No app found to view images", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Log.e("ExpenseHistoryFragment", "Error viewing receipt", e)
+            Toast.makeText(context, "Error opening receipt", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        
+        // Restore action bar when leaving
+        (activity as? androidx.appcompat.app.AppCompatActivity)?.supportActionBar?.show()
     }
 } 

@@ -1,11 +1,13 @@
 package com.example.budgetbuddy.ui.fragment
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -34,60 +36,108 @@ class EditProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        setupStatusBar()
         setupClickListeners()
         observeViewModel()
+        
+        // Load user data
+        viewModel.loadUserProfile()
+    }
+
+    private fun setupStatusBar() {
+        // Force white status bar and hide MainActivity action bar
+        activity?.window?.statusBarColor = Color.WHITE
+        @Suppress("DEPRECATION")
+        activity?.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+        (activity as? AppCompatActivity)?.supportActionBar?.hide()
     }
 
     private fun setupClickListeners() {
         binding.backButton.setOnClickListener {
             findNavController().navigateUp()
         }
+
         binding.saveButton.setOnClickListener {
-            // TODO: Call ViewModel to save profile changes
-            Toast.makeText(context, "Save Clicked (Not Implemented)", Toast.LENGTH_SHORT).show()
+            saveProfile()
         }
+    }
+
+    private fun saveProfile() {
+        val name = binding.nameEditText.text.toString().trim()
+        val email = binding.emailEditText.text.toString().trim()
+
+        // Clear previous errors
+        binding.nameInputLayout.error = null
+        binding.emailInputLayout.error = null
+
+        // Validate inputs
+        if (name.isEmpty()) {
+            binding.nameInputLayout.error = "Name is required"
+            return
+        }
+
+        if (email.isEmpty()) {
+            binding.emailInputLayout.error = "Email is required"
+            return
+        }
+
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            binding.emailInputLayout.error = "Please enter a valid email address"
+            return
+        }
+
+        // Call ViewModel to save profile
+        viewModel.updateProfile(name, email)
     }
 
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
-                    // Update fields only if not loading and text differs (prevents loop)
-                    if (!state.isLoading && binding.nameEditText.text?.toString() != state.currentName) {
-                        binding.nameEditText.setText(state.currentName)
-                    }
-                    if (!state.isLoading && binding.emailEditText.text?.toString() != state.currentEmail) {
-                        binding.emailEditText.setText(state.currentEmail)
-                    }
-
+                    // Update loading state
                     binding.saveButton.isEnabled = !state.isLoading
-                    // Optionally show/hide a progress indicator tied to state.isLoading
-
-                    if (state.isSuccess) {
-                        Toast.makeText(context, "Profile updated successfully", Toast.LENGTH_SHORT).show()
-                        findNavController().popBackStack() // Go back to previous screen (Settings)
-                        // Optionally reset success state in ViewModel if needed to prevent re-triggering
-                        // viewModel.resetSuccessState() 
+                    
+                    // Load user data into fields
+                    state.user?.let { user ->
+                        if (binding.nameEditText.text.toString() != user.name) {
+                            binding.nameEditText.setText(user.name)
+                        }
+                        if (binding.emailEditText.text.toString() != user.email) {
+                            binding.emailEditText.setText(user.email)
+                        }
                     }
 
-                    state.error?.let {
-                        Toast.makeText(context, "Error: $it", Toast.LENGTH_LONG).show()
-                        // Optionally reset error state in ViewModel
-                        // viewModel.clearError()
+                    // Handle profile update success
+                    if (state.profileUpdateComplete) {
+                        Toast.makeText(context, "Profile updated successfully", Toast.LENGTH_LONG).show()
+                        findNavController().navigateUp()
+                    }
+
+                    // Handle errors
+                    state.error?.let { error ->
+                        when {
+                            error.contains("email", ignoreCase = true) -> {
+                                binding.emailInputLayout.error = error
+                            }
+                            error.contains("name", ignoreCase = true) -> {
+                                binding.nameInputLayout.error = error
+                            }
+                            else -> {
+                                Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+                            }
+                        }
+                        viewModel.clearError()
                     }
                 }
             }
         }
     }
 
-    // Hide default ActionBar when this fragment is shown
-    override fun onResume() {
-        super.onResume()
-        (activity as? AppCompatActivity)?.supportActionBar?.hide()
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
+        // Restore action bar when leaving edit profile
+        (activity as? AppCompatActivity)?.supportActionBar?.show()
         _binding = null
     }
 } 

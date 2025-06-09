@@ -2,66 +2,59 @@ package com.example.budgetbuddy.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.budgetbuddy.data.repository.AuthRepository // Use AuthRepository for password logic
-import com.example.budgetbuddy.util.SessionManager
+import com.example.budgetbuddy.data.firebase.repository.FirebaseAuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import android.util.Log
 
 data class ChangePasswordUiState(
     val isLoading: Boolean = false,
-    val error: String? = null,
-    val isSuccess: Boolean = false
+    val passwordChangeComplete: Boolean = false,
+    val error: String? = null
 )
 
 @HiltViewModel
 class ChangePasswordViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
-    private val sessionManager: SessionManager
+    private val authRepository: FirebaseAuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChangePasswordUiState())
     val uiState: StateFlow<ChangePasswordUiState> = _uiState.asStateFlow()
 
-    fun changePassword(oldPassword: String, newPassword: String, confirmPassword: String) {
-        val userId = sessionManager.getUserId()
-        if (userId == SessionManager.NO_USER_LOGGED_IN) {
-            _uiState.update { it.copy(error = "User not found") }
-            return
-        }
-
-        if (newPassword != confirmPassword) {
-            _uiState.update { it.copy(error = "New passwords do not match") }
-            return
-        }
-
-        if (newPassword.length < 6) { // Example: Basic length validation
-            _uiState.update { it.copy(error = "New password must be at least 6 characters") }
-            return
-        }
-
-        _uiState.update { it.copy(isLoading = true, error = null) }
+    fun changePassword(currentPassword: String, newPassword: String) {
         viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+
             try {
-                // IMPORTANT: This requires adding password change logic to AuthRepository
-                // The current AuthRepository only has login/signup placeholders.
-                // We need a method like `authRepository.changePassword(userId, oldPassword, newPassword)`
-
-                // *** Placeholder Logic - Requires AuthRepository Implementation ***
-                val changeResult = authRepository.changePassword(userId, oldPassword, newPassword)
-                if (changeResult.isSuccess) {
-                    _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+                android.util.Log.d("ChangePasswordViewModel", "Changing password...")
+                
+                val result = authRepository.changePassword(currentPassword, newPassword)
+                
+                if (result.isSuccess) {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        passwordChangeComplete = true
+                    )
                 } else {
-                    _uiState.update { it.copy(isLoading = false, error = changeResult.exceptionOrNull()?.message ?: "Incorrect old password or failed to update") }
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = result.exceptionOrNull()?.message ?: "Failed to change password"
+                    )
                 }
-                // ******************************************************************
-
             } catch (e: Exception) {
-                Log.e("ChangePasswordViewModel", "Error changing password", e)
-                _uiState.update { it.copy(isLoading = false, error = e.message ?: "Failed to change password") }
+                android.util.Log.e("ChangePasswordViewModel", "Error changing password", e)
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "Failed to change password"
+                )
             }
         }
+    }
+
+    fun clearError() {
+        _uiState.value = _uiState.value.copy(error = null)
     }
 } 

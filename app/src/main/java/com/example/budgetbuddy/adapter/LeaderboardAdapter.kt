@@ -36,8 +36,16 @@ class LeaderboardAdapter(private var ranks: List<LeaderboardRank>) :
             .placeholder(R.drawable.ic_profile_placeholder)
             .into(holder.binding.profileImageView)
 
-        // Highlight the current user? Needs user ID comparison.
-        // if (rank.userId == currentUserId) { ... }
+        // Highlight the current user with different background color
+        if (rank.name == "You") {
+            holder.itemView.setBackgroundColor(android.graphics.Color.parseColor("#E3F2FD")) // Light blue
+            holder.binding.nameTextView.setTextColor(android.graphics.Color.parseColor("#1976D2")) // Blue
+            holder.binding.nameTextView.setTypeface(null, android.graphics.Typeface.BOLD)
+        } else {
+            holder.itemView.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+            holder.binding.nameTextView.setTextColor(android.graphics.Color.BLACK)
+            holder.binding.nameTextView.setTypeface(null, android.graphics.Typeface.NORMAL)
+        }
     }
 
     override fun getItemCount() = ranks.size

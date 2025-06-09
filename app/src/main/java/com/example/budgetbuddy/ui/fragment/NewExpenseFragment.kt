@@ -18,8 +18,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.budgetbuddy.R
 import com.example.budgetbuddy.databinding.FragmentNewExpenseBinding
-import com.example.budgetbuddy.ui.viewmodel.NewExpenseUiState
-import com.example.budgetbuddy.ui.viewmodel.NewExpenseViewModel
+import com.example.budgetbuddy.ui.viewmodel.FirebaseNewExpenseUiState
+import com.example.budgetbuddy.ui.viewmodel.FirebaseNewExpenseViewModel
 import com.google.android.material.datepicker.MaterialDatePicker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -50,7 +50,7 @@ class NewExpenseFragment : Fragment() {
     private val binding get() = _binding!!
 
     // --- ViewModel --- 
-    private val viewModel: NewExpenseViewModel by viewModels()
+    private val viewModel: FirebaseNewExpenseViewModel by viewModels()
 
     // --- Activity Result Launchers (Handle results from other Activities/System apps) --- 
     // For picking media (modern approach).
@@ -132,7 +132,7 @@ class NewExpenseFragment : Fragment() {
                     // Create an adapter with the latest category list.
                     val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, categoryList)
                     // Set the adapter on the AutoCompleteTextView.
-                    binding.categoryAutoCompleteTextView.setAdapter(adapter)
+        binding.categoryAutoCompleteTextView.setAdapter(adapter)
                     Log.d("NewExpenseFragment", "Updated categories: $categoryList")
                 }
             }
@@ -150,13 +150,13 @@ class NewExpenseFragment : Fragment() {
         // Add listener for when the user clicks "OK".
         datePicker?.addOnPositiveButtonClickListener { selection ->
             // Convert the selected UTC milliseconds to a local Date object.
-            val utcMillis = selection
-            val timeZone = TimeZone.getDefault()
-            val offset = timeZone.getOffset(utcMillis)
+                val utcMillis = selection
+                val timeZone = TimeZone.getDefault()
+                val offset = timeZone.getOffset(utcMillis)
             val localDate = Date(utcMillis + offset)
             selectedDate = localDate // Store the selected date.
             updateDateDisplay() // Update the text field.
-        }
+            }
     }
 
     // Updates the date text field with the currently selected date.
@@ -340,7 +340,8 @@ class NewExpenseFragment : Fragment() {
         }
 
         // Call ViewModel to save.
-        viewModel.saveExpense(amount, category, selectedDate, description, copiedReceiptPath)
+        val receiptUri = copiedReceiptPath?.let { Uri.fromFile(File(it)) }
+        viewModel.saveExpense(amount, category, selectedDate, description, receiptUri)
     }
 
     // Observes the UI state from the ViewModel (Success/Error/Loading).
@@ -349,17 +350,17 @@ class NewExpenseFragment : Fragment() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
                     // Disable save button while loading.
-                    binding.saveExpenseButton.isEnabled = state !is NewExpenseUiState.Loading
+                    binding.saveExpenseButton.isEnabled = state !is FirebaseNewExpenseUiState.Loading
                     // TODO: Show a visual loading indicator.
 
                     when (state) {
-                        is NewExpenseUiState.Success -> {
+                        is FirebaseNewExpenseUiState.Success -> {
                             // Show success message, navigate back, and reset ViewModel state.
                             Toast.makeText(context, "Expense saved successfully!", Toast.LENGTH_SHORT).show()
                             findNavController().navigateUp()
                             viewModel.resetState()
                         }
-                        is NewExpenseUiState.Error -> {
+                        is FirebaseNewExpenseUiState.Error -> {
                             // Show error message and reset ViewModel state.
                             Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_LONG).show()
                             viewModel.resetState()

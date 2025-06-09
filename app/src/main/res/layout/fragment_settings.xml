@@ -62,10 +62,10 @@
                 android:gravity="center_horizontal"
                 tools:text="User Full Name" />
 
-            <TextView
+                <TextView
                 android:id="@+id/userEmailTextView"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                    android:layout_height="wrap_content"
                 android:textAppearance="?attr/textAppearanceBody1"
                 android:textColor="?android:attr/textColorSecondary"
                 android:gravity="center_horizontal"
@@ -156,6 +156,61 @@
             <ImageView
                 style="@style/SettingsChevronStyle"
                 android:contentDescription="@string/sync_frequency_label" />
+        </LinearLayout>
+
+        <!-- Data Management Section -->
+        <TextView
+            style="@style/SettingsSectionHeaderStyle"
+            android:layout_marginTop="24dp"
+            android:text="@string/data_management_label" />
+
+        <LinearLayout
+            android:id="@+id/exportDataRow"
+            style="@style/SettingsRowStyle">
+            <TextView
+                style="@style/SettingsRowTextStyle"
+                android:text="@string/export_data_setting" />
+            <ImageView
+                style="@style/SettingsChevronStyle"
+                android:contentDescription="@string/export_data_setting" />
+        </LinearLayout>
+
+        <com.google.android.material.divider.MaterialDivider style="@style/SettingsDividerStyle"/>
+
+        <LinearLayout
+            android:id="@+id/importDataRow"
+            style="@style/SettingsRowStyle">
+            <TextView
+                style="@style/SettingsRowTextStyle"
+                android:text="@string/import_data_setting" />
+            <ImageView
+                style="@style/SettingsChevronStyle"
+                android:contentDescription="@string/import_data_setting" />
+        </LinearLayout>
+
+        <!-- General Settings Section -->
+        <TextView
+            style="@style/SettingsSectionHeaderStyle"
+            android:layout_marginTop="24dp"
+            android:text="@string/general_settings_label" />
+
+        <LinearLayout
+            android:id="@+id/currencyRow"
+            style="@style/SettingsRowStyle">
+            <TextView
+                style="@style/SettingsRowTextStyle"
+                android:text="@string/currency_setting" />
+            <TextView
+                android:id="@+id/currencyValueTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:textAppearance="?attr/textAppearanceBody2"
+                android:textColor="?android:attr/textColorSecondary"
+                android:text="USD"/>
+            <ImageView
+                style="@style/SettingsChevronStyle"
+                android:contentDescription="@string/currency_setting" />
         </LinearLayout>
 
         <!-- Account Section -->

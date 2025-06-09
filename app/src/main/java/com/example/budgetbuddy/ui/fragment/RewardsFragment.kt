@@ -18,7 +18,7 @@ import com.example.budgetbuddy.R
 import com.example.budgetbuddy.adapter.BadgeAdapter
 import com.example.budgetbuddy.adapter.LeaderboardAdapter
 import com.example.budgetbuddy.databinding.FragmentRewardsBinding
-import com.example.budgetbuddy.ui.viewmodel.RewardsViewModel
+import com.example.budgetbuddy.ui.viewmodel.FirebaseRewardsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import androidx.core.view.isVisible
@@ -30,7 +30,7 @@ class RewardsFragment : Fragment() {
     private var _binding: FragmentRewardsBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: RewardsViewModel by viewModels()
+    private val viewModel: FirebaseRewardsViewModel by viewModels()
     private lateinit var badgeAdapter: BadgeAdapter
     private lateinit var leaderboardAdapter: LeaderboardAdapter
 
@@ -70,15 +70,22 @@ class RewardsFragment : Fragment() {
         binding.shareButton.setOnClickListener {
             shareRewards()
         }
+        
+        // TEMPORARY: Long-press share button to delete test users
+        binding.shareButton.setOnLongClickListener {
+            viewModel.deleteTestUsers()
+            Toast.makeText(context, "Deleting test users...", Toast.LENGTH_SHORT).show()
+            true
+        }
     }
 
     private fun shareRewards() {
         val state = viewModel.uiState.value // Get the current state
         val points = state.currentPoints   // Use correct field name
-        val level = state.userLevelName // Use correct field name
+        val level = viewModel.getUserLevel() // Get level from ViewModel method
 
         // Construct the share message
-        val shareText = "Check out my progress on BudgetBuddy! I\'m level \"$level\" with $points points. Join me in managing finances! #BudgetBuddyApp"
+        val shareText = "Check out my progress on BudgetBuddy! I\'m level $level with $points points. Join me in managing finances! #BudgetBuddyApp"
         // TODO: Consider adding a dynamic link to the app store or website
 
         val sendIntent: Intent = Intent().apply {
@@ -105,11 +112,14 @@ class RewardsFragment : Fragment() {
 
                     // Update UI only when not loading
                     if (!state.isLoading) {
-                        // Update User Info
-                        binding.userNameTextView.text = state.userName
-                        // Combine level number and name
-                        binding.userLevelTextView.text = "Level ${state.userLevel} ${state.userLevelName}"
-                        // Load profile image - Use placeholder as userProfileImageUrl was removed from state
+                        // Update User Info - Get actual user name
+                        viewModel.getCurrentUserName { userName ->
+                            binding.userNameTextView.text = userName ?: "User"
+                        }
+                        // Combine level number
+                        val userLevel = viewModel.getUserLevel()
+                        binding.userLevelTextView.text = "Level $userLevel"
+                        // Load profile image - Use placeholder
                         Glide.with(this@RewardsFragment)
                              .load(R.drawable.ic_profile_placeholder) // Use placeholder
                              .circleCrop()
@@ -117,34 +127,63 @@ class RewardsFragment : Fragment() {
                              .into(binding.userProfileImageView)
 
                         // Update Next Reward section based on points/level
-                        // Use nextLevelPoints from state if needed for text, otherwise remove or adjust
-                        binding.nextRewardNameTextView.text = "Next Level: ${state.nextLevelPoints} pts"
-                        binding.nextRewardProgressBar.max = state.pointsNeededForLevel
-                        binding.nextRewardProgressBar.progress = state.pointsInLevel
-                        // Calculate percentage text based on actual points
-                        val progressPercent = if (state.pointsNeededForLevel > 0) {
-                            ((state.pointsInLevel.toDouble() / state.pointsNeededForLevel) * 100).toInt()
+                        val pointsToNext = viewModel.getPointsForNextLevel()
+                        binding.nextRewardNameTextView.text = if (pointsToNext > 0) {
+                            "Next Level: $pointsToNext pts needed"
                         } else {
-                            100 // Handle edge case where level requires 0 points (shouldn't happen with coerceAtLeast(1))
+                            "Max Level Reached!"
                         }
-                        binding.nextRewardPercentageTextView.text = "$progressPercent%"
+                        
+                        // Set progress bar for level progress
+                        if (pointsToNext > 0) {
+                            val levelProgress = viewModel.getLevelProgressPercentage()
+                            binding.nextRewardProgressBar.max = 100
+                            binding.nextRewardProgressBar.progress = levelProgress
+                            binding.nextRewardPercentageTextView.text = "$levelProgress%"
+                        } else {
+                            binding.nextRewardProgressBar.max = 100
+                            binding.nextRewardProgressBar.progress = 100
+                            binding.nextRewardPercentageTextView.text = "100%"
+                        }
 
                         // *** Add Logging Here ***
                         Log.d("RewardsFragment", "Updating badge adapter. Badge count: ${state.achievements.size}")
                         state.achievements.forEach { badge ->
-                             Log.d("RewardsFragment", "  - Badge: ${badge.name}, ID: ${badge.id}, IconRes: ${badge.iconResId}")
+                             Log.d("RewardsFragment", "  - Badge: ${badge.name}, ID: ${badge.id}")
                         }
                         // ***********************
 
                         // Update Badges RecyclerView using state.achievements
-                        badgeAdapter.updateData(state.achievements) // Use the correct field name
+                        // Note: Need to convert FirebaseAchievementUiState to Badge model
+                        val badges = state.achievements.map { achievement ->
+                            com.example.budgetbuddy.model.Badge(
+                                id = achievement.id,
+                                name = achievement.name,
+                                iconResId = R.drawable.ic_achievement_placeholder // Use placeholder
+                            )
+                        }
+                        badgeAdapter.updateData(badges)
 
                         // *** Add Logging Here Too ***
-                        Log.d("RewardsFragment", "Updating leaderboard adapter. Entry count: ${state.leaderboardEntries.size}")
+                        Log.d("RewardsFragment", "Updating leaderboard adapter. Entry count: ${state.leaderboard.size}")
+                        state.leaderboard.forEachIndexed { index, entry ->
+                            Log.d("RewardsFragment", "  - Rank ${index + 1}: ${entry.userName} with ${entry.points} points (User ID: ${entry.userId})")
+                        }
                         // **************************
 
-                        // Update Leaderboard RecyclerView using state.leaderboardEntries
-                        leaderboardAdapter.updateData(state.leaderboardEntries) // Use the correct field name
+                        // Update Leaderboard RecyclerView using state.leaderboard
+                        // Note: Need to convert LeaderboardEntry to LeaderboardRank model
+                        val leaderboardRanks = state.leaderboard.map { entry ->
+                            com.example.budgetbuddy.model.LeaderboardRank(
+                                userId = entry.userId,
+                                name = entry.userName,
+                                points = entry.points,
+                                profileImageRes = R.drawable.ic_profile_placeholder
+                            )
+                        }
+                        leaderboardAdapter.updateData(leaderboardRanks)
+                        
+                        Log.d("RewardsFragment", "Leaderboard adapter updated with ${leaderboardRanks.size} entries")
                     }
 
                     // Handle error state (can be shown even if loading fails)

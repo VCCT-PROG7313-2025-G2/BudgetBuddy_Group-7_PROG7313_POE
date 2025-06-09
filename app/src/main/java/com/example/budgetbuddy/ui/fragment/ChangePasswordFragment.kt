@@ -1,11 +1,13 @@
 package com.example.budgetbuddy.ui.fragment
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -34,61 +36,113 @@ class ChangePasswordFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        setupStatusBar()
         setupClickListeners()
         observeViewModel()
+    }
+
+    private fun setupStatusBar() {
+        // Force white status bar and hide MainActivity action bar
+        activity?.window?.statusBarColor = Color.WHITE
+        @Suppress("DEPRECATION")
+        activity?.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+        (activity as? AppCompatActivity)?.supportActionBar?.hide()
     }
 
     private fun setupClickListeners() {
         binding.backButton.setOnClickListener {
             findNavController().navigateUp()
         }
-        binding.saveButton.setOnClickListener {
-            val oldPassword = binding.oldPasswordEditText.text.toString()
-            val newPassword = binding.newPasswordEditText.text.toString()
-            val confirmPassword = binding.confirmPasswordEditText.text.toString()
 
-            if (oldPassword.isNotEmpty() && newPassword.isNotEmpty() && confirmPassword.isNotEmpty()) {
-                viewModel.changePassword(oldPassword, newPassword, confirmPassword)
-            } else {
-                Toast.makeText(context, "Please fill in all password fields", Toast.LENGTH_SHORT).show()
-            }
+        binding.changePasswordButton.setOnClickListener {
+            changePassword()
         }
+    }
+
+    private fun changePassword() {
+        val currentPassword = binding.currentPasswordEditText.text.toString().trim()
+        val newPassword = binding.newPasswordEditText.text.toString().trim()
+        val confirmPassword = binding.confirmPasswordEditText.text.toString().trim()
+
+        // Clear previous errors
+        binding.currentPasswordLayout.error = null
+        binding.newPasswordLayout.error = null
+        binding.confirmPasswordLayout.error = null
+
+        // Validate inputs
+        if (currentPassword.isEmpty()) {
+            binding.currentPasswordLayout.error = "Current password is required"
+            return
+        }
+
+        if (newPassword.isEmpty()) {
+            binding.newPasswordLayout.error = "New password is required"
+            return
+        }
+
+        if (newPassword.length < 8) {
+            binding.newPasswordLayout.error = "Password must be at least 8 characters"
+            return
+        }
+
+        if (confirmPassword.isEmpty()) {
+            binding.confirmPasswordLayout.error = "Please confirm your new password"
+            return
+        }
+
+        if (newPassword != confirmPassword) {
+            binding.confirmPasswordLayout.error = "Passwords do not match"
+            return
+        }
+
+        if (currentPassword == newPassword) {
+            binding.newPasswordLayout.error = "New password must be different from current password"
+            return
+        }
+
+        // Call ViewModel to change password
+        viewModel.changePassword(currentPassword, newPassword)
     }
 
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
-                    binding.saveButton.isEnabled = !state.isLoading
-                    binding.oldPasswordInputLayout.error = null
-                    binding.newPasswordInputLayout.error = null
-                    binding.confirmPasswordInputLayout.error = null
+                    // Update loading state
+                    binding.progressBar.isVisible = state.isLoading
+                    binding.changePasswordButton.isEnabled = !state.isLoading
 
-                    if (state.isSuccess) {
-                        Toast.makeText(context, "Password changed successfully", Toast.LENGTH_SHORT).show()
-                        findNavController().popBackStack()
+                    // Handle password change success
+                    if (state.passwordChangeComplete) {
+                        Toast.makeText(context, "Password changed successfully", Toast.LENGTH_LONG).show()
+                        findNavController().navigateUp()
                     }
 
-                    state.error?.let {
+                    // Handle errors
+                    state.error?.let { error ->
                         when {
-                            it.contains("match") -> binding.confirmPasswordInputLayout.error = it
-                            it.contains("Incorrect old password") -> binding.oldPasswordInputLayout.error = it
-                            it.contains("at least 6 characters") -> binding.newPasswordInputLayout.error = it
-                            else -> Toast.makeText(context, "Error: $it", Toast.LENGTH_LONG).show()
+                            error.contains("current password", ignoreCase = true) -> {
+                                binding.currentPasswordLayout.error = error
+                            }
+                            error.contains("new password", ignoreCase = true) -> {
+                                binding.newPasswordLayout.error = error
+                            }
+                            else -> {
+                                Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+                            }
                         }
+                        viewModel.clearError()
                     }
                 }
             }
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        (activity as? AppCompatActivity)?.supportActionBar?.hide()
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
+        // Restore action bar when leaving change password
+        (activity as? AppCompatActivity)?.supportActionBar?.show()
         _binding = null
     }
 } 

@@ -1,25 +1,27 @@
 package com.example.budgetbuddy.ui.fragment
 
+import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity // Import for ActionBar
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels // Import viewModels delegate
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import com.example.budgetbuddy.R // Ensure R is imported
+import com.example.budgetbuddy.MainActivity
+import com.example.budgetbuddy.R
 import com.example.budgetbuddy.databinding.FragmentSettingsBinding
-import com.example.budgetbuddy.ui.viewmodel.SettingsEvent // Import event
-import com.example.budgetbuddy.ui.viewmodel.SettingsViewModel // Import ViewModel
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.example.budgetbuddy.ui.viewmodel.SettingsViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch // Import launch
-import androidx.core.view.isVisible
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SettingsFragment : Fragment() {
@@ -27,189 +29,206 @@ class SettingsFragment : Fragment() {
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
 
-    // Get reference to the ViewModel
     private val viewModel: SettingsViewModel by viewModels()
 
-    // Define sync frequency options
-    private val syncFrequencyOptions by lazy {
-        arrayOf("Manual", "Every hour", "Every 2 hours", "Daily") // Can be moved to resources
-    }
+    private val syncFrequencyOptions = arrayOf(
+        "Every 30 minutes",
+        "Every hour", 
+        "Every 2 hours",
+        "Every 6 hours",
+        "Daily",
+        "Manual only"
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentSettingsBinding.inflate(inflater, container, false)
-
-        // Setup Click Listeners
-        setupClickListeners()
-
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        loadSettings()
-        setupListeners()
-        observeViewModelEvents() // Observe navigation/other events
-        observeUiState() // Add call to observe UI state
+        setupStatusBar()
+        setupClickListeners()
+        observeViewModel()
     }
 
-    private fun loadSettings() {
-        // TODO: Load actual settings from SharedPreferences or ViewModel/Repository
-        binding.budgetAlertsSwitch.isChecked = true // Placeholder
-        binding.dailyRemindersSwitch.isChecked = true // Placeholder - Renamed from goalRemindersSwitch
-        // TODO: Load saved sync frequency preference here
-        binding.syncFrequencyValueTextView.text = syncFrequencyOptions[2] // Default placeholder to "Every 2 hours"
+    private fun setupStatusBar() {
+        // Force white status bar and hide MainActivity action bar
+        activity?.window?.statusBarColor = Color.WHITE
+        @Suppress("DEPRECATION")
+        activity?.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+        (activity as? AppCompatActivity)?.supportActionBar?.hide()
     }
 
-    private fun setupListeners() {
+    private fun setupClickListeners() {
+        // Back button
+        binding.backButton.setOnClickListener {
+            findNavController().navigateUp()
+        }
+
+        // Personal Information Section
         binding.editProfileRow.setOnClickListener {
-            // Navigate to Edit Profile using the new action
             findNavController().navigate(R.id.action_settingsFragment_to_editProfileFragment)
         }
+
         binding.changePasswordRow.setOnClickListener {
-             // Navigate to Change Password using the new action
             findNavController().navigate(R.id.action_settingsFragment_to_changePasswordFragment)
         }
 
+        // Notification Settings
         binding.budgetAlertsSwitch.setOnCheckedChangeListener { _, isChecked ->
-            // TODO: Save budget alerts setting
-            println("Budget Alerts: $isChecked")
+            viewModel.setBudgetAlertsEnabled(isChecked)
         }
 
-        binding.dailyRemindersSwitch.setOnCheckedChangeListener { _, isChecked -> // Renamed from goalRemindersSwitch
-            // TODO: Save daily reminders setting
-            println("Daily Reminders: $isChecked")
+        binding.dailyRemindersSwitch.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.setDailyRemindersEnabled(isChecked)
         }
 
+        // Cloud Sync Settings
         binding.autoSyncSwitch.setOnCheckedChangeListener { _, isChecked ->
-            // TODO: Save auto-sync setting
-            println("Auto Sync: $isChecked")
+            viewModel.setAutoSyncEnabled(isChecked)
         }
 
         binding.syncFrequencyRow.setOnClickListener {
             showSyncFrequencyDialog()
         }
 
+        // Data Management Section
+        binding.exportDataRow.setOnClickListener {
+            exportUserData()
+        }
+
+        binding.importDataRow.setOnClickListener {
+            importUserData()
+        }
+
+        // General Settings
+        binding.currencyRow.setOnClickListener {
+            showCurrencyDialog()
+        }
+
+        // Account Section
         binding.signOutRow.setOnClickListener {
-            viewModel.onSignOutClicked() // Call ViewModel function
-        }
-
-        // Remove listeners for views that were removed from the layout
-        // binding.currencyTextView.setOnClickListener { ... }
-        // binding.exportDataTextView.setOnClickListener { ... }
-        // binding.importDataTextView.setOnClickListener { ... }
-        // binding.logoutButton.setOnClickListener { ... }
-    }
-
-    private fun setupClickListeners() {
-        binding.backButton.setOnClickListener {
-            findNavController().navigateUp()
-        }
-
-        // TODO: Add listeners for other rows (Edit Profile, Change Password, Sign Out, etc.)
-        binding.editProfileRow.setOnClickListener {
-            // Example: navigate to edit profile screen
-             Toast.makeText(context, "Edit Profile Clicked", Toast.LENGTH_SHORT).show()
-        }
-        binding.changePasswordRow.setOnClickListener {
-             Toast.makeText(context, "Change Password Clicked", Toast.LENGTH_SHORT).show()
-        }
-        binding.signOutRow.setOnClickListener {
-            // TODO: Implement sign out logic (e.g., call ViewModel)
-             Toast.makeText(context, "Sign Out Clicked", Toast.LENGTH_SHORT).show()
-        }
-        // Add listeners for switches if needed
-    }
-
-    // Observe one-time events from the ViewModel
-    private fun observeViewModelEvents() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.eventFlow.collect { event ->
-                    when (event) {
-                        is SettingsEvent.NavigateToLogin -> {
-                            // Navigate to the login/auth graph start destination
-                            // Replace R.id.auth_graph with your actual nav graph ID if different
-                            // Use popUpTo to clear the back stack up to the main graph
-                            findNavController().navigate(R.id.auth_graph, null, 
-                                androidx.navigation.NavOptions.Builder()
-                                    .setPopUpTo(R.id.main_graph, true) // Pop back stack to main graph start, inclusive
-                                    .build()
-                            )
-                        }
-                        // Handle other events like errors if added later
-                    }
-                }
-            }
+            showSignOutDialog()
         }
     }
 
-    // Observe UI state changes from the ViewModel
-    private fun observeUiState() {
+    private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
-                    // Update UI elements based on the state
-                    binding.userNameTextView.text = state.userName
-                    binding.userEmailTextView.text = state.userEmail
+                    // Update user info
+                    binding.userNameTextView.text = state.user?.name ?: "User"
+                    binding.userEmailTextView.text = state.user?.email ?: "No email"
 
-                    // Optionally handle loading state (e.g., show/hide a spinner)
-                    // binding.loadingIndicator.isVisible = state.isLoading
+                    // Update notification settings
+                    binding.budgetAlertsSwitch.isChecked = state.budgetAlertsEnabled
+                    binding.dailyRemindersSwitch.isChecked = state.dailyRemindersEnabled
 
-                    // Optionally handle error state
-                    state.error?.let {
-                        // Show a Toast or Snackbar for errors
-                        Toast.makeText(context, "Error: $it", Toast.LENGTH_LONG).show()
-                        // Consider resetting the error in the ViewModel after showing it
+                    // Update sync settings
+                    binding.autoSyncSwitch.isChecked = state.autoSyncEnabled
+                    binding.syncFrequencyValueTextView.text = state.syncFrequency
+
+                    // Update general settings
+                    binding.currencyValueTextView.text = state.selectedCurrency
+
+                    // Handle sign out result
+                    if (state.signOutComplete) {
+                        navigateToLogin()
+                    }
+
+                    // Handle errors
+                    state.error?.let { error ->
+                        Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+                        viewModel.clearError()
                     }
                 }
             }
         }
+    }
+
+    private fun showSyncFrequencyDialog() {
+        val currentSelection = viewModel.uiState.value.syncFrequency
+        val selectedIndex = syncFrequencyOptions.indexOf(currentSelection)
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("Sync Frequency")
+            .setSingleChoiceItems(syncFrequencyOptions, selectedIndex) { dialog, which ->
+                viewModel.setSyncFrequency(syncFrequencyOptions[which])
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showSignOutDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Sign Out")
+            .setMessage("Are you sure you want to sign out? Your data will be synced before signing out.")
+            .setPositiveButton("Sign Out") { _, _ ->
+                viewModel.signOut()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun exportUserData() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Export Data")
+            .setMessage("Export your budget data to a file? This will include all your expenses, budgets, and settings.")
+            .setPositiveButton("Export") { _, _ ->
+                Toast.makeText(context, "Data export feature will be implemented in a future update", Toast.LENGTH_LONG).show()
+                // TODO: Implement data export functionality
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun importUserData() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Import Data")
+            .setMessage("Import budget data from a file? This will overwrite your current data.")
+            .setPositiveButton("Import") { _, _ ->
+                Toast.makeText(context, "Data import feature will be implemented in a future update", Toast.LENGTH_LONG).show()
+                // TODO: Implement data import functionality
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showCurrencyDialog() {
+        val currencies = arrayOf("USD", "EUR", "GBP", "CAD", "AUD", "JPY", "CNY", "INR")
+        val currentCurrency = viewModel.uiState.value.selectedCurrency
+        val selectedIndex = currencies.indexOf(currentCurrency)
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("Select Currency")
+            .setSingleChoiceItems(currencies, selectedIndex) { dialog, which ->
+                val selectedCurrency = currencies[which]
+                viewModel.setCurrency(selectedCurrency)
+                Toast.makeText(context, "Currency changed to $selectedCurrency", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun navigateToLogin() {
+        // Navigate back to login screen and clear back stack
+        val intent = Intent(requireContext(), MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
+        requireActivity().finish()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        // Restore action bar when leaving settings
+        (activity as? AppCompatActivity)?.supportActionBar?.show()
         _binding = null
-    }
-
-    // Hide default ActionBar when this fragment is shown
-    override fun onResume() {
-        super.onResume()
-        (activity as? AppCompatActivity)?.supportActionBar?.hide()
-    }
-
-    // Show default ActionBar again if needed when leaving
-    override fun onPause() {
-        super.onPause()
-        // Keep hidden
-        // (activity as? AppCompatActivity)?.supportActionBar?.show()
-    }
-
-    private fun showSyncFrequencyDialog() {
-        val currentSelection = binding.syncFrequencyValueTextView.text.toString()
-        var checkedItemIndex = syncFrequencyOptions.indexOf(currentSelection)
-        if (checkedItemIndex == -1) {
-            checkedItemIndex = 2 // Default to "Every 2 hours" if current text not found
-        }
-
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Select Sync Frequency")
-            .setSingleChoiceItems(syncFrequencyOptions, checkedItemIndex) { dialog, which ->
-                // Store the selection index temporarily when an item is clicked
-                checkedItemIndex = which
-            }
-            .setPositiveButton("OK") { dialog, _ ->
-                // Update the TextView with the selected option
-                val selectedFrequency = syncFrequencyOptions[checkedItemIndex]
-                binding.syncFrequencyValueTextView.text = selectedFrequency
-                // TODO: Save the selectedFrequency preference (e.g., call ViewModel)
-                dialog.dismiss()
-            }
-            .setNegativeButton("Cancel") { dialog, _ ->
-                dialog.dismiss()
-            }
-            .show()
     }
 } 
