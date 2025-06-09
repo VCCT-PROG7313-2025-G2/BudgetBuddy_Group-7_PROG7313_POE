@@ -13,6 +13,7 @@
 - [📷 Screens Overview](#-screens-overview)
 - [📂 Project Structure](#-project-structure)
 - [📦 Tech Stack](#-tech-stack)
+- [⚙️ GitHub & GitHub Actions](#️-github--github-actions)
 - [🧰 How to Run the Project](#-how-to-run-the-project)
 - [🧑‍🤝‍🧑 Team Members](#-team-members)
 - [📈 Future Improvements](#-future-improvements)
@@ -49,7 +50,7 @@ It offers **expense tracking**, **budget planning**, **reports**, **rewards**, a
 ## 🆕 New & Lecturer-Requested Features
 
 ### 📉 Personal Minimum Budget (Lecturer-Driven Enhancement)
-A custom budgeting floor that ensures users don’t budget below their essential needs.
+A custom budgeting floor that ensures users don't budget below their essential needs.
 
 - Users input a personal minimum monthly budget (e.g., $1500).
 - Integrated with **Auto Budget**, influencing algorithmic recommendations.
@@ -61,7 +62,7 @@ A custom budgeting floor that ensures users don’t budget below their essential
 A smart budgeting assistant that automatically distributes user budgets across categories based on selected strategies:
 
 - **Balanced**, **Essentials First**, **Savings Focus**, **Lifestyle-Heavy** options
-- Respects the user’s Personal Minimum Budget
+- Respects the user's Personal Minimum Budget
 
 ![🤖 Auto Budget](image4.jpg)
 
@@ -69,7 +70,7 @@ A smart budgeting assistant that automatically distributes user budgets across c
 Helps users track how well they stick to their budget with easy-to-understand grades (A–F):
 
 - Displays in the *Rewards & Achievements* section
-- Includes progress bars and summary descriptions like “Excellent budget management this month”
+- Includes progress bars and summary descriptions like "Excellent budget management this month"
 
 ![🅰️ Visual Grading Scale](image5.jpg)
 
@@ -95,7 +96,7 @@ Powerful analytics tool to study financial trends:
 
 - Choose timeframes: 7 days, 30 days, 3 months, 12 months
 - Category filtering and summary (e.g., R350 total, R11.29 daily avg)
-- Line graph + trend indicators (e.g., “Rising”)
+- Line graph + trend indicators (e.g., "Rising")
 - Export functionality included
 
 ![📈 Spending Analysis Over Time](image8.jpg)
@@ -169,6 +170,81 @@ BudgetBuddy/
 
 ---
 
+## ⚙️ GitHub & GitHub Actions
+
+### 🔄 Version Control & Collaboration
+Our team leverages **GitHub** as the central hub for project collaboration and version control:
+
+- **Repository Management**: Centralized codebase with organized branch structure
+- **Pull Request Workflow**: All team members contribute through feature branches and pull requests
+- **Code Reviews**: Mandatory peer reviews before merging to ensure code quality
+- **Issue Tracking**: GitHub Issues for bug reports, feature requests, and task management
+- **Project Boards**: Organized sprint planning and progress tracking
+
+### 🤖 Continuous Integration with GitHub Actions
+
+We've implemented a robust **CI/CD pipeline** using GitHub Actions to ensure code quality and automated testing:
+
+#### **Automated Workflows:**
+
+1. **🧪 Unit Testing Pipeline**
+   ```yaml
+   name: Unit Tests
+   triggers: [push, pull_request]
+   ```
+   - Runs comprehensive unit tests for ViewModels, utilities, and business logic
+   - Includes Firebase helper functions and validation tests
+   - Generates test coverage reports
+
+2. **📱 Instrumented Testing Pipeline**
+   ```yaml
+   name: Android Instrumented Tests
+   triggers: [push, pull_request]
+   ```
+   - UI automation tests for critical user flows
+   - Navigation testing across all fragments
+   - Form validation and user interaction tests
+
+3. **🔍 Code Quality & Linting**
+   ```yaml
+   name: Android Lint & Code Analysis
+   triggers: [push, pull_request]
+   ```
+   - Static code analysis using Android Lint
+   - Kotlin code style enforcement
+   - Security vulnerability scanning
+
+4. **🏗️ Build Verification**
+   ```yaml
+   name: Build APK
+   triggers: [push, pull_request]
+   ```
+   - Automated debug and release APK building
+   - Gradle dependency resolution verification
+   - Multi-variant build testing
+
+#### **Quality Gates:**
+- ✅ **All tests must pass** before merge approval
+- ✅ **Zero critical lint issues** allowed in main branch
+- ✅ **Successful APK build** required for all PRs
+- ✅ **Code coverage** maintained above 80% for core modules
+
+#### **Automated Reporting:**
+- 📊 **Test Results**: Automatic test result posting in PR comments
+- 📈 **Performance Metrics**: APK size tracking and memory usage analysis
+- 🚨 **Failure Notifications**: Instant Slack/email alerts for build failures
+- 📋 **Status Badges**: Real-time build status in README
+
+### 🔒 Security & Best Practices
+- **Secret Management**: Sensitive keys stored in GitHub Secrets
+- **Branch Protection**: Main branch protected with required status checks
+- **Automated Dependency Updates**: Dependabot for security patches
+- **Code Scanning**: GitHub Advanced Security for vulnerability detection
+
+This comprehensive GitHub Actions setup ensures that our BudgetBuddy app maintains high code quality, reliability, and security throughout the development lifecycle.
+
+---
+
 ## 🧰 How to Run the Project
 
 > 🧑‍💻 **No Android Studio experience? No problem!**
@@ -233,7 +309,14 @@ https://youtu.be/QN1Gl3wHmoY
 
 ## ⚖️ License
 
-This project is licensed under the **MIT License**
+This project is licensed under the **MIT License**.
+
+---
+
+# 🎉 Thank you for using BudgetBuddy!
+> Helping you save smart, live smarter.
+
+
 
 ---
 
