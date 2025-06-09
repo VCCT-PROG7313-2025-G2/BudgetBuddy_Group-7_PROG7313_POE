@@ -134,7 +134,7 @@ Makes BudgetBuddy more inclusive for international users:
 - Choose from multiple global currencies
 - Affects all screens, including summaries, history, goals, and rewards
 
-![🌐 Currency Selector](image6.jpg)
+![🌐 Currency Selector](image4.jpg)
 
 ### 🧁 Visual Spending by Category
 A combination of charts and detailed breakdowns:
