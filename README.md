@@ -81,7 +81,7 @@ This integration ensures consistent code quality, reduces manual errors, and acc
 **BudgetBuddy** is a modern Android application built to help users manage their finances easily and effectively.  
 It offers **expense tracking**, **budget planning**, **reports**, **rewards**, and **insights** — all wrapped in a beautiful, user-friendly experience.
 
-![🚀 About the Project](image1.jpg)
+![🚀 About the Project]
 
 ---
 
@@ -97,7 +97,7 @@ It offers **expense tracking**, **budget planning**, **reports**, **rewards**, a
 - ☁️ **Cloud Sync** — Backup your financial data securely
 - ⚙️ **Profile & Settings** — Manage personal details and app preferences
 
-![🛠️ Features](image2.jpg)
+![🛠️ Features]
 
 ---
 
@@ -110,7 +110,7 @@ A custom budgeting floor that ensures users don't budget below their essential n
 - Integrated with **Auto Budget**, influencing algorithmic recommendations.
 - Ensures realistic, goal-driven planning and serves as a safeguard against under-budgeting.
 
-![📉 Personal Minimum Budget](image3.jpg)
+![📉 Personal Minimum Budget](image1.jpg)
 
 ### 🤖 Auto Budget
 A smart budgeting assistant that automatically distributes user budgets across categories based on selected strategies:
@@ -118,7 +118,7 @@ A smart budgeting assistant that automatically distributes user budgets across c
 - **Balanced**, **Essentials First**, **Savings Focus**, **Lifestyle-Heavy** options
 - Respects the user's Personal Minimum Budget
 
-![🤖 Auto Budget](image4.jpg)
+![🤖 Auto Budget](image2.jpg)
 
 ### 🅰️ Visual Grading Scale
 Helps users track how well they stick to their budget with easy-to-understand grades (A–F):
@@ -126,7 +126,7 @@ Helps users track how well they stick to their budget with easy-to-understand gr
 - Displays in the *Rewards & Achievements* section
 - Includes progress bars and summary descriptions like "Excellent budget management this month"
 
-![🅰️ Visual Grading Scale](image5.jpg)
+![🅰️ Visual Grading Scale](image3.jpg)
 
 ### 🌐 Currency Selector
 Makes BudgetBuddy more inclusive for international users:
@@ -134,7 +134,7 @@ Makes BudgetBuddy more inclusive for international users:
 - Choose from multiple global currencies
 - Affects all screens, including summaries, history, goals, and rewards
 
-![🌐 Currency Selector](image6.jpg)
+![🌐 Currency Selector](image4.jpg)
 
 ### 🧁 Visual Spending by Category
 A combination of charts and detailed breakdowns:
@@ -143,7 +143,7 @@ A combination of charts and detailed breakdowns:
 - **Custom time filtering** (e.g., June 2025)
 - **Export report** to PDF/shareable formats
 
-![🧁 Visual Spending by Category](image7.jpg)
+![🧁 Visual Spending by Category](image5.jpg)
 
 ### 📈 Spending Analysis Over Time
 Powerful analytics tool to study financial trends:
@@ -153,7 +153,7 @@ Powerful analytics tool to study financial trends:
 - Line graph + trend indicators (e.g., "Rising")
 - Export functionality included
 
-![📈 Spending Analysis Over Time](image8.jpg)
+![📈 Spending Analysis Over Time](image6.jpg)
 
 ---
 
