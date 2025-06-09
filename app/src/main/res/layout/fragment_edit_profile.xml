@@ -35,62 +35,6 @@
             app:layout_constraintStart_toEndOf="@+id/backButton"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Profile Picture Section -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/profilePictureSection"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            app:layout_constraintTop_toBottomOf="@id/titleTextView"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/profileImageCard"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
-                app:cardCornerRadius="60dp"
-                app:cardElevation="8dp"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent">
-
-                <ImageView
-                    android:id="@+id/profileImageView"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:src="@drawable/ic_profile_placeholder"
-                    android:scaleType="centerCrop"
-                    android:contentDescription="@string/profile_picture" />
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/editProfileImageFab"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="8dp"
-                android:src="@drawable/ic_camera"
-                android:contentDescription="@string/edit_profile_picture"
-                app:backgroundTint="?attr/colorPrimary"
-                app:fabSize="mini"
-                app:layout_constraintTop_toTopOf="@id/profileImageCard"
-                app:layout_constraintEnd_toEndOf="@id/profileImageCard" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="Tap camera icon to change photo"
-                android:textAppearance="?attr/textAppearanceCaption"
-                android:textColor="?android:attr/textColorSecondary"
-                app:layout_constraintTop_toBottomOf="@id/profileImageCard"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/nameInputLayout"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -98,7 +42,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
             android:hint="Name"
-            app:layout_constraintTop_toBottomOf="@id/profilePictureSection"
+            app:layout_constraintTop_toBottomOf="@id/titleTextView"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 

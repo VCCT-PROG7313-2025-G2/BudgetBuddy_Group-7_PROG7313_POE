@@ -1,18 +1,12 @@
 package com.example.budgetbuddy.ui.fragment
 
-import android.Manifest
-import android.app.AlertDialog
-import android.content.pm.PackageManager
 import android.graphics.Color
-import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -20,9 +14,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.bitmap.CircleCrop
-import com.example.budgetbuddy.R
 import com.example.budgetbuddy.databinding.FragmentEditProfileBinding
 import com.example.budgetbuddy.ui.viewmodel.EditProfileViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -35,29 +26,6 @@ class EditProfileFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: EditProfileViewModel by viewModels()
-    private var selectedImageUri: Uri? = null
-
-    // Activity result launchers for image selection
-    private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let {
-            selectedImageUri = it
-            loadImageIntoView(it)
-        }
-    }
-
-    private val cameraLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-        if (success && selectedImageUri != null) {
-            loadImageIntoView(selectedImageUri!!)
-        }
-    }
-
-    private val cameraPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) {
-            openCamera()
-        } else {
-            Toast.makeText(context, "Camera permission required to take photos", Toast.LENGTH_SHORT).show()
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -82,7 +50,13 @@ class EditProfileFragment : Fragment() {
         activity?.window?.statusBarColor = Color.WHITE
         @Suppress("DEPRECATION")
         activity?.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-        (activity as? AppCompatActivity)?.supportActionBar?.hide()
+        
+        // Set action bar color to black before hiding to prevent purple flash
+        (activity as? AppCompatActivity)?.supportActionBar?.let { actionBar ->
+            // Set the action bar background to black before hiding
+            actionBar.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.BLACK))
+            actionBar.hide()
+        }
     }
 
     private fun setupClickListeners() {
@@ -93,68 +67,6 @@ class EditProfileFragment : Fragment() {
         binding.saveButton.setOnClickListener {
             saveProfile()
         }
-
-        binding.editProfileImageFab.setOnClickListener {
-            showImagePickerDialog()
-        }
-    }
-
-    private fun showImagePickerDialog() {
-        val options = arrayOf("Take Photo", "Choose from Gallery", "Remove Photo")
-        
-        AlertDialog.Builder(requireContext())
-            .setTitle("Change Profile Picture")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> checkCameraPermissionAndOpen()
-                    1 -> openGallery()
-                    2 -> removeProfilePhoto()
-                }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-
-    private fun checkCameraPermissionAndOpen() {
-        when {
-            ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED -> {
-                openCamera()
-            }
-            else -> {
-                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-            }
-        }
-    }
-
-    private fun openCamera() {
-        try {
-            // Create a temporary file URI for the camera result
-            selectedImageUri = viewModel.createTempImageUri(requireContext())
-            selectedImageUri?.let { uri ->
-                cameraLauncher.launch(uri)
-            }
-        } catch (e: Exception) {
-            Toast.makeText(context, "Error opening camera: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun openGallery() {
-        galleryLauncher.launch("image/*")
-    }
-
-    private fun removeProfilePhoto() {
-        selectedImageUri = null
-        binding.profileImageView.setImageResource(R.drawable.ic_profile_placeholder)
-        Toast.makeText(context, "Profile photo will be removed", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun loadImageIntoView(uri: Uri) {
-        Glide.with(this)
-            .load(uri)
-            .transform(CircleCrop())
-            .placeholder(R.drawable.ic_profile_placeholder)
-            .error(R.drawable.ic_profile_placeholder)
-            .into(binding.profileImageView)
     }
 
     private fun saveProfile() {
@@ -182,7 +94,7 @@ class EditProfileFragment : Fragment() {
         }
 
         // Call ViewModel to save profile with image
-        viewModel.updateProfile(name, email, selectedImageUri)
+        viewModel.updateProfile(name, email)
     }
 
     private fun observeViewModel() {
@@ -199,18 +111,6 @@ class EditProfileFragment : Fragment() {
                         }
                         if (binding.emailEditText.text.toString() != user.email) {
                             binding.emailEditText.setText(user.email)
-                        }
-                        
-                        // Load profile image
-                        user.profileImageUrl?.let { imageUrl ->
-                            if (selectedImageUri == null) { // Only load if user hasn't selected a new image
-                                Glide.with(this@EditProfileFragment)
-                                    .load(imageUrl)
-                                    .transform(CircleCrop())
-                                    .placeholder(R.drawable.ic_profile_placeholder)
-                                    .error(R.drawable.ic_profile_placeholder)
-                                    .into(binding.profileImageView)
-                            }
                         }
                     }
 
@@ -242,8 +142,14 @@ class EditProfileFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Restore action bar when leaving edit profile
-        (activity as? AppCompatActivity)?.supportActionBar?.show()
+        
+        // Restore action bar when leaving edit profile with correct black color
+        (activity as? AppCompatActivity)?.supportActionBar?.let { actionBar ->
+            // Set the action bar background to black before showing
+            actionBar.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.BLACK))
+            actionBar.show()
+        }
+        
         _binding = null
     }
 } 

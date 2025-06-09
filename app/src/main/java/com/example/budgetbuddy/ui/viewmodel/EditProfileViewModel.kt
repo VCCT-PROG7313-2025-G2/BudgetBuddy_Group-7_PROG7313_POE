@@ -1,8 +1,5 @@
 package com.example.budgetbuddy.ui.viewmodel
 
-import android.content.Context
-import android.net.Uri
-import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.budgetbuddy.data.firebase.model.FirebaseUser
@@ -13,14 +10,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.io.File
 import javax.inject.Inject
 
 data class EditProfileUiState(
     val user: FirebaseUser? = null,
     val isLoading: Boolean = false,
     val profileUpdateComplete: Boolean = false,
-    val imageUploadProgress: Int = 0,
     val error: String? = null
 )
 
@@ -60,31 +55,12 @@ class EditProfileViewModel @Inject constructor(
         }
     }
 
-    fun updateProfile(name: String, email: String, profileImageUri: Uri? = null) {
+    fun updateProfile(name: String, email: String) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
             try {
-                android.util.Log.d("EditProfileViewModel", "Updating profile: name=$name, email=$email, hasImage=${profileImageUri != null}")
-                
-                var profileImageUrl: String? = null
-                
-                // Upload profile image if provided
-                profileImageUri?.let { uri ->
-                    try {
-                        android.util.Log.d("EditProfileViewModel", "Uploading profile image...")
-                        profileImageUrl = authRepository.uploadProfileImage(uri)
-                        android.util.Log.d("EditProfileViewModel", "Profile image uploaded: $profileImageUrl")
-                    } catch (e: Exception) {
-                        android.util.Log.e("EditProfileViewModel", "Failed to upload profile image", e)
-                        // Continue with profile update even if image upload fails
-                        _uiState.value = _uiState.value.copy(
-                            error = "Failed to upload image, but profile will be updated: ${e.message}"
-                        )
-                    }
-                }
-                
-                val result = authRepository.updateUserProfile(name, email, profileImageUrl)
+                val result = authRepository.updateUserProfile(name, email)
                 
                 if (result.isSuccess) {
                     // Reload user profile to get updated data
@@ -114,23 +90,6 @@ class EditProfileViewModel @Inject constructor(
                 )
             }
         }
-    }
-
-    /**
-     * Creates a temporary file URI for camera capture.
-     */
-    fun createTempImageUri(context: Context): Uri {
-        val tempFile = File.createTempFile(
-            "profile_image_${System.currentTimeMillis()}",
-            ".jpg",
-            context.cacheDir
-        )
-        
-        return FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            tempFile
-        )
     }
 
     fun clearError() {

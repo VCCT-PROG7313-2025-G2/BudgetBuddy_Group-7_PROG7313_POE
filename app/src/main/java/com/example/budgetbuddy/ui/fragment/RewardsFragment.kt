@@ -13,8 +13,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.example.budgetbuddy.R
 import com.example.budgetbuddy.adapter.BadgeAdapter
 import com.example.budgetbuddy.adapter.LeaderboardAdapter
@@ -114,18 +112,9 @@ class RewardsFragment : Fragment() {
 
                     // Update UI only when not loading
                     if (!state.isLoading) {
-                        // Update User Info - Get actual user name and profile image
+                        // Update User Info - Get actual user name
                         viewModel.getCurrentUserName { userName ->
                             binding.userNameTextView.text = userName ?: "User"
-                        }
-                        
-                        viewModel.getCurrentUserProfileImage { profileImageUrl ->
-                            Glide.with(this@RewardsFragment)
-                                .load(profileImageUrl ?: R.drawable.ic_profile_placeholder)
-                                .transform(CircleCrop())
-                                .placeholder(R.drawable.ic_profile_placeholder)
-                                .error(R.drawable.ic_profile_placeholder)
-                                .into(binding.userProfileImageView)
                         }
                         
                         // Combine level number

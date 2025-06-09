@@ -16,8 +16,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.example.budgetbuddy.MainActivity
 import com.example.budgetbuddy.R
 import com.example.budgetbuddy.databinding.FragmentSettingsBinding
@@ -126,18 +124,6 @@ class SettingsFragment : Fragment() {
                     binding.userNameTextView.text = state.user?.name ?: "User"
                     binding.userEmailTextView.text = state.user?.email ?: "No email"
                     
-                    // Update profile image
-                    state.user?.profileImageUrl?.let { imageUrl ->
-                        Glide.with(this@SettingsFragment)
-                            .load(imageUrl)
-                            .transform(CircleCrop())
-                            .placeholder(R.drawable.ic_profile_placeholder)
-                            .error(R.drawable.ic_profile_placeholder)
-                            .into(binding.userProfileImageView)
-                    } ?: run {
-                        binding.userProfileImageView.setImageResource(R.drawable.ic_profile_placeholder)
-                    }
-
                     // Update notification settings
                     binding.budgetAlertsSwitch.isChecked = state.budgetAlertsEnabled
                     binding.dailyRemindersSwitch.isChecked = state.dailyRemindersEnabled

@@ -47,7 +47,13 @@ class ChangePasswordFragment : Fragment() {
         activity?.window?.statusBarColor = Color.WHITE
         @Suppress("DEPRECATION")
         activity?.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-        (activity as? AppCompatActivity)?.supportActionBar?.hide()
+        
+        // Set action bar color to black before hiding to prevent purple flash
+        (activity as? AppCompatActivity)?.supportActionBar?.let { actionBar ->
+            // Set the action bar background to black before hiding
+            actionBar.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.BLACK))
+            actionBar.hide()
+        }
     }
 
     private fun setupClickListeners() {
@@ -141,8 +147,14 @@ class ChangePasswordFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Restore action bar when leaving change password
-        (activity as? AppCompatActivity)?.supportActionBar?.show()
+        
+        // Restore action bar when leaving change password with correct black color
+        (activity as? AppCompatActivity)?.supportActionBar?.let { actionBar ->
+            // Set the action bar background to black before showing
+            actionBar.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.BLACK))
+            actionBar.show()
+        }
+        
         _binding = null
     }
 } 

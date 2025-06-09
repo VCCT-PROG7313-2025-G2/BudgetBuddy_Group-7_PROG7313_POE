@@ -98,14 +98,11 @@
 
     <!-- Profile Screen -->
     <string name="profile_title">Profile</string>
-    <string name="change_profile_picture">Change Picture</string>
     <string name="settings_link">Settings</string>
     <string name="budget_setup_link">Manage Budget</string>
     <string name="save_profile">Save Profile</string>
 
     <!-- Settings Screen -->
-    <string name="profile_picture">Profile Picture</string>
-    <string name="edit_profile_picture">Edit Profile Picture</string>
     <string name="back_button">Back</string>
     <string name="settings_title">Settings</string>
     <string name="notifications_label">Notifications</string>

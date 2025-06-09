@@ -109,7 +109,7 @@ class MainActivity : AppCompatActivity() {
                     supportActionBar?.setDisplayHomeAsUpEnabled(false) // Hide back arrow on main screens
                     // Reset toolbar to normal configuration
                     binding.toolbar.removeAllViews()
-                    binding.toolbar.setBackgroundColor(resources.getColor(com.google.android.material.R.color.design_default_color_primary, theme))
+                    binding.toolbar.setBackgroundColor(android.graphics.Color.BLACK)
                     binding.toolbar.setTitleTextColor(android.graphics.Color.WHITE)
                 }
                 // Otherwise (on secondary screens like Add Expense), hide bottom nav but show action bar.
@@ -119,7 +119,7 @@ class MainActivity : AppCompatActivity() {
                     supportActionBar?.setDisplayHomeAsUpEnabled(true) // Show back arrow on other screens
                     // Reset toolbar to normal configuration
                     binding.toolbar.removeAllViews()
-                    binding.toolbar.setBackgroundColor(resources.getColor(com.google.android.material.R.color.design_default_color_primary, theme))
+                    binding.toolbar.setBackgroundColor(android.graphics.Color.BLACK)
                     binding.toolbar.setTitleTextColor(android.graphics.Color.WHITE)
                 }
             }
