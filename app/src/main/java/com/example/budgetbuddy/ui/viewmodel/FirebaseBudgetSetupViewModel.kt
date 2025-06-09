@@ -429,7 +429,7 @@ class FirebaseBudgetSetupViewModel @Inject constructor(
         if (_totalBudget.value <= BigDecimal.ZERO) {
             errors.add("Total budget must be greater than zero")
         } else if (_totalBudget.value < _userMinimumBudget.value) {
-            errors.add("Budget must be at least $${_userMinimumBudget.value}")
+            errors.add("Budget must be at least R${_userMinimumBudget.value}")
         }
 
         // Validate categories - use safe copy

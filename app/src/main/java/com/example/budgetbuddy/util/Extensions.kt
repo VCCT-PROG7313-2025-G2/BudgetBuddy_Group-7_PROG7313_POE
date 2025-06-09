@@ -55,7 +55,7 @@ fun Date.toMonthYearString(): String {
  * Formats BigDecimal as currency string.
  */
 fun BigDecimal.toCurrencyString(): String {
-    return java.text.NumberFormat.getCurrencyInstance(Locale.US).format(this)
+    return "R${String.format("%.2f", this)}"
 }
 
 /**

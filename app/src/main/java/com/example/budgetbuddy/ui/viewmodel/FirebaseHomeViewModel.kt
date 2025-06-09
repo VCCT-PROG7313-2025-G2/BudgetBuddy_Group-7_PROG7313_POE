@@ -219,9 +219,9 @@ class FirebaseHomeViewModel @Inject constructor(
             }
             
             val percentageText = if (allocated > BigDecimal.ZERO) {
-                "$${spent.toInt()} / $${allocated.toInt()}"
+                "R${spent.toInt()} / R${allocated.toInt()}"
             } else {
-                if (spent > BigDecimal.ZERO) "$${spent.toInt()} spent" else "No budget"
+                if (spent > BigDecimal.ZERO) "R${spent.toInt()} spent" else "No budget"
             }
             
             val iconResId = getCategoryIconRes(categoryBudget.categoryName)

@@ -196,7 +196,7 @@ class ExpenseHistoryFragment : Fragment() {
         // Create a detailed view dialog or navigate to detail fragment
         val details = buildString {
             append("Category: ${expense.category}\n")
-            append("Amount: $${String.format("%.2f", expense.amount)}\n")
+            append("Amount: R${String.format("%.2f", expense.amount)}\n")
             append("Date: ${dateFormat.format(expense.date)}\n")
             if (expense.description.isNotEmpty()) {
                 append("Description: ${expense.description}\n")

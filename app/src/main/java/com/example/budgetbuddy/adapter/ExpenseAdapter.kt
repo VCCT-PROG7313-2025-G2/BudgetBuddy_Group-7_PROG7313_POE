@@ -57,8 +57,7 @@ class ExpenseAdapter(private val onItemClicked: (ExpenseListItem.Expense) -> Uni
             binding.notesTextView.visibility = if (item.notes.isNullOrBlank()) View.GONE else View.VISIBLE
             
             // Format currency
-            val format: NumberFormat = NumberFormat.getCurrencyInstance(Locale.getDefault()) // Adjust locale if needed
-            binding.amountTextView.text = format.format(item.amount * -1) // Assuming amount is stored positive
+            binding.amountTextView.text = "R${String.format("%.2f", item.amount)}"
 
             binding.receiptIndicatorImageView.visibility = if (item.hasReceipt) View.VISIBLE else View.GONE
 

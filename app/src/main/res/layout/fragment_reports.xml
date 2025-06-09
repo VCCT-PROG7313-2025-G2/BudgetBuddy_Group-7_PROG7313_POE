@@ -230,6 +230,220 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Spending Analysis Over Time Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/spendingAnalysisCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:cardElevation="2dp"
+                app:cardCornerRadius="8dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- Header -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Spending Analysis Over Time"
+                        android:textAppearance="?attr/textAppearanceSubtitle1"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Track your spending patterns over different time periods"
+                        android:textAppearance="?attr/textAppearanceCaption"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:layout_marginTop="4dp" />
+
+                    <!-- Time Period Selector -->
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/timePeriodChipGroup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        app:singleSelection="true"
+                        app:selectionRequired="true">
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipWeek"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Last 7 Days"
+                            android:checkable="true" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipMonth"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Last 30 Days"
+                            android:checkable="true"
+                            android:checked="true" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipQuarter"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Last 3 Months"
+                            android:checkable="true" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipYear"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Last 12 Months"
+                            android:checkable="true" />
+
+                    </com.google.android.material.chip.ChipGroup>
+
+                    <!-- Custom Date Range (Initially Hidden) -->
+                    <LinearLayout
+                        android:id="@+id/customDateRangeLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal"
+                        android:visibility="gone">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/startDateInputLayout"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="8dp"
+                            android:hint="Start Date">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/startDateEditText"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:focusable="false"
+                                android:clickable="true" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/endDateInputLayout"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:hint="End Date">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/endDateEditText"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:focusable="false"
+                                android:clickable="true" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                    </LinearLayout>
+
+                    <!-- Period Summary -->
+                    <LinearLayout
+                        android:id="@+id/periodSummaryLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:orientation="horizontal"
+                        android:background="?attr/colorSurface"
+                        android:padding="12dp"
+                        android:gravity="center_vertical">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Total Spent"
+                                android:textAppearance="?attr/textAppearanceCaption"
+                                android:textColor="?android:attr/textColorSecondary" />
+
+                            <TextView
+                                android:id="@+id/periodTotalSpentTextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="$0.00"
+                                android:textAppearance="?attr/textAppearanceSubtitle1"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Daily Average"
+                                android:textAppearance="?attr/textAppearanceCaption"
+                                android:textColor="?android:attr/textColorSecondary" />
+
+                            <TextView
+                                android:id="@+id/periodDailyAverageTextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="$0.00"
+                                android:textAppearance="?attr/textAppearanceSubtitle1"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Trend"
+                                android:textAppearance="?attr/textAppearanceCaption"
+                                android:textColor="?android:attr/textColorSecondary" />
+
+                            <TextView
+                                android:id="@+id/periodTrendTextView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="--"
+                                android:textAppearance="?attr/textAppearanceSubtitle1"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Line Chart for Spending Over Time -->
+                    <com.github.mikephil.charting.charts.LineChart
+                        android:id="@+id/spendingOverTimeLineChart"
+                        android:layout_width="match_parent"
+                        android:layout_height="300dp"
+                        android:layout_marginTop="16dp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

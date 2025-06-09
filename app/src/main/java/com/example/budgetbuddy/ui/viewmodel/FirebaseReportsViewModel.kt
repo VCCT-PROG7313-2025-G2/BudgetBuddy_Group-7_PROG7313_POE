@@ -39,6 +39,13 @@ class FirebaseReportsViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    // Time period analysis
+    private val _timePeriodAnalysis = MutableStateFlow(TimePeriodAnalysis())
+    val timePeriodAnalysis: StateFlow<TimePeriodAnalysis> = _timePeriodAnalysis.asStateFlow()
+
+    private val _periodSpendingData = MutableStateFlow<List<DailySpending>>(emptyList())
+    val periodSpendingData: StateFlow<List<DailySpending>> = _periodSpendingData.asStateFlow()
+
     /**
      * Load reports data for a specific month
      */
@@ -315,4 +322,158 @@ class FirebaseReportsViewModel @Inject constructor(
         val weekName: String,
         val amount: Double
     )
+
+    data class TimePeriodAnalysis(
+        val totalSpent: Double = 0.0,
+        val dailyAverage: Double = 0.0,
+        val trend: String = "--", // "Rising", "Falling", "Stable"
+        val periodLabel: String = "",
+        val startDate: Date? = null,
+        val endDate: Date? = null
+    )
+
+    data class DailySpending(
+        val date: Date,
+        val amount: Double,
+        val formattedDate: String = ""
+    )
+
+    enum class TimePeriod {
+        WEEK, MONTH, QUARTER, YEAR, CUSTOM
+    }
+
+    /**
+     * Load spending analysis data for a specific time period
+     */
+    fun loadTimePeriodAnalysis(period: TimePeriod, startDate: Date? = null, endDate: Date? = null) {
+        if (!sessionManager.isLoggedIn()) return
+        
+        val userId = sessionManager.getUserId()
+
+        viewModelScope.launch {
+            try {
+                Log.d("ReportsViewModel", "=== Loading Time Period Analysis ===")
+                Log.d("ReportsViewModel", "Period: $period")
+                
+                val (analysisStartDate, analysisEndDate, periodLabel) = when (period) {
+                    TimePeriod.WEEK -> {
+                        val end = Calendar.getInstance().time
+                        val start = Calendar.getInstance().apply {
+                            add(Calendar.DAY_OF_YEAR, -7)
+                        }.time
+                        Triple(start, end, "Last 7 Days")
+                    }
+                    TimePeriod.MONTH -> {
+                        val end = Calendar.getInstance().time
+                        val start = Calendar.getInstance().apply {
+                            add(Calendar.DAY_OF_YEAR, -30)
+                        }.time
+                        Triple(start, end, "Last 30 Days")
+                    }
+                    TimePeriod.QUARTER -> {
+                        val end = Calendar.getInstance().time
+                        val start = Calendar.getInstance().apply {
+                            add(Calendar.MONTH, -3)
+                        }.time
+                        Triple(start, end, "Last 3 Months")
+                    }
+                    TimePeriod.YEAR -> {
+                        val end = Calendar.getInstance().time
+                        val start = Calendar.getInstance().apply {
+                            add(Calendar.YEAR, -1)
+                        }.time
+                        Triple(start, end, "Last 12 Months")
+                    }
+                    TimePeriod.CUSTOM -> {
+                        if (startDate != null && endDate != null) {
+                            val formatter = SimpleDateFormat("MMM d", Locale.getDefault())
+                            val label = "${formatter.format(startDate)} - ${formatter.format(endDate)}"
+                            Triple(startDate, endDate, label)
+                        } else {
+                            return@launch
+                        }
+                    }
+                }
+
+                Log.d("ReportsViewModel", "Start: $analysisStartDate, End: $analysisEndDate")
+
+                // Get expenses for the period
+                val expenses = expenseRepository.getExpensesBetweenDates(userId, analysisStartDate, analysisEndDate)
+                
+                // Calculate total spent
+                val totalSpent = expenses.sumOf { it.getAmountAsBigDecimal() }
+                
+                // Calculate daily average
+                val daysDiff = ((analysisEndDate.time - analysisStartDate.time) / (1000 * 60 * 60 * 24)).toInt() + 1
+                val dailyAverage = if (daysDiff > 0) totalSpent.toDouble() / daysDiff else 0.0
+                
+                // Calculate trend (comparing first half vs second half of period)
+                val midPoint = Date((analysisStartDate.time + analysisEndDate.time) / 2)
+                val firstHalfExpenses = expenses.filter { it.getDateAsDate().before(midPoint) }
+                val secondHalfExpenses = expenses.filter { it.getDateAsDate().after(midPoint) }
+                
+                val firstHalfTotal = firstHalfExpenses.sumOf { it.getAmountAsBigDecimal() }
+                val secondHalfTotal = secondHalfExpenses.sumOf { it.getAmountAsBigDecimal() }
+                
+                val trend = when {
+                    secondHalfTotal > firstHalfTotal * BigDecimal("1.1") -> "↗ Rising"
+                    secondHalfTotal < firstHalfTotal * BigDecimal("0.9") -> "↘ Falling"
+                    else -> "→ Stable"
+                }
+
+                // Update analysis state
+                _timePeriodAnalysis.value = TimePeriodAnalysis(
+                    totalSpent = totalSpent.toDouble(),
+                    dailyAverage = dailyAverage,
+                    trend = trend,
+                    periodLabel = periodLabel,
+                    startDate = analysisStartDate,
+                    endDate = analysisEndDate
+                )
+
+                // Group expenses by day for the chart
+                val dailySpendingMap = mutableMapOf<String, Double>()
+                val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val calendar = Calendar.getInstance()
+                
+                // Initialize all days in the period with 0
+                calendar.time = analysisStartDate
+                while (!calendar.time.after(analysisEndDate)) {
+                    val dateKey = dateFormatter.format(calendar.time)
+                    dailySpendingMap[dateKey] = 0.0
+                    calendar.add(Calendar.DAY_OF_YEAR, 1)
+                }
+                
+                // Add actual spending data
+                expenses.forEach { expense ->
+                    val dateKey = dateFormatter.format(expense.getDateAsDate())
+                    dailySpendingMap[dateKey] = (dailySpendingMap[dateKey] ?: 0.0) + expense.getAmountAsBigDecimal().toDouble()
+                }
+
+                // Convert to DailySpending list
+                val dailySpendingList = dailySpendingMap.entries.sortedBy { it.key }.map { (dateStr, amount) ->
+                    val date = dateFormatter.parse(dateStr) ?: Date()
+                    val displayFormatter = when (period) {
+                        TimePeriod.WEEK -> SimpleDateFormat("EEE", Locale.getDefault())
+                        TimePeriod.MONTH -> SimpleDateFormat("MMM d", Locale.getDefault())
+                        TimePeriod.QUARTER, TimePeriod.YEAR -> SimpleDateFormat("MMM", Locale.getDefault())
+                        TimePeriod.CUSTOM -> SimpleDateFormat("MMM d", Locale.getDefault())
+                    }
+                    
+                    DailySpending(
+                        date = date,
+                        amount = amount,
+                        formattedDate = displayFormatter.format(date)
+                    )
+                }
+
+                _periodSpendingData.value = dailySpendingList
+                
+                Log.d("ReportsViewModel", "Time period analysis loaded: Total: $totalSpent, Daily Avg: $dailyAverage, Trend: $trend")
+
+            } catch (e: Exception) {
+                Log.e("ReportsViewModel", "Error loading time period analysis", e)
+            }
+        }
+    }
 } 

@@ -96,12 +96,12 @@ class BudgetSetupFragment : Fragment() {
                                 binding.monthlyBudgetInputLayout.helperText = null
                             }
                             budgetAmount < userMinimumBudget -> {
-                                binding.monthlyBudgetInputLayout.error = "Budget must be at least $$userMinimumBudget"
+                                binding.monthlyBudgetInputLayout.error = "Budget must be at least R$userMinimumBudget"
                                 binding.monthlyBudgetInputLayout.helperText = null
                             }
                             else -> {
                                 binding.monthlyBudgetInputLayout.error = null
-                                binding.monthlyBudgetInputLayout.helperText = "Your minimum budget: $$userMinimumBudget"
+                                binding.monthlyBudgetInputLayout.helperText = "Your minimum budget: R$userMinimumBudget"
                             }
                         }
                     } catch (e: NumberFormatException) {
@@ -111,7 +111,7 @@ class BudgetSetupFragment : Fragment() {
                 } else {
                     binding.monthlyBudgetInputLayout.error = null
                     val userMinimumBudget = viewModel.getUserMinimumBudget()
-                    binding.monthlyBudgetInputLayout.helperText = "Your minimum budget: $$userMinimumBudget"
+                    binding.monthlyBudgetInputLayout.helperText = "Your minimum budget: R$userMinimumBudget"
                 }
             }
         })
@@ -196,9 +196,9 @@ class BudgetSetupFragment : Fragment() {
             
             // Also update our local list for consistency - using synchronized access
             synchronized(categoryBudgets) {
-                val index = categoryBudgets.indexOfFirst { it.categoryId == categoryBudget.categoryId }
-                if (index != -1) {
-                    categoryBudgets[index].budgetLimit = newLimit
+            val index = categoryBudgets.indexOfFirst { it.categoryId == categoryBudget.categoryId }
+            if (index != -1) {
+                categoryBudgets[index].budgetLimit = newLimit
                 }
             }
         }
@@ -224,14 +224,14 @@ class BudgetSetupFragment : Fragment() {
         binding.saveBudgetButton.isEnabled = false
         
         try {
-            val monthlyBudgetText = binding.monthlyBudgetEditText.text.toString()
+        val monthlyBudgetText = binding.monthlyBudgetEditText.text.toString()
             android.util.Log.d("BudgetSetupFragment", "Monthly budget text: '$monthlyBudgetText'")
             
-            val totalBudget = try {
-                if (monthlyBudgetText.isNotBlank()) BigDecimal(monthlyBudgetText) else BigDecimal.ZERO
-            } catch (e: NumberFormatException) {
+        val totalBudget = try {
+            if (monthlyBudgetText.isNotBlank()) BigDecimal(monthlyBudgetText) else BigDecimal.ZERO
+        } catch (e: NumberFormatException) {
                 android.util.Log.e("BudgetSetupFragment", "Invalid budget format", e)
-                Toast.makeText(context, "Invalid monthly budget amount", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Invalid monthly budget amount", Toast.LENGTH_SHORT).show()
                 binding.saveBudgetButton.isEnabled = true
                 return
             }
@@ -245,10 +245,10 @@ class BudgetSetupFragment : Fragment() {
                 return
             } else if (totalBudget < viewModel.getUserMinimumBudget()) {
                 android.util.Log.w("BudgetSetupFragment", "Budget is below user's minimum threshold")
-                Toast.makeText(context, "Budget must be at least $${viewModel.getUserMinimumBudget()}", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "Budget must be at least R${viewModel.getUserMinimumBudget()}", Toast.LENGTH_LONG).show()
                 binding.saveBudgetButton.isEnabled = true
-                return
-            }
+            return
+        }
 
             android.util.Log.d("BudgetSetupFragment", "Setting total budget in ViewModel: $totalBudget")
             // First set the total budget
@@ -324,7 +324,7 @@ class BudgetSetupFragment : Fragment() {
                 // Observe UI state for loading/success/error
                 launch {
                     try {
-                        viewModel.uiState.collect { state ->
+                viewModel.uiState.collect { state ->
                             if (!isAdded || _binding == null) {
                                 android.util.Log.w("BudgetSetupFragment", "Fragment not active during UI state update")
                                 return@collect
@@ -332,10 +332,10 @@ class BudgetSetupFragment : Fragment() {
                             
                             binding.saveBudgetButton.isEnabled = state !is FirebaseBudgetSetupUiState.Loading
 
-                            when (state) {
+                    when (state) {
                                 is FirebaseBudgetSetupUiState.Success -> {
                                     android.util.Log.d("BudgetSetupFragment", "Budget save success received")
-                                    Toast.makeText(context, "Budget saved successfully!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Budget saved successfully!", Toast.LENGTH_SHORT).show()
                                     
                                     // Add a small delay before navigation to ensure UI updates complete
                                     kotlinx.coroutines.delay(500)
@@ -450,7 +450,7 @@ class BudgetSetupFragment : Fragment() {
                         }
                         
                         // Update helper text to show current user minimum budget
-                        binding.monthlyBudgetInputLayout.helperText = "Your minimum budget: $$userMinimumBudget"
+                        binding.monthlyBudgetInputLayout.helperText = "Your minimum budget: R$userMinimumBudget"
                     }
                 } catch (e: Exception) {
                     android.util.Log.e("BudgetSetupFragment", "Error observing user minimum budget", e)
@@ -497,7 +497,7 @@ class BudgetSetupFragment : Fragment() {
 
         // Optional: Validate category amount against a reasonable minimum
         if (amount > BigDecimal.ZERO && amount < com.example.budgetbuddy.util.Constants.Budget.MINIMUM_CATEGORY_AMOUNT) {
-            Toast.makeText(context, "Category budget should be at least $${com.example.budgetbuddy.util.Constants.Budget.MINIMUM_CATEGORY_AMOUNT}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Category budget should be at least R${com.example.budgetbuddy.util.Constants.Budget.MINIMUM_CATEGORY_AMOUNT}", Toast.LENGTH_SHORT).show()
             return
         }
 

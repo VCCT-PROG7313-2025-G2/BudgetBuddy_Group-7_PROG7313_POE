@@ -30,6 +30,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import android.app.DatePickerDialog
+import java.text.NumberFormat
 
 /**
  * Reports Fragment - Shows spending insights and analytics
@@ -47,6 +49,15 @@ class ReportsFragment : Fragment() {
 
     // Track whether to show amounts or percentages
     private var showAmounts = true
+
+    // Time period analysis variables
+    private val dateFormatter = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
+    private val currencyFormatter = object {
+        fun format(value: Double): String = "R${String.format("%.2f", value)}"
+    }
+    private var selectedTimePeriod = FirebaseReportsViewModel.TimePeriod.MONTH
+    private var customStartDate: Date? = null
+    private var customEndDate: Date? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -79,6 +90,9 @@ class ReportsFragment : Fragment() {
         // Setup bar chart for daily spending
         setupBarChart()
         
+        // Setup time period analysis
+        setupTimePeriodAnalysis()
+        
         // Setup download button
         binding.downloadReportButton.text = "Export Report"
         
@@ -99,14 +113,137 @@ class ReportsFragment : Fragment() {
             loadMonthData()
         }
 
-
-
         binding.downloadReportButton.setOnClickListener {
             exportReport()
         }
 
         binding.categoryDisplayToggleButton.setOnClickListener {
             toggleCategoryDisplay()
+        }
+
+        // Time period analysis click listeners
+        setupTimePeriodClickListeners()
+    }
+
+    private fun setupTimePeriodAnalysis() {
+        // Setup line chart for spending over time
+        with(binding.spendingOverTimeLineChart) {
+            description = Description().apply { text = "" }
+            setDrawGridBackground(false)
+            setTouchEnabled(true)
+            isDragEnabled = true
+            setScaleEnabled(true)
+            setPinchZoom(true)
+            
+            // Configure X-axis
+            xAxis.apply {
+                isEnabled = true
+                setDrawGridLines(true)
+                setDrawAxisLine(true)
+                position = com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM
+                textColor = Color.BLACK
+                textSize = 10f
+                granularity = 1f
+                setLabelCount(7, false)
+            }
+            
+            // Configure left Y-axis
+            axisLeft.apply {
+                isEnabled = true
+                setDrawGridLines(true)
+                setDrawAxisLine(true)
+                textColor = Color.BLACK
+                textSize = 10f
+                axisMinimum = 0f
+                valueFormatter = object : ValueFormatter() {
+                    override fun getAxisLabel(value: Float, axis: com.github.mikephil.charting.components.AxisBase?): String {
+                        return currencyFormatter.format(value.toFloat())
+                    }
+                }
+            }
+            
+            // Hide right Y-axis
+            axisRight.isEnabled = false
+            
+            // Configure legend
+            legend.isEnabled = false
+            
+            // Set margins
+            setExtraOffsets(10f, 10f, 10f, 10f)
+        }
+
+        // Load default period (Last 30 Days)
+        viewModel.loadTimePeriodAnalysis(selectedTimePeriod)
+    }
+
+    private fun setupTimePeriodClickListeners() {
+        // Time period chip selection
+        binding.timePeriodChipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
+            if (checkedIds.isNotEmpty()) {
+                when (checkedIds[0]) {
+                    R.id.chipWeek -> {
+                        selectedTimePeriod = FirebaseReportsViewModel.TimePeriod.WEEK
+                        binding.customDateRangeLayout.visibility = View.GONE
+                        viewModel.loadTimePeriodAnalysis(selectedTimePeriod)
+                    }
+                    R.id.chipMonth -> {
+                        selectedTimePeriod = FirebaseReportsViewModel.TimePeriod.MONTH
+                        binding.customDateRangeLayout.visibility = View.GONE
+                        viewModel.loadTimePeriodAnalysis(selectedTimePeriod)
+                    }
+                    R.id.chipQuarter -> {
+                        selectedTimePeriod = FirebaseReportsViewModel.TimePeriod.QUARTER
+                        binding.customDateRangeLayout.visibility = View.GONE
+                        viewModel.loadTimePeriodAnalysis(selectedTimePeriod)
+                    }
+                    R.id.chipYear -> {
+                        selectedTimePeriod = FirebaseReportsViewModel.TimePeriod.YEAR
+                        binding.customDateRangeLayout.visibility = View.GONE
+                        viewModel.loadTimePeriodAnalysis(selectedTimePeriod)
+                    }
+                }
+            }
+        }
+
+        // Custom date range selection
+        binding.startDateEditText.setOnClickListener {
+            showDatePicker { date ->
+                customStartDate = date
+                binding.startDateEditText.setText(dateFormatter.format(date))
+                updateCustomDateRange()
+            }
+        }
+
+        binding.endDateEditText.setOnClickListener {
+            showDatePicker { date ->
+                customEndDate = date
+                binding.endDateEditText.setText(dateFormatter.format(date))
+                updateCustomDateRange()
+            }
+        }
+    }
+
+    private fun showDatePicker(onDateSelected: (Date) -> Unit) {
+        val calendar = Calendar.getInstance()
+        val datePickerDialog = DatePickerDialog(
+            requireContext(),
+            { _, year, month, dayOfMonth ->
+                calendar.set(year, month, dayOfMonth)
+                onDateSelected(calendar.time)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        )
+        datePickerDialog.show()
+    }
+
+    private fun updateCustomDateRange() {
+        if (customStartDate != null && customEndDate != null) {
+            if (customStartDate!!.before(customEndDate) || customStartDate!!.equals(customEndDate)) {
+                selectedTimePeriod = FirebaseReportsViewModel.TimePeriod.CUSTOM
+                viewModel.loadTimePeriodAnalysis(selectedTimePeriod, customStartDate, customEndDate)
+            }
         }
     }
 
@@ -154,6 +291,24 @@ class ReportsFragment : Fragment() {
                         android.util.Log.d("ReportsFragment", "=== Weekly Spending Received ===")
                         android.util.Log.d("ReportsFragment", "Number of weeks: ${weeklyData.size}")
                         updateWeeklySpendingChart(weeklyData)
+                    }
+                }
+
+                // Observe time period analysis
+                launch {
+                    viewModel.timePeriodAnalysis.collect { analysis ->
+                        android.util.Log.d("ReportsFragment", "=== Time Period Analysis Received ===")
+                        android.util.Log.d("ReportsFragment", "Total: ${analysis.totalSpent}, Daily Avg: ${analysis.dailyAverage}, Trend: ${analysis.trend}")
+                        updateTimePeriodAnalysisSummary(analysis)
+                    }
+                }
+
+                // Observe period spending data
+                launch {
+                    viewModel.periodSpendingData.collect { spendingData ->
+                        android.util.Log.d("ReportsFragment", "=== Period Spending Data Received ===")
+                        android.util.Log.d("ReportsFragment", "Number of data points: ${spendingData.size}")
+                        updateSpendingOverTimeChart(spendingData)
                     }
                 }
             }
@@ -272,7 +427,7 @@ class ReportsFragment : Fragment() {
 
     private fun updateMonthlySummary(summary: FirebaseReportsViewModel.MonthlySummary) {
         // Display total spending prominently
-        binding.totalSpendingAmountTextView.text = "$${String.format("%.2f", summary.totalSpent)}"
+        binding.totalSpendingAmountTextView.text = currencyFormatter.format(summary.totalSpent)
         
         // Create detailed spending change text with better formatting
         val changeText = when {
@@ -295,7 +450,7 @@ class ReportsFragment : Fragment() {
         binding.totalSpendingLabel.text = "Total Monthly Spending"
         
         // Log for debugging
-        android.util.Log.d("ReportsFragment", "Updated summary: Total: $${summary.totalSpent}, Change: ${summary.percentageChange}%")
+        android.util.Log.d("ReportsFragment", "Updated summary: Total: R${summary.totalSpent}, Change: ${summary.percentageChange}%")
     }
 
     private fun updateCategoryChart(categoryData: List<FirebaseReportsViewModel.CategorySpending>) {
@@ -346,11 +501,11 @@ class ReportsFragment : Fragment() {
         
         // Update center text with total
         val totalSpent = categoryData.sumOf { it.amount }
-        binding.categoryPieChart.setCenterText("Total\n$${String.format("%.2f", totalSpent)}")
+        binding.categoryPieChart.setCenterText("Total\n${currencyFormatter.format(totalSpent)}")
         
         binding.categoryPieChart.invalidate()
         
-        android.util.Log.d("ReportsFragment", "Updated pie chart with ${categoryData.size} categories, total: $$totalSpent")
+        android.util.Log.d("ReportsFragment", "Updated pie chart with ${categoryData.size} categories, total: R${totalSpent}")
     }
 
     private fun updateCategoryLegend(categoryData: List<FirebaseReportsViewModel.CategorySpending>) {
@@ -414,7 +569,7 @@ class ReportsFragment : Fragment() {
             // Amount or percentage based on current display mode
             val amountView = android.widget.TextView(requireContext()).apply {
                 text = if (showAmounts) {
-                    "$${String.format("%.2f", category.amount)}"
+                    "${currencyFormatter.format(category.amount)}"
                 } else {
                     "${String.format("%.1f", category.percentage)}%"
                 }
@@ -469,7 +624,7 @@ class ReportsFragment : Fragment() {
         
         // Create bar entries for all weeks (show even weeks with 0 spending)
         val entries = weeklyData.map { weekData ->
-            android.util.Log.d("ReportsFragment", "Adding bar entry: Week ${weekData.week} = $${weekData.amount}")
+            android.util.Log.d("ReportsFragment", "Adding bar entry: Week ${weekData.week} = R${weekData.amount}")
             BarEntry(weekData.week.toFloat(), weekData.amount.toFloat())
         }
         
@@ -488,6 +643,79 @@ class ReportsFragment : Fragment() {
         binding.dailySpendingBarChart.invalidate()
         
         android.util.Log.d("ReportsFragment", "Updated bar chart with ${entries.size} weekly bars")
+    }
+
+    private fun updateTimePeriodAnalysisSummary(analysis: FirebaseReportsViewModel.TimePeriodAnalysis) {
+        binding.periodTotalSpentTextView.text = currencyFormatter.format(analysis.totalSpent)
+        binding.periodDailyAverageTextView.text = currencyFormatter.format(analysis.dailyAverage)
+        binding.periodTrendTextView.text = analysis.trend
+        
+        // Set trend color
+        val trendColor = when {
+            analysis.trend.contains("Rising") -> Color.RED
+            analysis.trend.contains("Falling") -> Color.GREEN
+            else -> Color.GRAY
+        }
+        binding.periodTrendTextView.setTextColor(trendColor)
+    }
+
+    private fun updateSpendingOverTimeChart(spendingData: List<FirebaseReportsViewModel.DailySpending>) {
+        if (!isAdded || _binding == null) return
+        
+        val chart = binding.spendingOverTimeLineChart
+        
+        if (spendingData.isEmpty()) {
+            chart.clear()
+            chart.invalidate()
+            return
+        }
+
+        // Create entries for the line chart
+        val entries = spendingData.mapIndexed { index, dailySpending ->
+            Entry(index.toFloat(), dailySpending.amount.toFloat())
+        }
+
+        // Create line dataset
+        val dataSet = LineDataSet(entries, "Daily Spending").apply {
+            color = Color.BLACK
+            setCircleColor(Color.BLACK)
+            lineWidth = 2f
+            circleRadius = 4f
+            setDrawCircleHole(false)
+            setDrawValues(false)
+            setDrawFilled(true)
+            fillColor = Color.BLACK
+            fillAlpha = 30
+        }
+
+        // Set data to chart
+        val lineData = LineData(dataSet)
+        chart.data = lineData
+
+        // Configure X-axis labels
+        chart.xAxis.valueFormatter = object : ValueFormatter() {
+            override fun getAxisLabel(value: Float, axis: com.github.mikephil.charting.components.AxisBase?): String {
+                val index = value.toInt()
+                return if (index >= 0 && index < spendingData.size) {
+                    spendingData[index].formattedDate
+                } else {
+                    ""
+                }
+            }
+        }
+
+        // Set X-axis range
+        chart.xAxis.apply {
+            axisMinimum = 0f
+            axisMaximum = (spendingData.size - 1).toFloat()
+            labelCount = minOf(7, spendingData.size)
+        }
+
+        // Refresh chart
+        chart.notifyDataSetChanged()
+        chart.invalidate()
+
+        android.util.Log.d("ReportsFragment", "Updated spending over time chart with ${entries.size} data points")
     }
 
     private fun toggleCategoryDisplay() {

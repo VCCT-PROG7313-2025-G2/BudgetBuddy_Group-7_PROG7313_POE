@@ -94,7 +94,7 @@ class ExpenseHistoryAdapter(
         fun bind(expense: ExpenseItemUi, context: Context, iconMap: Map<String, Int>) {
             binding.categoryNameTextView.text = expense.category
             binding.descriptionTextView.text = expense.description.ifEmpty { "-" }
-            binding.amountTextView.text = String.format(Locale.getDefault(), "-$%.2f", expense.amount)
+            binding.amountTextView.text = String.format(Locale.getDefault(), "-R%.2f", expense.amount)
             // Set icon
             val iconRes = iconMap[expense.category] ?: R.drawable.ic_category_other // Default icon
             binding.categoryIconImageView.setImageResource(iconRes)

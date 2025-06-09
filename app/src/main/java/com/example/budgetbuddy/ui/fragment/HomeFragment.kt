@@ -157,7 +157,7 @@ class HomeFragment : Fragment() {
                     binding.greetingTextView.text = state.greeting
                     // Format and display budget numbers.
                     val currencyFormat = NumberFormat.getCurrencyInstance(Locale.US) // Use appropriate locale
-                    binding.balanceAmountTextView.text = "${currencyFormat.format(state.budgetSpent)} / ${currencyFormat.format(state.budgetTotal)}"
+                    binding.balanceAmountTextView.text = "R${String.format("%.2f", state.budgetSpent)} / R${String.format("%.2f", state.budgetTotal)}"
                     binding.budgetProgressBar.max = state.budgetTotal.toIntSafe() // Use safe conversion
                     binding.budgetProgressBar.progress = state.budgetSpent.toIntSafe()
                     // Show/hide rewards section based on data.
