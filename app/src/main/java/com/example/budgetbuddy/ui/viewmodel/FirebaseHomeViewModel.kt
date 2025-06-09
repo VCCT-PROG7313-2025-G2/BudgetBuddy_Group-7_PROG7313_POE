@@ -78,14 +78,16 @@ class FirebaseHomeViewModel @Inject constructor(
     private fun loadHomeScreenData() {
         val userId = getCurrentUserId()
         if (userId.isEmpty()) {
-            Log.e("FirebaseHomeViewModel", "Cannot load data, no user logged in")
+            Log.e("FirebaseHomeViewModel", "Oops! No user is logged in, can't load their data")
             _uiState.value = FirebaseHomeUiState(isLoading = false, error = "Please log in.")
             return
         }
 
+        Log.d("FirebaseHomeViewModel", "Loading home screen for user: $userId")
+        
         viewModelScope.launch {
             try {
-                // Define date ranges
+                // Let's figure out what month we're dealing with and set up our date ranges
                 val monthYearFormat = SimpleDateFormat("yyyy-MM", Locale.getDefault())
                 val currentMonthYear = monthYearFormat.format(Date())
                 val startOfMonthDate = getStartOfMonth()
@@ -93,54 +95,55 @@ class FirebaseHomeViewModel @Inject constructor(
                 val weekStartDate = getStartOfWeek()
                 val todayEndDate = getEndOfDay()
 
-                // Define flows for real-time data
+                Log.d("FirebaseHomeViewModel", "Working with month: $currentMonthYear")
+
+                // Set up our data streams - these will update automatically when things change
                 val userFlow = authRepository.getUserProfileFlow(userId)
                 val budgetFlow = budgetRepository.getBudgetForMonth(userId, currentMonthYear)
                 val monthlySpendingFlow = getMonthlySpendingFlow(userId, startOfMonthDate, endOfMonthDate)
                 val categorySpendingFlow = expenseRepository.getSpendingByCategoryBetweenFlow(userId, startOfMonthDate, endOfMonthDate)
-                // Removed for performance optimization
-                // val weeklyExpensesFlow = expenseRepository.getExpensesBetween(userId, weekStartDate, todayEndDate)
-                // val leaderboardFlow = rewardsRepository.getLeaderboardFlow(50)
+                
+                Log.d("FirebaseHomeViewModel", "Set up data streams, now watching for changes...")
 
-                // Combine essential flows for reactive updates (optimized for performance)
+                // Combine all our data sources and react to any changes
                 combine(
                     userFlow,
                     budgetFlow,
                     monthlySpendingFlow,
                     categorySpendingFlow
                 ) { user, budget, totalSpent, categorySpending ->
-                    // Generate UI data with the available information
-                    // Skip chart data for better performance - will be loaded separately if needed
+                    Log.d("FirebaseHomeViewModel", "Got fresh data! Processing for home screen...")
                     
-                    // Process data for UI
+                    // Create a nice greeting - just use their first name to keep it friendly
                     val greeting = user?.name?.substringBefore(" ")?.let { "Hi, $it" } ?: "Welcome"
                     val budgetTotal = budget?.getTotalAmountAsBigDecimal() ?: BigDecimal.ZERO
+                    
+                    // Calculate how much of their budget they've used (as a percentage)
                     val budgetProgress = if (budgetTotal > BigDecimal.ZERO) {
                         (totalSpent.divide(budgetTotal, 2, RoundingMode.HALF_UP) * BigDecimal(100)).toInt().coerceIn(0, 100)
                     } else 0
                     
+                    Log.d("FirebaseHomeViewModel", "Budget status: R$totalSpent / R$budgetTotal (${budgetProgress}%)")
+                    
+                    // Build the category breakdown for display
                     val categoryUiList = generateCategoryUiList(budget, categorySpending)
                     
-                    // Generate chart data for daily spending
+                    // Now for the fun part - let's build that spending chart!
                     val sevenDaysAgo = getSevenDaysAgo()
                     val today = getEndOfDay()
                     val weeklyExpenses = expenseRepository.getExpensesBetween(userId, sevenDaysAgo, today)
                     val dailySpendingData = try {
-                        val expenses = weeklyExpenses.first() // Get current value
-                        android.util.Log.d("FirebaseHomeViewModel", "=== Chart Data Generation ===")
-                        android.util.Log.d("FirebaseHomeViewModel", "Date range: $sevenDaysAgo to $today")
-                        android.util.Log.d("FirebaseHomeViewModel", "Found ${expenses.size} expenses for chart")
-                        expenses.forEach { expense ->
-                            android.util.Log.d("FirebaseHomeViewModel", "Chart expense: ${expense.categoryName} = ${expense.amount} on ${expense.date.toDate()}")
-                        }
+                        val expenses = weeklyExpenses.first() // Get the current list
+                        Log.d("FirebaseHomeViewModel", "Building chart with ${expenses.size} expenses from the past week")
                         generateDailySpendingChartData(expenses)
                     } catch (e: Exception) {
-                        android.util.Log.e("FirebaseHomeViewModel", "Error generating chart data", e)
+                        Log.e("FirebaseHomeViewModel", "Couldn't build the spending chart", e)
                         null
                     }
                     
-                    val positionText = "Tap to view rewards"
+                    val positionText = "Tap to view rewards"  // Simple placeholder for now
 
+                    // Package everything up for the UI
                     FirebaseHomeUiState(
                         greeting = greeting,
                         budgetTotal = budgetTotal,
@@ -153,13 +156,14 @@ class FirebaseHomeViewModel @Inject constructor(
                         error = null
                     )
                 }
-                .debounce(300) // Add debouncing to reduce UI update frequency
+                .debounce(300) // Don't update the UI too frantically - wait for things to settle
                 .collect { newState ->
+                    Log.d("FirebaseHomeViewModel", "Updating home screen UI with fresh data")
                     _uiState.value = newState
                 }
 
             } catch (e: Exception) {
-                Log.e("FirebaseHomeViewModel", "Error loading home data", e)
+                Log.e("FirebaseHomeViewModel", "Something went wrong loading home data", e)
                 _uiState.value = FirebaseHomeUiState(
                     isLoading = false,
                     error = "Failed to load data: ${e.message}"
@@ -180,16 +184,20 @@ class FirebaseHomeViewModel @Inject constructor(
 
     /**
      * Generates category UI list with spending vs budget comparison.
-     * Shows ALL budget categories, not just those with spending.
+     * This creates those little progress bars you see for each spending category.
      */
     private suspend fun generateCategoryUiList(
         budget: FirebaseBudget?,
         categorySpending: Map<String, BigDecimal>
     ): List<HomeCategoryItemUiState> {
+        Log.d("FirebaseHomeViewModel", "Building category display list...")
+        
         if (budget == null) {
+            Log.d("FirebaseHomeViewModel", "No budget set yet, showing default categories")
             // If no budget exists, show default categories with 0 spending
             return getDefaultCategoryNames().map { categoryName ->
                 val spent = categorySpending[categoryName] ?: BigDecimal.ZERO
+                Log.d("FirebaseHomeViewModel", "Default category $categoryName: R$spent spent (no budget)")
                 HomeCategoryItemUiState(
                     name = categoryName,
                     progress = 0, // No budget set
@@ -199,30 +207,32 @@ class FirebaseHomeViewModel @Inject constructor(
             }
         }
 
-        // Get category budgets for this budget - only those with allocated amounts > 0
+        // Get all the categories that actually have money allocated to them
         val allCategoryBudgets = budgetRepository.getCategoryBudgetsForBudgetDirect(budget.id)
         val categoryBudgets = allCategoryBudgets.filter { it.allocatedAmount > 0.0 }
         
-        android.util.Log.d("FirebaseHomeViewModel", "All categories: ${allCategoryBudgets.size}, with budgets: ${categoryBudgets.size}")
-        categoryBudgets.forEach { category ->
-            android.util.Log.d("FirebaseHomeViewModel", "Home category: ${category.categoryName} = ${category.allocatedAmount}")
-        }
+        Log.d("FirebaseHomeViewModel", "Found ${categoryBudgets.size} categories with budgets allocated")
         
         return categoryBudgets.map { categoryBudget ->
             val spent = categorySpending[categoryBudget.categoryName] ?: BigDecimal.ZERO
             val allocated = categoryBudget.getAllocatedAmountAsBigDecimal()
             
+            // Calculate how much of this category's budget has been used
             val progress = if (allocated > BigDecimal.ZERO) {
                 (spent.divide(allocated, 2, RoundingMode.HALF_UP) * BigDecimal(100)).toInt().coerceIn(0, 100)
             } else {
-                if (spent > BigDecimal.ZERO) 100 else 0 // If spending but no budget, show 100%
+                // If they've spent money but there's no budget, that's 100% over!
+                if (spent > BigDecimal.ZERO) 100 else 0
             }
             
+            // Create a nice display text showing spent vs allocated
             val percentageText = if (allocated > BigDecimal.ZERO) {
                 "R${spent.toInt()} / R${allocated.toInt()}"
             } else {
                 if (spent > BigDecimal.ZERO) "R${spent.toInt()} spent" else "No budget"
             }
+            
+            Log.d("FirebaseHomeViewModel", "Category ${categoryBudget.categoryName}: $percentageText (${progress}%)")
             
             val iconResId = getCategoryIconRes(categoryBudget.categoryName)
 
@@ -253,27 +263,32 @@ class FirebaseHomeViewModel @Inject constructor(
 
     /**
      * Generates daily spending chart data for the past 7 days.
+     * This creates the little bar chart you see on the home screen that shows your spending pattern.
      */
     private fun generateDailySpendingChartData(expenses: List<FirebaseExpense>): Pair<List<BarEntry>, List<String>> {
+        Log.d("FirebaseHomeViewModel", "Starting to build the weekly spending chart - let's see what we've got...")
+        
         val entries = ArrayList<BarEntry>()
         val labels = ArrayList<String>()
         val dayLabels = arrayOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
         
-        // Create a map to store daily totals: "yyyy-MM-dd" -> amount
+        // We'll group all expenses by date so we can see daily totals
         val dailyTotals = mutableMapOf<String, BigDecimal>()
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         
-        // Process expenses and group by date
+        // Go through each expense and add it to the right day's total
         expenses.forEach { expense ->
             val dateKey = dateFormat.format(expense.getDateAsDate())
-            dailyTotals[dateKey] = (dailyTotals[dateKey] ?: BigDecimal.ZERO) + expense.getAmountAsBigDecimal()
-            android.util.Log.d("FirebaseHomeViewModel", "Added expense: $dateKey = ${expense.getAmountAsBigDecimal()}, total now: ${dailyTotals[dateKey]}")
+            val currentTotal = dailyTotals[dateKey] ?: BigDecimal.ZERO
+            dailyTotals[dateKey] = currentTotal + expense.getAmountAsBigDecimal()
+            Log.d("FirebaseHomeViewModel", "Added R${expense.getAmountAsBigDecimal()} to $dateKey (running total: R${dailyTotals[dateKey]})")
         }
 
-        // Generate chart data for the past 7 days (including today)
+        // Now let's build the chart data for the past 7 days (including today)
         val calendar = Calendar.getInstance()
+        Log.d("FirebaseHomeViewModel", "Building chart for the past week...")
         
-        for (i in 6 downTo 0) { // 6 days ago to today
+        for (i in 6 downTo 0) { // Start from 6 days ago and work forward to today
             calendar.timeInMillis = System.currentTimeMillis()
             calendar.add(Calendar.DAY_OF_YEAR, -i)
             
@@ -282,17 +297,16 @@ class FirebaseHomeViewModel @Inject constructor(
             val dayLabel = dayLabels[dayOfWeek]
             val amount = dailyTotals[dateKey] ?: BigDecimal.ZERO
             
+            // Each bar on the chart represents one day's total spending
             entries.add(BarEntry((6 - i).toFloat(), amount.toFloat()))
             labels.add(dayLabel)
             
-            android.util.Log.d("FirebaseHomeViewModel", "Chart day $i: $dateKey ($dayLabel) = $amount")
+            Log.d("FirebaseHomeViewModel", "Chart day ${dayLabel}: R$amount ${if (amount == BigDecimal.ZERO) "(no spending)" else ""}")
         }
 
-        android.util.Log.d("FirebaseHomeViewModel", "Generated ${entries.size} chart entries")
+        Log.d("FirebaseHomeViewModel", "Chart ready! Created ${entries.size} bars showing your spending pattern")
         return Pair(entries, labels)
     }
-
-
 
     /**
      * Gets icon resource for a category.

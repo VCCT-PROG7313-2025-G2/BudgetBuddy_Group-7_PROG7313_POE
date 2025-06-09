@@ -36,6 +36,7 @@ import java.util.Locale
 import java.math.BigDecimal
 import com.example.budgetbuddy.util.toIntSafe
 import javax.inject.Inject
+import android.util.Log
 
 @AndroidEntryPoint
 class HomeFragment : Fragment() {
@@ -120,35 +121,38 @@ class HomeFragment : Fragment() {
 
     // Sets up what happens when buttons or cards are clicked.
     private fun setupClickListeners() {
-        // Go to the "Add New Expense" screen when the button is clicked.
+        Log.d("HomeFragment", "Setting up button clicks and navigation")
+        
+        // When they tap the "Add Expense" button, take them to the expense entry screen
         binding.addExpenseButton.setOnClickListener {
+            Log.d("HomeFragment", "User wants to add a new expense")
             findNavController().navigate(R.id.action_homeFragment_to_newExpenseFragment)
         }
-        // Go to the Settings screen.
+        
+        // Settings button for app configuration
         binding.settingsButton.setOnClickListener {
+            Log.d("HomeFragment", "User opened settings")
             findNavController().navigate(R.id.action_homeFragment_to_settingsFragment)
         }
 
-        // Go to the Budget Setup screen from various places.
+        // These cards both lead to budget setup - makes sense since they show budget info
         val budgetSetupAction = R.id.action_homeFragment_to_budgetSetupFragment
         binding.balanceCardView.setOnClickListener {
+            Log.d("HomeFragment", "User tapped balance card - taking them to budget setup")
             findNavController().navigate(budgetSetupAction)
         }
         binding.budgetCategoriesCardView.setOnClickListener {
+            Log.d("HomeFragment", "User tapped categories card - taking them to budget setup")
             findNavController().navigate(budgetSetupAction)
         }
 
-        // Go to the Rewards screen using bottom navigation to maintain proper state.
+        // For rewards, we need to use the bottom navigation to maintain proper state
         binding.rewardsContainer.setOnClickListener {
-            // Find the bottom navigation view and simulate clicking the rewards tab
+            Log.d("HomeFragment", "User wants to see rewards - switching to rewards tab")
+            // Find the bottom navigation and simulate a tap on the rewards tab
             val bottomNavigation = activity?.findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.bottom_navigation)
             bottomNavigation?.selectedItemId = R.id.rewardsFragment
         }
-
-        // Old temporary navigation clicks were removed.
-        // binding.budgetCategoriesLabelTextView.setOnClickListener { ... }
-        // binding.spendingTrendChartView.setOnClickListener { ... }
-        // binding.rewardsLabelTextView.setOnClickListener { ... }
     }
 
     // Observes data changes from the HomeViewModel and updates the UI.
@@ -159,6 +163,8 @@ class HomeFragment : Fragment() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 // Collect the latest UI state from the ViewModel's flow.
                 viewModel.uiState.collect { state ->
+                    Log.d("HomeFragment", "Got new data from ViewModel, updating the UI...")
+                    
                     // Update the greeting text.
                     binding.greetingTextView.text = state.greeting
                     
@@ -167,30 +173,34 @@ class HomeFragment : Fragment() {
                     val totalAmount = currencyConverter.formatAmount(state.budgetTotal)
                     binding.balanceAmountTextView.text = "$spentAmount / $totalAmount"
                     
+                    // Update the progress bar to show how much budget has been used
                     binding.budgetProgressBar.max = state.budgetTotal.toIntSafe() // Use safe conversion
                     binding.budgetProgressBar.progress = state.budgetSpent.toIntSafe()
+                    
+                    Log.d("HomeFragment", "Budget display: $spentAmount / $totalAmount")
+                    
                     // Show/hide rewards section based on data.
                     binding.rewardsContainer.isVisible = state.leaderboardPositionText.isNotEmpty()
                     binding.rewardsTextView.text = state.leaderboardPositionText
 
                     // Update the list of budget categories.
                     categoryAdapter.updateData(state.budgetCategories)
+                    Log.d("HomeFragment", "Updated category list with ${state.budgetCategories.size} categories")
 
                     // Update the bar chart if data is available, otherwise clear it.
-                    state.dailySpendingData?.let {
-                        updateSpendingTrendChart(it.first, it.second)
+                    state.dailySpendingData?.let { chartData ->
+                        Log.d("HomeFragment", "Updating spending chart with fresh data")
+                        updateSpendingTrendChart(chartData.first, chartData.second)
                     } ?: run {
+                        Log.d("HomeFragment", "No chart data available, clearing the chart")
                         binding.spendingTrendChartView.clear()
                         binding.spendingTrendChartView.invalidate()
                     }
 
-                    // Show loading indicator (optional, depends on state definition).
-                    // binding.loadingIndicator.isVisible = state.isLoading
-
                     // Show errors using a Toast message.
-                    state.error?.let {
-                        Toast.makeText(context, "Error: $it", Toast.LENGTH_LONG).show()
-                        // viewModel.clearError() // Maybe add a function to clear the error after showing
+                    state.error?.let { errorMessage ->
+                        Log.e("HomeFragment", "Showing error to user: $errorMessage")
+                        Toast.makeText(context, "Error: $errorMessage", Toast.LENGTH_LONG).show()
                     }
                 }
             }
@@ -200,48 +210,55 @@ class HomeFragment : Fragment() {
     // Updates the bar chart with new data.
     private fun updateSpendingTrendChart(entries: List<BarEntry>, labels: List<String>) {
         val chart: BarChart = binding.spendingTrendChartView
+        Log.d("HomeFragment", "Setting up spending chart with ${entries.size} data points")
+        
         // If no data, clear the chart.
         if (entries.isEmpty()) {
+            Log.d("HomeFragment", "No spending data to show, clearing chart")
             chart.clear()
             chart.invalidate()
             return
         }
 
-        // Create a dataset for the bars.
+        // Create a dataset for the bars - this is where the magic happens
         val dataSet = BarDataSet(entries, "Daily Spending")
-        dataSet.color = android.graphics.Color.BLACK // Bar color
-        dataSet.setDrawValues(false) // Don't show numbers on top of bars
+        dataSet.color = android.graphics.Color.BLACK // Keep it simple with black bars
+        dataSet.setDrawValues(false) // Don't clutter the chart with numbers on top
 
         // Set the data for the chart.
         val barData = BarData(dataSet)
         chart.data = barData
 
-        // --- Chart Appearance Configuration ---
-        chart.description.isEnabled = false // Hide chart description
-        chart.legend.isEnabled = false // Hide legend
-        chart.setTouchEnabled(false) // Disable touch interactions
-        chart.setDrawGridBackground(false) // No background grid
-        chart.setDrawBarShadow(false) // No shadows behind bars
+        Log.d("HomeFragment", "Chart configured with ${labels.joinToString(", ")} as day labels")
 
-        // X-Axis (Bottom labels - days of the week)
+        // --- Make the chart look good ---
+        chart.description.isEnabled = false // We don't need a description
+        chart.legend.isEnabled = false // Keep it clean, no legend needed
+        chart.setTouchEnabled(false) // This is just for viewing, not interacting
+        chart.setDrawGridBackground(false) // Clean look without background grid
+        chart.setDrawBarShadow(false) // No fancy shadows needed
+
+        // Set up the bottom labels (days of the week)
         val xAxis = chart.xAxis
-        xAxis.valueFormatter = IndexAxisValueFormatter(labels) // Use provided labels (e.g., "Mon", "Tue")
+        xAxis.valueFormatter = IndexAxisValueFormatter(labels) // Use our day names
         xAxis.position = com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM
-        xAxis.setDrawGridLines(false) // No vertical grid lines
-        xAxis.granularity = 1f // Minimum interval between labels
-        xAxis.labelCount = labels.size // Try to show all labels
+        xAxis.setDrawGridLines(false) // Clean look
+        xAxis.granularity = 1f // One label per day
+        xAxis.labelCount = labels.size // Show all the day labels
 
-        // Y-Axis (Left labels - spending amount)
+        // Set up the left side labels (spending amounts)
         val leftAxis = chart.axisLeft
-        leftAxis.setDrawGridLines(false) // No horizontal grid lines
-        leftAxis.setDrawAxisLine(true) // Show the axis line itself
-        leftAxis.setDrawLabels(true) // Show amount labels
-        leftAxis.axisMinimum = 0f // Start Y-axis at zero
+        leftAxis.setDrawGridLines(false) // Keep it clean
+        leftAxis.setDrawAxisLine(true) // But show the main axis line
+        leftAxis.setDrawLabels(true) // Show the amount labels
+        leftAxis.axisMinimum = 0f // Always start from zero
 
-        // Hide the right Y-axis.
+        // Hide the right side axis - we don't need it
         chart.axisRight.isEnabled = false
-        // Refresh the chart to show changes.
+        
+        // Refresh the chart to show all our changes
         chart.invalidate()
+        Log.d("HomeFragment", "Chart updated and ready to display!")
     }
 
     // Helper function to safely convert BigDecimal to Int for ProgressBar

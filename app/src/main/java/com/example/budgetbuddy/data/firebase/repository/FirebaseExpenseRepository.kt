@@ -14,6 +14,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import android.net.Uri
 import com.google.firebase.Timestamp
+import android.util.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 
 /**
  * Firebase expense repository that handles expense management using Firestore.
@@ -85,9 +89,12 @@ class FirebaseExpenseRepository @Inject constructor(
     }
 
     /**
-     * Gets expenses between two dates for a user.
+     * Gets all expenses between two dates - this is what powers the spending chart.
+     * Returns a Flow so the UI updates automatically when expenses change.
      */
     fun getExpensesBetween(userId: String, startDate: Date, endDate: Date): Flow<List<FirebaseExpense>> = callbackFlow {
+        Log.d("ExpenseRepository", "Setting up expense stream for user $userId from $startDate to $endDate")
+        
         val listener = firestore.collection(EXPENSES_COLLECTION)
             .whereEqualTo("userId", userId)
             .whereGreaterThanOrEqualTo("date", Timestamp(startDate))
@@ -95,15 +102,20 @@ class FirebaseExpenseRepository @Inject constructor(
             .orderBy("date", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    Log.e("ExpenseRepository", "Error listening for expenses", error)
                     close(error)
                     return@addSnapshotListener
                 }
                 
                 val expenses = snapshot?.toObjects(FirebaseExpense::class.java) ?: emptyList()
+                Log.d("ExpenseRepository", "Found ${expenses.size} expenses in the date range")
                 trySend(expenses)
             }
         
-        awaitClose { listener.remove() }
+        awaitClose { 
+            Log.d("ExpenseRepository", "Cleaning up expense listener")
+            listener.remove() 
+        }
     }
 
     /**
