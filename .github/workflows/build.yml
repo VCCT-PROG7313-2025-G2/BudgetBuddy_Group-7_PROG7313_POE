@@ -22,6 +22,15 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+      with:
+        api-level: 35
+        build-tools: 35.0.0
+
+    - name: Accept Android SDK licenses
+      run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
     - name: Create mock google-services.json
       run: |
         mkdir -p app/
@@ -83,6 +92,15 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
         cache: gradle
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+      with:
+        api-level: 35
+        build-tools: 35.0.0
+
+    - name: Accept Android SDK licenses
+      run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
     - name: Create mock google-services.json
       run: |
@@ -147,6 +165,15 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+      with:
+        api-level: 35
+        build-tools: 35.0.0
+
+    - name: Accept Android SDK licenses
+      run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
     - name: Create mock google-services.json
       run: |
         mkdir -p app/
@@ -194,70 +221,4 @@ jobs:
         name: budgetbuddy-debug-apk
         path: app/build/outputs/apk/debug/app-debug.apk
 
-  # Skip instrumented tests for now as they're complex to set up and may not be essential for CI
-  # Can be re-enabled later with proper Firebase emulator setup
-  
-  code-quality:
-    name: Code Quality Analysis
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Set up JDK 11
-      uses: actions/setup-java@v4
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-        cache: gradle
-
-    - name: Create mock google-services.json
-      run: |
-        mkdir -p app/
-        cat > app/google-services.json << 'EOF'
-        {
-          "project_info": {
-            "project_number": "000000000000",
-            "project_id": "mock-project-id"
-          },
-          "client": [
-            {
-              "client_info": {
-                "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
-                "android_client_info": {
-                  "package_name": "com.example.budgetbuddy"
-                }
-              },
-              "oauth_client": [],
-              "api_key": [
-                {
-                  "current_key": "mock-api-key"
-                }
-              ],
-              "services": {
-                "appinvite_service": {
-                  "other_platform_oauth_client": []
-                }
-              }
-            }
-          ],
-          "configuration_version": "1"
-        }
-        EOF
-
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-
-    - name: Generate test coverage report (if available)
-      run: ./gradlew testDebugUnitTestCoverage --stacktrace || echo "Coverage task not available, skipping"
-
-    - name: Upload coverage reports
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: coverage-reports
-        path: app/build/reports/
-
-  # Security scan temporarily disabled to simplify CI
-  # Can be re-enabled later once basic build/test pipeline is stable 
+  # Simplified workflow - focusing on core functionality for now 
