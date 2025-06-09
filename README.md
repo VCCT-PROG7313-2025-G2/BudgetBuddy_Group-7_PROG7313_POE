@@ -3,18 +3,71 @@
 > **Smart Budgeting & Expense Tracking Mobile App**  
 > Empower your financial habits — track expenses, set goals, and achieve rewards!
 
+## 🎯 Purpose of the App
+
+BudgetBuddy was created to address the growing need for accessible, intuitive financial management tools. In today's economic climate, effective expense tracking and budget planning are essential life skills. This app serves as a comprehensive solution for:
+
+- **Personal Financial Literacy**: Helping users understand their spending patterns and develop healthier financial habits
+- **Goal-Oriented Budgeting**: Enabling users to set realistic financial targets and track progress toward achieving them
+- **Expense Awareness**: Providing clear insights into where money goes, empowering informed financial decisions
+- **Behavioral Change**: Using gamification elements (rewards, achievements) to encourage consistent financial tracking
+- **Accessibility**: Making sophisticated budgeting tools available to users regardless of their financial background or expertise
+
+The app bridges the gap between complex financial software and simple expense trackers, offering professional-grade features in an approachable, user-friendly interface.
+
+## 🔧 GitHub & GitHub Actions Integration
+
+BudgetBuddy leverages GitHub's powerful development ecosystem and automated workflows to maintain code quality and streamline development:
+
+### **Version Control & Collaboration**
+- **Repository Management**: All source code is hosted on GitHub, enabling collaborative development across team members
+- **Branch Strategy**: Feature branches for individual development, with pull requests for code review and integration
+- **Issue Tracking**: GitHub Issues used for bug reports, feature requests, and project planning
+- **Code Reviews**: Pull request system ensures all code changes are reviewed before merging
+
+### **Automated CI/CD with GitHub Actions**
+Our project implements comprehensive GitHub Actions workflows for:
+
+- **🏗️ Continuous Integration**:
+  - Automated builds on every push and pull request
+  - Unit test execution to catch regressions early
+  - Code quality checks and linting
+  - Dependency vulnerability scanning
+
+- **📱 APK Generation**:
+  - Automated debug APK builds for testing
+  - Release APK builds for deployment
+  - Artifact storage for easy download and distribution
+
+- **🧪 Testing Automation**:
+  - Unit tests for business logic validation
+  - Instrumented tests for UI functionality
+  - Performance tests to ensure app responsiveness
+  - Test reports generation and sharing
+
+- **📋 Code Quality Assurance**:
+  - Lint checks for code style and potential issues
+  - Security scanning for vulnerable dependencies
+  - Build validation across different Android API levels
+
+### **Workflow Files**
+Located in `.github/workflows/`, our automated processes include:
+- `android-ci.yml`: Main CI pipeline for builds and tests
+- `release.yml`: Release automation and APK generation
+- `code-quality.yml`: Linting and security checks
+
+This integration ensures consistent code quality, reduces manual errors, and accelerates the development cycle while maintaining high standards for the BudgetBuddy application.
+
 ---
 
 ## 📑 Table of Contents
 
 - [🚀 About the Project](#-about-the-project)
-- [🎯 Purpose of the App](#-purpose-of-the-app)
 - [🛠️ Features](#️-features)
 - [🆕 New & Lecturer-Requested Features](#-new--lecturer-requested-features)
 - [📷 Screens Overview](#-screens-overview)
 - [📂 Project Structure](#-project-structure)
 - [📦 Tech Stack](#-tech-stack)
-- [🔧 GitHub & GitHub Actions Utilization](#-github--github-actions-utilization)
 - [🧰 How to Run the Project](#-how-to-run-the-project)
 - [🧑‍🤝‍🧑 Team Members](#-team-members)
 - [📈 Future Improvements](#-future-improvements)
@@ -29,34 +82,6 @@
 It offers **expense tracking**, **budget planning**, **reports**, **rewards**, and **insights** — all wrapped in a beautiful, user-friendly experience.
 
 ![🚀 About the Project](image1.jpg)
-
----
-
-## 🎯 Purpose of the App
-
-**BudgetBuddy** was designed to address the growing need for accessible, intelligent personal finance management in today's digital world. The app serves multiple core purposes:
-
-### 📊 **Financial Awareness & Control**
-- Help users understand their spending patterns through visual analytics
-- Provide real-time budget tracking to prevent overspending
-- Enable informed financial decision-making through comprehensive reports
-
-### 🎓 **Educational Financial Management**
-- Teach healthy budgeting habits through gamification and rewards
-- Introduce users to different budgeting strategies (Balanced, Essentials First, etc.)
-- Encourage long-term financial planning and goal-setting
-
-### 🌍 **Inclusive Financial Tools**
-- Support multiple currencies for international users
-- Provide accessible interface design for users of all technical levels
-- Offer flexible budgeting approaches that adapt to different income levels
-
-### 🏆 **Motivation & Engagement**
-- Transform mundane expense tracking into an engaging experience through achievements
-- Provide positive reinforcement for good financial habits
-- Create accountability through progress tracking and grading systems
-
-The app ultimately empowers users to take control of their financial future by making budgeting simple, visual, and rewarding.
 
 ---
 
@@ -79,7 +104,7 @@ The app ultimately empowers users to take control of their financial future by m
 ## 🆕 New & Lecturer-Requested Features
 
 ### 📉 Personal Minimum Budget (Lecturer-Driven Enhancement)
-A custom budgeting floor that ensures users don't budget below their essential needs.
+A custom budgeting floor that ensures users don’t budget below their essential needs.
 
 - Users input a personal minimum monthly budget (e.g., $1500).
 - Integrated with **Auto Budget**, influencing algorithmic recommendations.
@@ -91,7 +116,7 @@ A custom budgeting floor that ensures users don't budget below their essential n
 A smart budgeting assistant that automatically distributes user budgets across categories based on selected strategies:
 
 - **Balanced**, **Essentials First**, **Savings Focus**, **Lifestyle-Heavy** options
-- Respects the user's Personal Minimum Budget
+- Respects the user’s Personal Minimum Budget
 
 ![🤖 Auto Budget](image4.jpg)
 
@@ -99,7 +124,7 @@ A smart budgeting assistant that automatically distributes user budgets across c
 Helps users track how well they stick to their budget with easy-to-understand grades (A–F):
 
 - Displays in the *Rewards & Achievements* section
-- Includes progress bars and summary descriptions like "Excellent budget management this month"
+- Includes progress bars and summary descriptions like “Excellent budget management this month”
 
 ![🅰️ Visual Grading Scale](image5.jpg)
 
@@ -125,7 +150,7 @@ Powerful analytics tool to study financial trends:
 
 - Choose timeframes: 7 days, 30 days, 3 months, 12 months
 - Category filtering and summary (e.g., R350 total, R11.29 daily avg)
-- Line graph + trend indicators (e.g., "Rising")
+- Line graph + trend indicators (e.g., “Rising”)
 - Export functionality included
 
 ![📈 Spending Analysis Over Time](image8.jpg)
@@ -196,55 +221,6 @@ BudgetBuddy/
 - **Backend:** Firebase (used for authentication and future cloud database)
 
 ![📦 Tech Stack](image14.jpeg)
-
----
-
-## 🔧 GitHub & GitHub Actions Utilization
-
-### 📁 **Repository Management**
-Our team leveraged GitHub as the central hub for collaborative development:
-
-- **Branch Strategy:** Feature-based branching with pull request reviews
-- **Code Reviews:** Mandatory peer reviews before merging to main branch
-- **Issue Tracking:** GitHub Issues for bug reports, feature requests, and task management
-- **Project Boards:** Organized development workflow using GitHub Projects
-
-### 🤖 **Automated CI/CD Pipeline**
-GitHub Actions powers our continuous integration and quality assurance:
-
-#### **🧪 Automated Testing Workflow**
-```yaml
-✅ Unit Tests (18 test cases)
-✅ Instrumented UI Tests 
-✅ Performance Testing
-✅ Firebase Integration Tests
-```
-
-#### **🔍 Code Quality Checks**
-```yaml
-✅ Lint Analysis (Android Lint)
-✅ Kotlin Code Style Validation
-✅ Build Verification (Debug & Release)
-✅ Dependency Vulnerability Scanning
-```
-
-#### **📱 Build Automation**
-- **Automatic APK Generation:** Triggered on every push to main branch
-- **Multi-Variant Builds:** Debug and Release configurations
-- **Artifact Storage:** Generated APKs stored as GitHub Actions artifacts
-
-#### **🚀 Deployment Pipeline**
-- **Automated Releases:** Tagged releases trigger production builds
-- **Release Notes Generation:** Automatic changelog from commit messages
-- **Distribution Ready:** APKs prepared for Google Play Store submission
-
-### 📊 **Development Insights**
-GitHub Actions provides comprehensive development metrics:
-- **Build Success Rate:** 94% successful builds
-- **Test Coverage:** Maintained high test coverage across critical components
-- **Performance Monitoring:** Automated performance regression detection
-
-This robust GitHub ecosystem ensures code quality, reduces manual errors, and streamlines our development process from coding to deployment.
 
 ---
 
